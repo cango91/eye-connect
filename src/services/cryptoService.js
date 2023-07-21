@@ -1,12 +1,11 @@
 const crypto = require('crypto');
 
-const algorithm = process.env.CRYPTO_ALGORITHM // crpyto algo to use for encryption/decryption
+const algorithm = process.env.CRYPTO_ALGORITHM; // crpyto algo to use for encryption/decryption
 const key = process.env.CRYPTO_KEY; // crypto key used for encryption/decryption
-const saltLength = process.env.SALT_LENGTH // 16 length of the salt to use for password hashing
-const hashIters = process.env.HASH_ITERATIONS // 100000 how many iterations for hashing passwords
-const keyLength = process.env.HASH_KEY_LENGTH // 64 key length for hashing passwords
-const hashDigest = process.env.HASH_DIGEST // digest algo used to generate key for hashing passwords
-
+const saltLength = parseInt(process.env.SALT_LENGTH); // 16 length of the salt to use for password hashing
+const hashIters = parseInt(process.env.HASH_ITERATIONS); // 100000 how many iterations for hashing passwords
+const keyLength = parseInt(process.env.HASH_KEY_LENGTH); // 64 key length for hashing passwords
+const hashDigest = process.env.HASH_DIGEST; // digest algo used to generate key for hashing passwords
 const cryptoService = {
     encrypt: buffer => {
         // generate a new iv for each encryption
@@ -16,7 +15,7 @@ const cryptoService = {
         encrypted = Buffer.concat([encrypted, cipher.final()]);
         return iv.toString('hex') + ':' + encrypted.toString('hex'); // include the IV with the encrypted data
     },
-    encryptText: text => encryptionService.encrypt(Buffer.from(text)),
+    encryptText: text => cryptoService.encrypt(Buffer.from(text)),
     decrypt: text => {
         const parts = text.split(':');
         const iv = Buffer.from(parts.shift(), 'hex');
@@ -26,7 +25,7 @@ const cryptoService = {
         decrypted = Buffer.concat([decrypted, decipher.final()]);
         return decrypted;
     },
-    decryptText: text => encryptionService.decrypt(text).toString(),
+    decryptText: text => cryptoService.decrypt(text).toString(),
     hashPassword: (password, callback) => {
         // generate a new salt for each password
         const salt = crypto.randomBytes(saltLength).toString('hex');
