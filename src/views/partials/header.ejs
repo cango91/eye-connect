@@ -4,15 +4,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <% if(header && header.style){ %>
-  <link rel="stylesheet" href="<%= header.style %>">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+  <% if(typeof header !== 'undefined'){ %>
+    <% if(header?.styles){ %>
+      <% header.styles.forEach(function(style){ %>
+      <link rel="stylesheet" href="<%= style %>">
+      <% }); %>
+    <% } else { %>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <% } %>
+    <% if(header?.scripts){ %>
+      <% header.scripts.forEach(function(script){ %>
+      <script <%- script.module ? `type="module"` : '' %> <%- script.defer ? `defer` : '' %> src="<%= script.file %>"> </script>
+      <% }); %>
+    <% } %>
+    <title><%- header?.title ? header.title : `eye Connect` %></title>
   <% } else { %>
-  <link rel="stylesheet" href="/stylesheets/style.css">
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <title>eye Connect</title>
   <% } %>
-  <% if(header && header.js){ %>
-  <script <%- header.js.module ? `type="module"` : '' %> <%- header.js.defer ? `defer` : '' %> src="<%= header.js.file %>"> </script>
-  <% } %>
-  <title><%- header && header.title ? header.title : `eye Connect` %></title>
 </head>
-
 <body>
+  <div class="banner">
+  </div>
+  <%- include('./navigation') %>
