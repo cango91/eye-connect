@@ -15,6 +15,12 @@ router.get('/',(req,res)=>{
 //GET /portal/login display login page
 router.get('/login',portalCtrl.showLogIn);
 
+//GET /portal/forgot-password
+router.get('/forgot-password',portalCtrl.showForgotPassword);
+
+//GET /portal/signup show signup page for local-strategy
+router.get('/signup',portalCtrl.showSignUp);
+
 //POST /portal/agreeToPolicy AJAX request to set session variable so the pop-up won't come up again
 router.post('/agree-to-policy',portalCtrl.agreeToPolicy);
 

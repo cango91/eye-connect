@@ -1,21 +1,24 @@
-:root{
+:root {
   --logo-stroke: #0d0087;
+  --background-color: #FFF490;
+  --express-a-color: #00B7FF;
+  --password-hints-bg-color: #fbf5bc;
 }
 
 body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
-  background-color: #FFF490;
+  background-color: var(--background-color);
 }
 
 a {
-  color: #00B7FF;
+  color: var(--express-a-color);
 }
 
-.banner{
+.banner {
   width: 100%;
   height: 350px;
-  background-image: url('../images/banner.webp');
-  background-size:cover;
+  background-image: url('/images/banner.webp');
+  background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
 }
@@ -33,14 +36,25 @@ a {
 }
 
 footer ul>li.nav-item>a.nav-link.active,
-footer{
+footer {
   color: aliceblue;
 }
 
-footer ul>li.nav-item>a.nav-link{
+footer ul>li.nav-item>a.nav-link {
   color: rgba(255, 255, 255, 0.55);
 }
 
-.logo{
+.logo {
   rotate: -90deg;
+}
+
+#alert-div {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+}
+
+.password-hints {
+  background-color: var(--password-hints-bg-color);
 }

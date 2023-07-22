@@ -1,4 +1,67 @@
 <%- include('./partials/header') %>
 <%- include('./partials/navigation') %>
 <%- include('./partials/policyPopup') %>
+<main class="container mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="text-center">
+    <h2>Sign-up With eyeConnect Portal</h2>
+  </div>
+  <div class="container-fluid">
+    <div id="alert-div"></div>
+    <form role="form" action="/portal/signup" method="post" id="signup-form">
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input autocomplete="email" type="email" class="form-control" id="email" name="email" required>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input autocomplete="new-password" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$" type="password" class="form-control" id="password" name="password" required>
+      </div>
+      <div class="mb-3 px-2 py-2 mx-auto d-block shadow-lg password-hints">
+        <p>Your password must:</p>
+        <ul>
+          <li>Be at least 8 characters long</li>
+          <li>Include at least one digit</li>
+          <li>Include at least one lowercase letter</li>
+          <li>Include at least one uppercase letter</li>
+        </ul>
+      </div>
+      <div class="mb-3">
+        <label for="retype-password" class="form-label">Re-type Password</label>
+        <input autocomplete="off" type="password" class="form-control" id="retype-password" name="retype-password" required>
+      </div>
+      <div class="mb-3 d-flex justify-content-end">
+        <button type="button" class="btn btn-primary" id="signup-button">Sign Up</button>
+      </div>
+      <div class="d-flex justify-content-between">
+        <p>Already a member? <a href="/portal">Log-in instead</a></p>
+      </div>
+    </form>
+</main>
+<script>
+  // client-side validation
+  document.getElementById('signup-button').addEventListener('click', () => {
+    var password = document.getElementById('password').value;
+    var retypePassword = document.getElementById('retype-password').value;
+
+    var regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+
+    if (!regex.test(password)) {
+      showAlert('Password does not meet the requirements!', 'danger');
+      return;
+    }
+
+    if (password !== retypePassword) {
+      showAlert('Passwords do not match!', 'danger');
+      return;
+    }
+
+    document.getElementById('signup-form').submit();
+  });
+
+  const showAlert = (message, type) => {
+    var alertDiv = document.getElementById('alert-div');
+    alertDiv.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' + message +
+      '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+  }
+</script>
 <%- include('./partials/footer') %>
