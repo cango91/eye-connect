@@ -20,14 +20,6 @@ a {
   background-position: center;
 }
 
-/* .logo,
-.banner img{
-  border-radius: 50%;
-  border: 5px solid var(--logo-stroke);
-  box-shadow: .25rem .25rem 0.35rem var(--logo-stroke);
-  filter: drop-shadow(.25rem .25rem 0.35rem var(--logo-stroke));
-} */
-
 .container {
   max-width: 810px;
   color: #333;
@@ -43,4 +35,8 @@ a {
 footer ul>li.nav-item>a.nav-link,
 footer{
   color: aliceblue;
+}
+
+.logo{
+  rotate: -90deg;
 }

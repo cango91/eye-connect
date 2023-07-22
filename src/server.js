@@ -12,6 +12,7 @@ require('./infra/db');
 
 const indexRouter = require('./routes/index');
 const aboutRouter = require('./routes/about');
+const portalRouter = require('./routes/portal');
 
 const methodOverride = require('method-override');
 
@@ -45,6 +46,7 @@ app.use((req, res, next) => {
 
 app.use('/', indexRouter);
 app.use('/about', aboutRouter);
+app.use('/portal',portalRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

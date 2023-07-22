@@ -1,0 +1,68 @@
+<div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="policyModalLabel">Attention, Healthcare Professionals</h5>
+        <button type="button" class="btn-close" id="close-button" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          <b>This web application is exclusively designed for use by professional healthcare providers. By
+            continuing, you acknowledge and affirm the following:</b>
+        <ol>
+          <li>You confirm that you are a registered and certified healthcare professional.</li>
+          <li>You agree to abide by our <a href="#">Terms of Service.</a></li>
+          <li>You acknowledge that you have read and accept our <a href="#">Privacy Policy.</a></li>
+        </ol>
+        Please ensure you understand and agree with all the stated terms before proceeding to the Portal.
+        </p>
+        <p><b>Proceed Only If You Are A Healthcare Professional</b></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="reject-button">I'm Not a HCP</button>
+        <button type="button" class="btn btn-primary" id="agree-button">Agree &amp; Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const modalEl = document.getElementById('policyModal');
+    const policyModal = new bootstrap.Modal(modalEl, {
+      backdrop: 'static'
+    });
+    <% if (showPolicyPopup) { %>
+    policyModal.show();
+    <% } %>
+
+    //const agreeButton = document.getElementById('agree-button');
+    modalEl.addEventListener('click', evt => {
+      if (!evt.target.id) return;
+      let postUrl;
+      if (evt.target.id === 'reject-button' || evt.target.id === 'close-button') {
+        postUrl = '/portal/reject-policy'
+      } else if (evt.target.id === 'agree-button') {
+        postUrl = '/portal/agree-to-policy'
+      } else {
+        return;
+      }
+      let returnTo = encodeURIComponent(window.location.pathname);
+
+      // Make an AJAX request
+      let xhr = new XMLHttpRequest();
+      xhr.open('POST', postUrl + '?returnTo=' + returnTo, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          let response = JSON.parse(xhr.responseText);
+          if (response.redirect) {
+            window.location.href = response.redirect;
+          } else {
+            location.reload();
+          }
+        }
+      }
+      xhr.send();
+    });
+  });
+</script>

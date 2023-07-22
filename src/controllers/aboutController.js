@@ -13,7 +13,7 @@ const about = (req, res) => {
                 text: 'Portal',
                 dropdown: [{
                     text:'Home',
-                    href: '/portal/home'
+                    href: '/portal'
                 }]
             }],
             active: 'About'
