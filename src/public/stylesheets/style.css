@@ -32,9 +32,13 @@ a {
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.15);
 }
 
-footer ul>li.nav-item>a.nav-link,
+footer ul>li.nav-item>a.nav-link.active,
 footer{
   color: aliceblue;
+}
+
+footer ul>li.nav-item>a.nav-link{
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .logo{

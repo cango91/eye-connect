@@ -4,10 +4,12 @@ const iNav = {
             text: null,
             href: null,
             dropdown: null,
+            showInFooter: null
         },
         {
             text: null,
             href: null,
+            showInFooter: null,
             dropdown: [{
                 text: null,
                 href: null,

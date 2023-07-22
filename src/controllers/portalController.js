@@ -9,10 +9,12 @@ const showLogIn = (req, res) => {
                 {
                     text: 'Home',
                     href: '/',
+                    showInFooter: true,
                 },
                 {
                     text: 'Login',
                     href: '#',
+                    showInFooter: true,
                 },
             ],
             active: 'Login'
@@ -33,7 +35,6 @@ const rejectPolicy = (req, res) => {
             res.json({ redirect: '/' });
         });
     }
-
     req.session.regenerate(err => {
         if (err) {
             console.error(err);

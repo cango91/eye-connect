@@ -8,6 +8,7 @@ const about = (req, res) => {
             items: [{
                 text: 'About',
                 href: '#',
+                showInFooter: true,
             },
             {
                 text: 'Portal',
@@ -24,10 +25,12 @@ const about = (req, res) => {
             items: [{
                 text: 'Home',
                 href: '#',
+                showInFooter: true,
             },
             {
                 text: 'Login',
                 href: '/portal',
+                showInFooter: true,
             }],
             active: 'Home',
         };
