@@ -1,3 +1,8 @@
+/*
+UsersService provides the following benefits:
++ Provide decoupling from db implementation
++ Keep controller relatively concise and clean (since our user signup flow is complicated)
+ */
 const cryptoService = require('./cryptoService');
 const User = require('../models/user');
 
@@ -40,7 +45,6 @@ const initialLocalSignUp = async userData => {
 const initialOAuthSignUp = async userData => {
     try {
         if (!await isEmailUnique(userData.email)) throw new Error('Email in use');
-        // if (!isUsernameAvailable(userData.username)) throw new Error('Username already taken');
         if (!!!userData.googleId) throw new Error('GoogleId not provided');
         // Create a new user with info returned from Google
         const user = new User({
@@ -60,19 +64,57 @@ const initialOAuthSignUp = async userData => {
 
 const completeProfile = async userData => {
     try {
-        const user = await User.findById(userData._id);
+        const user = await User.findById(userData.id);
         if (!user) throw new Error('User not found');
         if (!userData.name || !userData.institution || !userData.role) throw new Error('Missing personal data');
+        if (userData.role === 'MedicalDirector') throw new Error('Medical Director role can not be assigned. Please contact your IT Department to be registered as director');
+        if (!userData.role in ['FieldHCP','SpecialistHCP']) throw new Error('Invalid user role');
         user.name = userData.name;
         user.institution = userData.institution;
         user.role = userData.role
         user.validationStatus = 'PendingValidation';
         user.additionalInfo = userData.additionalInfo;
-        user.validateBeforeSave = true;
+        await user.save({validateBeforeSave: true});
+        return user;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+}
+
+const validateUser = async userId =>{
+    try {
+        const user = await User.findById(userId);
+        if(!user) throw new Error('User not found');
+        user.validationStatus = 'Validated';
         await user.save();
         return user;
     } catch (err) {
         console.error(err);
+    }
+}
+
+const rejectUser = async user =>{
+    try {
+        const user = await User.findById(userId);
+        if(!user) throw new Error('User not found');
+        user.validationStatus = 'ValidationFailed';
+        await user.save();
+        return user;
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+const revokeUser = async user =>{
+    try {
+        const user = await User.findById(userId);
+        if(!user) throw new Error('User not found');
+        user.validationStatus = 'ValidationRevoked';
+        await user.save();
+        return user;
+    } catch (err) {
+        console.error(err);        
     }
 }
 
@@ -144,4 +186,5 @@ module.exports = {
     getUserByEmail,
     isEmailUnique,
     isStrongPassword,
+    validateUser,
 };

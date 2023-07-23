@@ -7,29 +7,42 @@
   <div class="container-fluid">
     <div id="alert-div"></div>
     <div class="mb-3 px-2 py-2 mx-auto d-block shadow-lg password-hints">
-        <p><b>One last step before your registration is finalized</b></p>
-        <p>Please provide your full name, institution and any other additional information (diploma serial number, HCP registration id, etc) that might expedite the program's medical director to validate your identity.</p>
-        <p><b>Please ensure the accuracy of the information you provide, otherwise your account may not get validated.</b></p>
+        <p><strong>You're almost done with your registration</strong></p>
+        <p>We need you to provide your full name, your affiliation, and any other pertinent details (like your diploma serial number, HCP registration id, etc) to help our program's medical director confirm your identity more quickly.</p>
+        <p><strong>Be precise with the details you provide, otherwise, your account might not be authenticated.</strong></p>
+        <p>Keep in mind that your user experience with this application will vary based on the role you choose.</p>
+        <h3>What role is best for me?</h3>
+        <p>If you're a healthcare professional serving in rural or underserved areas where there's limited access to specialized eye care, you should opt for the <strong>Field HCP</strong> role. In this role, you'll be able to generate patient files, include your examination findings, and upload retinal images of the patients you examine. A specialist HCP can then add their review notes for the images you've uploaded. <small>(Check <a href="https://eyewiki.aao.org/Smartphone_Funduscopy_-_How_to_Use_Smartphone_to_Take_Fundus_Photographs">this link</a> for guidance on capturing retinal images with your smartphone)</small></p>
+        <p>If you are a specialist in ophthalmology and want to assist colleagues working in areas with limited access to specialized eye care, you should choose the <strong>Specialist HCP</strong> role. As a specialist, you won't be creating patient records. We understand that your time is precious, so when you log into the system, you'll be shown examinations that require consultations. These examinations will include notes from field colleagues and uploaded retinal images. The retinal images will contain an initial automated retinopathy classification, but these should not be taken as conclusive. As an ophthalmology specialist, you'll have the opportunity to add your consultation notes, and agree or disagree with the automated diagnosis. Over time, the automated classifier will improve through your collective feedback, but remember, no digital system can match the accuracy of a seasoned ophthalmologist.</p>
     </div>
+    
     <form role="form" action="/portal/signup/complete" method="post" id="signup-form">
-        <div class="mb-3">
-            <p><%= user.email %></p>
-        </div>
-        <div class="mb-3">
-            <label for="name" class="form-label">Full Name</label>
-            <input autocomplete="name" type="text" class="form-control" id="name" name="name" required>
-        </div>
-        <div class="mb-3">
-            <label for="institution" class="form-label">Institution</label>
-            <input autocomplete="work" type="text" class="form-control" id="institution" name="institution" required>
-        </div>
-        <div class="mb-3">
-            <label for="additionalInfo" class="form-label">Additional Info</label>
-            <textarea id="additional" name="additionalInfo" class="form-control"></textarea>
-        </div>
-        <div class="mb-3 d-flex justify-content-end">
-            <button type="submit" class="btn btn-primary" id="signup-button">Complete</button>
-          </div>
+      <div class="mb-3">
+        <p><%= user.email %></p>
+      </div class="mb-3">
+      <div>
+        <label for="role" class="form-label required-label">Role</label>
+        <select class="form-control" name="role" required>
+          <option hidden selected>Please choose a role</option>
+          <option value="FieldHCP">Field HCP - I'm a healthcare provider working in the field</option>
+          <option value="SpecialistHCP">Specialist HCP - I'm an ophthalmology specialist</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="name" class="form-label required-label">Full Name</label>
+        <input autocomplete="name" type="text" class="form-control" id="name" name="name" required>
+      </div>
+      <div class="mb-3">
+        <label for="institution" class="form-label required-label">Institution</label>
+        <input autocomplete="work" type="text" class="form-control" id="institution" name="institution" required>
+      </div>
+      <div class="mb-3">
+        <label for="additionalInfo" class="form-label">Additional Info</label>
+        <textarea id="additional" name="additionalInfo" class="form-control"></textarea>
+      </div>
+      <div class="mb-3 d-flex justify-content-end">
+        <button type="submit" class="btn btn-primary" id="signup-button">Complete</button>
+      </div>
     </form>
   </div>
 </main>

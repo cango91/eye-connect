@@ -58,3 +58,8 @@ footer ul>li.nav-item>a.nav-link {
 .password-hints {
   background-color: var(--password-hints-bg-color);
 }
+
+.required-label::before {
+  content: "* ";
+  color: red;
+}

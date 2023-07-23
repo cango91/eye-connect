@@ -208,9 +208,12 @@ const login = (req, res, next) => {
 const logout = (req, res, next) => {
     req.logout(() => {
         res.redirect('/');
-    })
+    });
 }
 
+// Since xmlhttp requests don't automatically redirect like browser http requests, we can only suggest
+// redirect link and hope the client-side js honors it. But we still enforce policy acceptance by tracking
+// it on the server side through session
 const agreeToPolicy = (req, res) => {
     req.session.agreedToPolicy = true;
     let returnTo = req.query.returnTo || '/portal/login';
@@ -233,6 +236,28 @@ const rejectPolicy = (req, res) => {
     });
 }
 
+const completeProfile = async (req, res, next) => {
+    if(!req.isAuthenticated()) return res.redirect('/portal/login');
+    try {
+        req.body.id = res.locals.user.id;
+        const user = await usersService.completeProfile(req.body);
+        if(!user) throw new Error('Could not complete sign up, unknown error');
+        if(res.locals.autoValidate){
+            setTimeout(()=>{
+                try {
+                    usersService.validateUser(user._id);
+                } catch (err) {
+                    console.error(err);
+                }
+            }, res.locals.autoValidateTimeout);
+        }
+        return res.redirect('/portal/home');
+    } catch (err) {
+        console.error(err);
+        res.render('signupError', _buildSignupError([err]));
+    }
+}
+
 module.exports = {
     showLogIn,
     agreeToPolicy,
@@ -240,6 +265,7 @@ module.exports = {
     showForgotPassword,
     showSignUp,
     signUp,
+    completeProfile,
     oAuthCallback,
     login,
     logout,

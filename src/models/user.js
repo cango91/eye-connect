@@ -33,7 +33,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['FieldHCP', 'SpecialistHCP'],
+        enum: ['FieldHCP', 'SpecialistHCP','MedicalDirector'],
         required: true,
     },
     name: {

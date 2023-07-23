@@ -3,7 +3,6 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-//const passport = require('passport');
 const session = require('express-session');
 
 require('dotenv').config();
@@ -40,6 +39,7 @@ app.use(session({
   saveUninitialized: true,
 }));
 
+// initialize passport through the authenticationService which also configures strategies
 app.use(authenticate.initialize());
 app.use(authenticate.session());
 
@@ -47,6 +47,10 @@ app.use((req, res, next) => {
   res.locals.user = req.user;
   // TIL res.locals.debug is a reserved property name
   res.locals.debugMode = process.env.DEBUG_MODE === 'true';
+  res.locals.autoValidate = process.env.AUTO_VALIDATE === 'true';
+  if(res.locals.autoValidate){
+    res.locals.autoValidateTimeout = parseInt(process.env.AUTO_VALIDATE_TIMEOUT);
+  }
   next();
 });
 

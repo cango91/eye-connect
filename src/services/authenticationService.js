@@ -1,3 +1,6 @@
+// Wraps passport.js to provide some decoupling for authentication.
+// Rest of the app doesn't directly depend on passport.js
+// Provides a singleton implementation to ensure strategies are only configured once
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const LocalStrategy = require('passport-local').Strategy;
@@ -41,14 +44,14 @@ module.exports = class AuthenticateService {
                 passwordField: 'password',
             },
                 async (email, password, cb) => {
-                try {
-                    const user = await this.usersService.getUserByEmail(email);
-                    if (!user) throw new Error('User not found');
-                    return cb(null, await this.usersService.verifyUser(user, password) ? user : false);
-                } catch (err) {
-                    return cb(err);
-                }
-            }));
+                    try {
+                        const user = await this.usersService.getUserByEmail(email);
+                        if (!user) throw new Error('User not found');
+                        return cb(null, await this.usersService.verifyUser(user, password) ? user : false);
+                    } catch (err) {
+                        return cb(err);
+                    }
+                }));
             passport.use('local-signup', new LocalStrategy({
                 usernameField: 'email',
                 passwordField: 'password',
@@ -103,5 +106,14 @@ module.exports = class AuthenticateService {
             if (!user) throw new Error(info.message);
         }
         return passport.authenticate(['local-login', 'google'], cb || defaultCb);
+    }
+
+    authenticate = (req, res, next) => {
+        try {
+            if (req.isAuthenticated()) return next();
+            return res.redirect('/portal/login');
+        } catch (err) {
+            console.error(err);
+        }
     }
 }

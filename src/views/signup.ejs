@@ -9,15 +9,15 @@
     <div id="alert-div"></div>
     <form role="form" action="/portal/signup" method="post" id="signup-form">
       <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
+        <label for="email" class="form-label required-label">Email</label>
         <input autocomplete="email" type="email" class="form-control" id="email" name="email" required>
       </div>
       <div class="mb-3">
-        <label for="display-name" class="form-label">Display Name</label>
+        <label for="display-name" class="form-label required-label">Display Name</label>
         <input autocomplete="name" type="email" class="form-control" id="display-name" name="displayName" required minlength="3">
       </div>
       <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
+        <label for="password" class="form-label required-label">Password</label>
         <input autocomplete="new-password" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$" type="password" class="form-control" id="password" name="password" required>
       </div>
       <div class="mb-3 px-2 py-2 mx-auto d-block shadow-lg password-hints">
@@ -30,7 +30,7 @@
         </ul>
       </div>
       <div class="mb-3">
-        <label for="retype-password" class="form-label">Re-type Password</label>
+        <label for="retype-password" class="form-label required-label">Re-type Password</label>
         <input autocomplete="off" type="password" class="form-control" id="retype-password" name="retype-password" required>
       </div>
       <div class="mb-3 d-flex justify-content-end">
