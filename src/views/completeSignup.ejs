@@ -1,0 +1,36 @@
+<%- include('./partials/header') %>
+<%- include('./partials/navigation') %>
+<main class="container mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="text-center">
+    <h2>Complete Sign Up</h2>
+  </div>
+  <div class="container-fluid">
+    <div id="alert-div"></div>
+    <div class="mb-3 px-2 py-2 mx-auto d-block shadow-lg password-hints">
+        <p><b>One last step before your registration is finalized</b></p>
+        <p>Please provide your full name, institution and any other additional information (diploma serial number, HCP registration id, etc) that might expedite the program's medical director to validate your identity.</p>
+        <p><b>Please ensure the accuracy of the information you provide, otherwise your account may not get validated.</b></p>
+    </div>
+    <form role="form" action="/portal/signup/complete" method="post" id="signup-form">
+        <div class="mb-3">
+            <p><%= user.email %></p>
+        </div>
+        <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <input autocomplete="name" type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+            <label for="institution" class="form-label">Institution</label>
+            <input autocomplete="work" type="text" class="form-control" id="institution" name="institution" required>
+        </div>
+        <div class="mb-3">
+            <label for="additionalInfo" class="form-label">Additional Info</label>
+            <textarea id="additional" name="additionalInfo" class="form-control"></textarea>
+        </div>
+        <div class="mb-3 d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary" id="signup-button">Complete</button>
+          </div>
+    </form>
+  </div>
+</main>
+<%- include('./partials/footer') %>

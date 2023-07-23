@@ -5,26 +5,36 @@ const router = express.Router();
 // GET /portal -> if logged-in redirect to /portal/home
 // if not logged in redirect to /portal/login
 router.get('/',(req,res)=>{
-    if(req.user){
-        res.redirect('/portal/home');
+    if(req.isAuthenticated()){
+        if(req.user.validationStatus === 'Incomplete'){
+            res.redirect('/portal/signup');
+        }else{
+            res.redirect('/portal/home');
+        }
     }else{
         res.redirect('/portal/login');
     }
 });
 
+//GET /portal/login/oauth/google
+router.get('/login/oauth/google',portalCtrl.login);
+//GET /portal/login/oauth/google/callback
+router.get('/login/oauth/google/callback',portalCtrl.oAuthCallback);
+//GET /portal/logout
+router.get('/logout',portalCtrl.logout);
 //GET /portal/login display login page
 router.get('/login',portalCtrl.showLogIn);
-
 //GET /portal/forgot-password
 router.get('/forgot-password',portalCtrl.showForgotPassword);
-
-//GET /portal/signup show signup page for local-strategy
+//GET /portal/signup show signup page for local-strategy or completion
 router.get('/signup',portalCtrl.showSignUp);
-
+//POST /portal/login to login the user
+router.post('/login',portalCtrl.login);
+//POST /portal/signup to signup a new user
+router.post('/signup',portalCtrl.signUp);
 //POST /portal/agreeToPolicy AJAX request to set session variable so the pop-up won't come up again
 router.post('/agree-to-policy',portalCtrl.agreeToPolicy);
-
-//POST /portal/rejectPolicy AJAX request to unset session variable. Logs the user out
+//POST /portal/rejectPolicy AJAX request to unset session variable. Logs the user out if logged in
 router.post('/reject-policy',portalCtrl.rejectPolicy);
 
 module.exports = router;

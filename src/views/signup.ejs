@@ -13,6 +13,10 @@
         <input autocomplete="email" type="email" class="form-control" id="email" name="email" required>
       </div>
       <div class="mb-3">
+        <label for="display-name" class="form-label">Display Name</label>
+        <input autocomplete="name" type="email" class="form-control" id="display-name" name="displayName" required minlength="3">
+      </div>
+      <div class="mb-3">
         <label for="password" class="form-label">Password</label>
         <input autocomplete="new-password" pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$" type="password" class="form-control" id="password" name="password" required>
       </div>
@@ -40,10 +44,21 @@
 <script>
   // client-side validation
   document.getElementById('signup-button').addEventListener('click', () => {
-    var password = document.getElementById('password').value;
-    var retypePassword = document.getElementById('retype-password').value;
+    const password = document.getElementById('password').value;
+    const retypePassword = document.getElementById('retype-password').value;
+    const displayName = document.getElementById('display-name').value;
+    const email = document.getElementById('email').value;
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
 
-    var regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+    if (!email) {
+      showAlert('Email is required', 'danger');
+      return;
+    }
+
+    if (!displayName || displayName.length < 3) {
+      showAlert('Display name must be at least 3 characters', 'danger');
+      return
+    }
 
     if (!regex.test(password)) {
       showAlert('Password does not meet the requirements!', 'danger');
@@ -59,7 +74,7 @@
   });
 
   const showAlert = (message, type) => {
-    var alertDiv = document.getElementById('alert-div');
+    const alertDiv = document.getElementById('alert-div');
     alertDiv.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' + message +
       '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
   }

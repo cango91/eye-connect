@@ -3,7 +3,7 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const passport = require('passport');
+//const passport = require('passport');
 const session = require('express-session');
 
 require('dotenv').config();
@@ -13,6 +13,10 @@ require('./infra/db');
 const indexRouter = require('./routes/index');
 const aboutRouter = require('./routes/about');
 const portalRouter = require('./routes/portal');
+
+const AuthenticationService = require('./services/authenticationService');
+const usersService = require('./services/usersService');
+const authenticate = new AuthenticationService(usersService);
 
 const methodOverride = require('method-override');
 
@@ -36,11 +40,13 @@ app.use(session({
   saveUninitialized: true,
 }));
 
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(authenticate.initialize());
+app.use(authenticate.session());
 
 app.use((req, res, next) => {
   res.locals.user = req.user;
+  // TIL res.locals.debug is a reserved property name
+  res.locals.debugMode = process.env.DEBUG_MODE === 'true';
   next();
 });
 

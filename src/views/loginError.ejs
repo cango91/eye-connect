@@ -1,0 +1,24 @@
+<%- include('./partials/header') %>
+<%- include('./partials/navigation') %>
+<main class="container mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="text-center">
+    <h2>Login Failed</h2>
+  </div>
+  <div class="container-fluid">
+    <p>Server responded with the following error(s). <a href="/portal/login">Click here</a> to go back to login page</p>
+    <div class="alert alert-danger">
+      <ul>
+        <% errors.forEach(error=>{ %>
+        <li>
+          <p><%= error.name %>:<%= error.message %></p>
+          <% if(debugMode) {%>
+            <p>Stack Trace: <%= error.stack %></p>
+            <p>Code (if applicable): <%= error.code %></p>
+        <% } %>
+        </li>
+        <% }); %>
+      </ul>
+    </div>
+  </div>
+</main>
+<%- include('./partials/footer') %>
