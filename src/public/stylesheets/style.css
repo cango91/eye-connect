@@ -63,3 +63,7 @@ footer ul>li.nav-item>a.nav-link {
   content: "* ";
   color: red;
 }
+
+a.nav-link.dropdown-toggle.notification::after{
+  content: none !important;
+}

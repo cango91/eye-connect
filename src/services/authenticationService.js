@@ -46,7 +46,7 @@ module.exports = class AuthenticateService {
                 async (email, password, cb) => {
                     try {
                         const user = await this.usersService.getUserByEmail(email);
-                        if (!user) throw new Error('User not found');
+                        if (!user || !user.password) throw new Error('Invalid e-mail or password!');
                         return cb(null, await this.usersService.verifyUser(user, password) ? user : false);
                     } catch (err) {
                         return cb(err);
@@ -98,6 +98,22 @@ module.exports = class AuthenticateService {
             if (!user) throw new Error(info.message);
         }
         return passport.authenticate('local-signup', cb || defaultCb);
+    }
+
+    authenticateLoginLocal(cb){
+        const defaultCb = (err, user, info) => {
+            if (err) throw err;
+            if (!user) throw new Error(info.message);
+        }
+        return passport.authenticate('local-login', cb || defaultCb);
+    }
+
+    authenticateLoginOAuth(cb){
+        const defaultCb = (err, user, info) => {
+            if (err) throw err;
+            if (!user) throw new Error(info.message);
+        }
+        return passport.authenticate('google', cb || defaultCb);
     }
 
     authenticateLogin(cb) {

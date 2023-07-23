@@ -3,7 +3,7 @@ const AuthenticateService = require('../services/authenticationService');
 const authenticate = new AuthenticateService(usersService);
 
 const showLogIn = (req, res) => {
-    if(req.isAuthenticated()) return res.redirect('/portal/home');
+    if (req.isAuthenticated()) return res.redirect('/portal/home');
     let agreedToPolicy = req.session.agreedToPolicy || false;
     res.render('login', {
         header: { title: 'eyeConnect Portal - Login' },
@@ -74,7 +74,7 @@ const showSignUp = (req, res, next) => {
 }
 
 const showForgotPassword = (req, res) => {
-    if(req.isAuthenticated()) return res.redirect('/portal');
+    if (req.isAuthenticated()) return res.redirect('/portal');
     res.render('forgotpass', {
         header: { title: 'eyeConnect Portal - Forgot Password' },
         navigation: {
@@ -180,7 +180,7 @@ const oAuthCallback = (req, res, next) => {
 
 const login = (req, res, next) => {
     if (req.isAuthenticated()) return res.redirect('/portal/home');
-    authenticate.authenticateLogin((err, user, info, status) => {
+    const cb = (err, user, info, status) => {
         if (status === 400) {
             err = { name: status, message: info.message };
         }
@@ -190,7 +190,7 @@ const login = (req, res, next) => {
             return res.render('loginError', obj);
         }
         if (!user) {
-            const obj = _buildSignupError([{ name: 'Login Error', message: 'User not found!' }]);
+            const obj = _buildSignupError([{ name: 'Login Error', message: 'Invalid e-mail or password!' }]);
             obj.header.title = 'eyeConnect Portal - ERROR logging in';
             return res.render('loginError', obj);
         }
@@ -204,7 +204,14 @@ const login = (req, res, next) => {
             return res.redirect('/portal');
         });
 
-    })(req, res, next);
+    };
+    if (req.path === '/login') {
+        return authenticate.authenticateLoginLocal(cb)(req, res, next);
+    } else if (req.path === '/google') {
+        return authenticate.authenticateLoginOAuth(cb)(req, res, next);
+    } else {
+        return authenticate.authenticateLogin(cb)(req, res, next);
+    }
 }
 
 const logout = (req, res, next) => {
@@ -239,13 +246,13 @@ const rejectPolicy = (req, res) => {
 }
 
 const completeProfile = async (req, res, next) => {
-    if(!req.isAuthenticated()) return res.redirect('/portal/login');
+    if (!req.isAuthenticated()) return res.redirect('/portal/login');
     try {
         req.body.id = res.locals.user.id;
         const user = await usersService.completeProfile(req.body);
-        if(!user) throw new Error('Could not complete sign up, unknown error');
-        if(res.locals.autoValidate){
-            setTimeout(()=>{
+        if (!user) throw new Error('Could not complete sign up, unknown error');
+        if (res.locals.autoValidate) {
+            setTimeout(() => {
                 try {
                     usersService.validateUser(user._id);
                 } catch (err) {
@@ -260,12 +267,12 @@ const completeProfile = async (req, res, next) => {
     }
 }
 
-const getAccountStatus = async (req,res,next) =>{
-    if(!req.isAuthenticated()) res.status(401).json({message: 'you are not authenticated', redirectTo:'/portal/login'});
+const getAccountStatus = async (req, res, next) => {
+    if (!req.isAuthenticated()) res.status(401).json({ message: 'you are not authenticated', redirectTo: '/portal/login' });
     try {
         const user = await usersService.getUserById(res.locals.user.id);
-        if(!user) res.status(500).json({message:'User not found', redirectTo: '/portal/logout'});
-        res.status(200).json({message: user.validationStatus});
+        if (!user) res.status(500).json({ message: 'User not found', redirectTo: '/portal/logout' });
+        res.status(200).json({ message: user.validationStatus });
     } catch (err) {
         console.error(err);
     }
