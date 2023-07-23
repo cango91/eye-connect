@@ -12,6 +12,7 @@ require('./infra/db');
 const indexRouter = require('./routes/index');
 const aboutRouter = require('./routes/about');
 const portalRouter = require('./routes/portal');
+const homeRouter = require('./routes/home');
 
 const AuthenticationService = require('./services/authenticationService');
 const usersService = require('./services/usersService');
@@ -57,6 +58,7 @@ app.use((req, res, next) => {
 app.use('/', indexRouter);
 app.use('/about', aboutRouter);
 app.use('/portal',portalRouter);
+app.use('/portal/home',homeRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

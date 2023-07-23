@@ -40,5 +40,7 @@ router.post('/signup/complete', portalCtrl.completeProfile);
 router.post('/agree-to-policy', portalCtrl.agreeToPolicy);
 //POST /portal/rejectPolicy AJAX request to unset session variable. Logs the user out if logged in
 router.post('/reject-policy', portalCtrl.rejectPolicy);
+//GET /portal/account-status AJAX request to get account status
+router.get('/account-status',portalCtrl.getAccountStatus);
 
 module.exports = router;

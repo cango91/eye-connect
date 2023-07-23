@@ -1,0 +1,56 @@
+<%- include('./partials/header') %>
+<%- include('./partials/navigation') %>
+<main class="container mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="text-center">
+    <h2>Account Inactive</h2>
+  </div>
+  <div class="mb-3">
+    <% let accountStatus = user.validationStatus
+        if(accountStatus !== 'PendingValidation'){ %>
+    <div class="text-center">
+      <h3>Your account validation <span class="text-danger"><%= accountStatus==='ValidationFailed' ? 'has failed' : 'has been revoked' %></span></h3>
+      <div class="alert alert-danger">
+        <p>If you think there was a mistake, please contact your IT Department or Medical Director</p>
+      </div>
+    </div>
+    <% }else{ %>
+    <div class="text-center">
+      <h3>Your account is <span id="validation-status">pending validation</span></h3>
+      <div class="alert alert-info" id="validation-alertbox">
+        <p id="validation-message">Your account is pending review from a Medical Director. Please check back later.</p>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</main>
+<script>
+
+  
+  const checkValidationStatus = () => {
+    fetch('/portal/account-status', { // let's use fetch API this time. Practice makes perfect
+        method: 'GET',
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message === 'Validated') {
+          document.getElementById('validation-status').innerText = 'validated';
+          document.getElementById('validation-status').classList.add('text-success');
+          document.getElementById('validation-alertbox').classList.remove('alert-info');
+          document.getElementById('validation-alertbox').classList.add('alert-success');
+          document.getElementById('validation-message').innerText = 'Your account has just been validated. This page will automatically refresh to take you to your homepage. Or you can manually reload the page';
+          setTimeout(() => {
+            location.reload();
+          }, 5000);
+        }
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    if ('<%= accountStatus %>' === 'PendingValidation') {
+      setInterval(checkValidationStatus, 10000); // check every 10 seconds
+    }
+  });
+</script>
+<%- include('./partials/footer') %>

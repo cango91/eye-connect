@@ -3,6 +3,7 @@ const AuthenticateService = require('../services/authenticationService');
 const authenticate = new AuthenticateService(usersService);
 
 const showLogIn = (req, res) => {
+    if(req.isAuthenticated()) return res.redirect('/portal/home');
     let agreedToPolicy = req.session.agreedToPolicy || false;
     res.render('login', {
         header: { title: 'eyeConnect Portal - Login' },
@@ -73,6 +74,7 @@ const showSignUp = (req, res, next) => {
 }
 
 const showForgotPassword = (req, res) => {
+    if(req.isAuthenticated()) return res.redirect('/portal');
     res.render('forgotpass', {
         header: { title: 'eyeConnect Portal - Forgot Password' },
         navigation: {
@@ -258,6 +260,17 @@ const completeProfile = async (req, res, next) => {
     }
 }
 
+const getAccountStatus = async (req,res,next) =>{
+    if(!req.isAuthenticated()) res.status(401).json({message: 'you are not authenticated', redirectTo:'/portal/login'});
+    try {
+        const user = await usersService.getUserById(res.locals.user.id);
+        if(!user) res.status(500).json({message:'User not found', redirectTo: '/portal/logout'});
+        res.status(200).json({message: user.validationStatus});
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 module.exports = {
     showLogIn,
     agreeToPolicy,
@@ -269,4 +282,5 @@ module.exports = {
     oAuthCallback,
     login,
     logout,
+    getAccountStatus,
 }
