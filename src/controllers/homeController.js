@@ -25,6 +25,7 @@ const home = async (req, res, next) => {
         return res.render('field/home', {
             header:{title: 'eyeConnect Portal - Home (Field HCP)'},
             navigation: _buildFieldNav(),
+            patientsTable: _buildPatientsTableComponent(10),
         });
     } else if (req.user.role === 'SpecialistHCP') {
         // Render SpecialistHCP's homepage
@@ -71,6 +72,50 @@ const _buildSpecialistNav = () => {
         }],
         active: 'Home'
     };
+}
+
+const _buildPatientsTableComponent = (limit) =>{
+    const table = {};
+    table.id = 'patients',
+    table.caption = 'All Patients',
+    table.head = [
+        {
+            text: 'Name',
+            sort: {
+                asc: {
+                    href: `/portal/api/patients?sortBy=name&sort=ascending&limit=${limit}`,
+                },
+                dsc: {
+                    href: `/portal/api/patients?sortBy=name&sort=descending&limit=${limit}`,
+                }
+            }
+        },
+        {
+            text: 'Age',
+            sort: {
+                asc: {
+                    href: `/portal/api/patients?sortBy=dateOfBirth&sort=descending&limit=${limit}`
+                },
+                dsc:{
+                    href: `/portal/api/patients?sortBy=dateOfBirth&sort=ascending&limit=${limit}`
+                }
+            }
+        }
+    ];
+    table.dataUrl = '/portal/api/patients';
+    table.parseFunction = `(data) => {
+        const today = new Date();
+        const calculateAge = (dob) => today.getFullYear() - new Date(dob).getFullYear();
+        const rows = [];
+        data.forEach(item => {
+            rows.push({
+                Name: item.name,
+                Age: calculateAge(item.dateOfBirth),
+            });
+        });
+        return rows;
+    }`
+    return table;
 }
 
 module.exports = {

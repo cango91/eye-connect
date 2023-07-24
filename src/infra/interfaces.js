@@ -18,3 +18,25 @@ const iNav = {
     ],
     active: null,
 }
+
+const tableData = {
+    caption: 'String | null',
+    head:[
+        {
+            text:'String',
+            sort: {
+                asc:{
+                    href:'String',
+                    active: true | null // Boolean | null
+                },
+                dsc: {
+                    href:'String'
+                }
+            }
+        },
+        "Non-Sorting headers"
+    ],
+    dataUrl: 'String',
+    parseFunction: 'String',
+    footer:[]
+}

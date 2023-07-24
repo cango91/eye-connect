@@ -67,3 +67,11 @@ footer ul>li.nav-item>a.nav-link {
 a.nav-link.dropdown-toggle.notification::after{
   content: none !important;
 }
+
+.table-sort{
+  color:#666565;
+}
+
+.table-sort a{
+  text-decoration: none;
+}

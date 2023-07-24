@@ -1,0 +1,124 @@
+<div class="table-responsive">
+  <table id="<%= id %>-data-table" class="table <%= typeof captionTop!=='undefined' && captionTop ? 'caption-top' : '' %>">
+    <caption><%= typeof caption !== 'undefined' ? caption : '' %></caption>
+    <thead>
+      <tr>
+        <% if(typeof head !== 'undefined' && head.length){ 
+                      head.forEach(item => {%>
+        <th scope="col" data-sort-asc="<%= item?.sort?.asc?.href %>" data-sort-dsc="<%= item?.sort?.dsc?.href %>"><%= item?.text || item %>&nbsp;<%- item?.sort ? `<span class="table-sort ${item?.sort?.asc?.active ? 'active' : ''}">${item?.sort?.asc?.active ? '&uarr;' : `<a href="${item?.sort?.asc?.href}">&uarr;</a>` }</span>&nbsp;&verbar;&nbsp;<span class="table-sort ${item?.sort?.dsc?.active ? 'active' : ''}">${item?.sort?.dsc?.active ? '&darr;' : `<a href="${item?.sort?.dsc?.href}">&darr;</a>` }</span>` : '' %></th>
+        <%}); } %>
+      </tr>
+    </thead>
+    <tbody id="<%= id %>-data-body"></tbody>
+  </table>
+</div>
+<script>
+  window.addEventListener('load', () => {
+    // Specify the data source URL
+    const dataSourceUrl = '<%= dataUrl %>';
+
+    const dataMethod = '<%= typeof dataMethod!== "undefined" ? dataMethod : "GET" %>';
+
+    // Function to parse the data
+    const parseData = <%- parseFunction %>;
+
+    const headData = <%- JSON.stringify(head) %>
+
+    let lastSortedColumnIndex = null; // Variable to store last sorted column index
+    let lastSortDirection = null; // Variable to store last sort direction
+
+    // Function to handle the toggling of the active class and surrounding <a> tags
+    const toggleActiveClass = (columnIndex, asc) => {
+      const ths = document.querySelectorAll('#<%= id %>-data-table th');
+      const th = ths[columnIndex];
+      const sortSpans = th.querySelectorAll('.table-sort');
+      const sortAsc = sortSpans[0];
+      const sortDsc = sortSpans[1];
+
+      // Add <a> tags around the non-active sorting symbols
+      const newSortAsc = asc ? sortAsc.textContent : `<a href="${headData[columnIndex]?.sort?.asc?.href}">${sortAsc.textContent}</a>`;
+      const newSortDsc = asc ? `<a href="${headData[columnIndex]?.sort?.dsc?.href}">${sortDsc.textContent}</a>` : sortDsc.textContent;
+
+      // Remove <a> tags from the previously active sorting symbol if it existed
+      if (lastSortedColumnIndex !== null && lastSortDirection !== null) {
+        const lastTh = ths[lastSortedColumnIndex];
+        const lastSortSpans = lastTh.querySelectorAll('.table-sort');
+        const lastSortAsc = lastSortSpans[0];
+        const lastSortDsc = lastSortSpans[1];
+
+        const lastSortAscContent = lastSortDirection ? lastSortAsc.textContent : `<a href="${headData[lastSortedColumnIndex]?.sort?.asc?.href}">${lastSortAsc.textContent}</a>`;
+        const lastSortDscContent = lastSortDirection ? `<a href="${headData[lastSortedColumnIndex]?.sort?.dsc?.href}">${lastSortDsc.textContent}</a>` : lastSortDsc.textContent;
+
+        lastSortAsc.innerHTML = lastSortAscContent;
+        lastSortDsc.innerHTML = lastSortDscContent;
+
+        lastSortAsc.classList.remove('active');
+        lastSortDsc.classList.remove('active');
+      }
+
+      sortAsc.innerHTML = newSortAsc;
+      sortDsc.innerHTML = newSortDsc;
+
+      sortAsc.classList.toggle('active', asc);
+      sortDsc.classList.toggle('active', !asc);
+
+      // Update last sorted column index and sort direction
+      lastSortedColumnIndex = columnIndex;
+      lastSortDirection = asc;
+    }
+    // Fetch the data and populate the table
+    const populateTable = (url, columnIndex = null, asc = null) => {
+      fetch(url, {
+          method: dataMethod,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Parse the data
+          const parsedData = parseData(data);
+
+          // Get the table body
+          const tbody = document.getElementById('<%= id %>-data-body');
+
+          // Clear any existing rows
+          while (tbody.firstChild) {
+            tbody.firstChild.remove();
+          }
+
+          // Add new rows
+          parsedData.forEach(row => {
+            const tr = document.createElement('tr');
+            Object.values(row).forEach(value => {
+              const td = document.createElement('td');
+              td.textContent = value;
+              tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+          });
+
+          if (columnIndex !== null) {
+            // Toggle active class and surrounding <a> tags
+            toggleActiveClass(columnIndex, asc);
+          }
+        });
+    }
+
+    // Initial population
+    populateTable(dataSourceUrl);
+
+    // Add event listeners to sort links
+    const sortLinks = document.querySelectorAll('#<%= id %>-data-table .table-sort');
+    sortLinks.forEach((link, index) => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const columnIndex = Math.floor(index / 2);
+        const asc = index % 2 === 0;
+        populateTable(e.target.getAttribute('href'), columnIndex, asc);
+      });
+    });
+
+
+  });;
+</script>

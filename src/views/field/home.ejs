@@ -2,5 +2,9 @@
 <%- include('../partials/navigation') %>
 <main class="container mt-5 py-4 bg-light shadow-lg rounded">
     Welcome home Field Doctor
+    <%- include('../partials/_tableList', {...patientsTable}); %>
+    <% let newPatientsTable = {...patientsTable};
+    newPatientsTable.id = "patients-2" %>
+    <%- include('../partials/_tableList', {...newPatientsTable}) %>
 </main>
 <%- include('../partials/footer') %>

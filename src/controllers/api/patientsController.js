@@ -1,9 +1,23 @@
 const Patient = require('../../models/patient');
 
+const getAllFiltered = async (req, res, next) => {
+    try {
+        const {sortBy, sort, limit} = req.query;
+        const limitOpt = limit ? parseInt(limit) : 0;
+        const sortOpt = { [sortBy]: sort==='ascending' ? 1 : -1};
+        const patients = await Patient.find().sort(sortOpt).limit(limitOpt);
+        res.status(200).json([...patients]);
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
+}
+
 const getAll = async (req, res, next) => {
     try {
+        if (Object.keys(req.query).length) return await getAllFiltered(req, res, next);
         const patients = await Patient.find({});
-        res.status(200).json({ patients });
+        res.status(200).json([...patients]);
     } catch (err) {
         console.error(err);
         next(err);
@@ -49,12 +63,12 @@ const updateOne = async (req, res, next) => {
         const patient = await Patient.findById(req.params.id);
         if (!patient) throw new Error('Patient not found');
         for (let key in req.body) {
-            if (req.body[key] !== ''){
+            if (req.body[key] !== '') {
                 patient[key] = req.body[key];
             }
         }
         await patient.save();
-        res.status(200).json({patient});
+        res.status(200).json({ patient });
     } catch (err) {
         console.error(err);
         next(err);
@@ -62,13 +76,13 @@ const updateOne = async (req, res, next) => {
 }
 
 
-const searchByName = async (req,res,next) =>{
+const searchByName = async (req, res, next) => {
     try {
-        const { name , limit = 10, sort='ascending' } = req.query;
-        if(!name) return res.status(400).json({error: 'Search term missing'});
+        const { name, limit = 10, sort = 'ascending' } = req.query;
+        if (!name) return res.status(400).json({ error: 'Search term missing' });
         const patients = await Patient.find({
-            name: {$regex: name, $options: 'i'}
-        }).limit(limit).sort({name: sort==='ascending' ?  1 : -1});
+            name: { $regex: name, $options: 'i' }
+        }).limit(limit).sort({ name: sort === 'ascending' ? 1 : -1 });
         return res.status(200).json(patients);
     } catch (err) {
         console.error(err);
