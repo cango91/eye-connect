@@ -13,3 +13,5 @@ const router = express.Router();
 // POST patients/:id/examinations -> create new examination for patient with id
 // PUT examinations/:id -> update single examination with id
 // DELETE examinations/:id -> delete single examination with id
+
+module.exports = router;

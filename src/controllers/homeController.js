@@ -41,7 +41,7 @@ const _buildFieldNav = () => {
     return {
         items: [{
             text: 'About',
-            href: '#',
+            href: '/about',
             showInFooter: true,
         },
         {
@@ -59,7 +59,7 @@ const _buildSpecialistNav = () => {
     return {
         items: [{
             text: 'About',
-            href: '#',
+            href: '/about',
             showInFooter: true,
         },
         {

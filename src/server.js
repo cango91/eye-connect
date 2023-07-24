@@ -13,6 +13,7 @@ const indexRouter = require('./routes/index');
 const aboutRouter = require('./routes/about');
 const portalRouter = require('./routes/portal');
 const homeRouter = require('./routes/home');
+const apiRouter = require('./routes/api');
 
 const AuthenticationService = require('./services/authenticationService');
 const usersService = require('./services/usersService');
@@ -59,6 +60,7 @@ app.use('/', indexRouter);
 app.use('/about', aboutRouter);
 app.use('/portal',portalRouter);
 app.use('/portal/home',homeRouter);
+app.use('/portal/api',apiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
