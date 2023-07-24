@@ -4,15 +4,12 @@ const crudLogger = require('../middlewares/crudLogger');
 const patientsApi = require('../controllers/api/patientsController');
 const authorize = require('../middlewares/authorize');
 
-// non-RESTful routes
-
-// GET /patients/new -> render new patient
-// GET /patients/:id/edit -> render edit patient
-
-// RESTful routes
-
 // GET /patients -> return all patients
 router.get('/', authorize('READ_ALL_PATIENTS'), crudLogger('Read all patients'), patientsApi.getAll);
+
+// GET /patients/s?name=&limit=&sort= patient search where name begins with name=, limited by limit=, sorted by sort=ascending or descending otherwise
+router.get('/s', authorize('SEARCH_PATIENT_BY_NAME'), crudLogger('Search patient by name', req => ({name: req.query.name})), patientsApi.searchByName);
+
 // GET /patients/:id -> return one patient
 router.get('/:id', authorize('READ_PATIENT_BY_ID'), crudLogger('Read patient by id', req => ({ id: req.params.id })), patientsApi.getById);
 // POST /patients -> create new patient
@@ -27,4 +24,10 @@ router.put('/:id', authorize('UPDATE_PATIENT'), crudLogger('Update patient', req
 }), patientsApi.updateOne);
 // DELETE /patients/:id -> delete patient (NOT ALLOWED in MVP)
 router.delete('/:id', authorize('DELETE_PATIENT', crudLogger('Delete patient', req => ({ id: req.params.id }))), patientsApi.delete);
+
+// GET /patients/new -> render new patient
+// GET /patients/:id/edit -> render edit patient
+
+
+
 module.exports = router;

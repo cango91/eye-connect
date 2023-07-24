@@ -27,7 +27,7 @@
 
   
   const checkValidationStatus = () => {
-    fetch('/portal/account-status', { // let's use fetch API this time. Practice makes perfect
+    fetch('/portal/account-status', {
         method: 'GET',
       })
       .then(response => response.json())

@@ -4,6 +4,7 @@ const authorizationDictionary = {
     CREATE_PATIENT: ['FieldHCP','MedicalDirector'],
     UPDATE_PATIENT: ['FieldHCP','MedicalDirector'],
     DELETE_PATIENT: ['MedicalDirector'],
+    SEARCH_PATIENT_BY_NAME: ['FieldHCP','SpecialistHCP','MedicalDirector'],
 }
 
 const authorize = action => (req,res,next) =>{

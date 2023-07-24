@@ -2,8 +2,6 @@ const express = require('express');
 const portalCtrl = require('../controllers/portalController');
 const router = express.Router();
 
-// No REST for the wicked: Portal/User routes are not RESTful due to 2-step signup process and 2 auth strategies
-
 // GET /portal -> if logged-in redirect to /portal/home
 // if not logged in redirect to /portal/login
 router.get('/', (req, res) => {
@@ -36,11 +34,11 @@ router.post('/login', portalCtrl.login);
 router.post('/signup', portalCtrl.signUp);
 //POST /portal/signup/complete complete profile
 router.post('/signup/complete', portalCtrl.completeProfile);
-//POST /portal/agreeToPolicy AJAX request to set session variable so the pop-up won't come up again
+//POST /portal/agreeToPolicy set session variable so the pop-up won't come up again
 router.post('/agree-to-policy', portalCtrl.agreeToPolicy);
-//POST /portal/rejectPolicy AJAX request to unset session variable. Logs the user out if logged in
+//POST /portal/rejectPolicy unset session variable. Logs the user out if logged in
 router.post('/reject-policy', portalCtrl.rejectPolicy);
-//GET /portal/account-status AJAX request to get account status
+//GET /portal/account-status get account status
 router.get('/account-status',portalCtrl.getAccountStatus);
 
 module.exports = router;
