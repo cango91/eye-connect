@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Replace 'YOUR_APP_NAME' with your actual Heroku app name
 APP_NAME="eye-connect"
 
 # Path to your .env file

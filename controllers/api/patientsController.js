@@ -1,4 +1,5 @@
 const Patient = require('../../models/patient');
+const patientsService = require('../../services/patientsService');
 
 let patientCountCache = null;
 const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
@@ -49,11 +50,14 @@ const getAll = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
     try {
-        const patient = await Patient.findById(req.params.id);
-        res.status(200).json({ patient });
+        const patient = await patientsService.getPatientById(req.params.id);
+        res.status(200).json({ data: patient });
     } catch (err) {
         console.error(err);
-        next(err);
+        if(err.name==='PatientNotFoundError')
+            res.status(404).json({error: 'Not found'});
+        else
+            next(err);
     }
 }
 
@@ -61,7 +65,7 @@ const deleteOne = async (req, res, next) => {
     try {
         await Patient.deleteOne({ _id: req.params.id });
         patientCountCache = null;
-        res.status(200).json({ id: req.params.id });
+        res.status(200).json({ data: req.params.id });
     } catch (err) {
         console.error(err);
         next(err);
@@ -76,7 +80,7 @@ const create = async (req, res, next) => {
         }
         const patient = await Patient.create(req.body);
         patientCountCache = null;
-        res.status(200).json({ id: patient._id });
+        res.status(200).json({ data: patient._id });
     } catch (err) {
         console.error(err);
         next(err);
@@ -93,7 +97,7 @@ const updateOne = async (req, res, next) => {
             }
         }
         await patient.save();
-        res.status(200).json({ patient });
+        res.status(200).json({ data: patient });
     } catch (err) {
         console.error(err);
         next(err);
@@ -108,7 +112,7 @@ const searchByName = async (req, res, next) => {
         const patients = await Patient.find({
             name: { $regex: name, $options: 'i' }
         }).limit(limit).sort({ name: sort === 'ascending' ? 1 : -1 });
-        return res.status(200).json(patients);
+        return res.status(200).json({data: patients});
     } catch (err) {
         console.error(err);
         next(err);
