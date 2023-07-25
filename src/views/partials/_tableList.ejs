@@ -24,51 +24,31 @@
 
     const headData = <%- JSON.stringify(head) %>
 
-    let lastSortedColumnIndex = null; // Variable to store last sorted column index
-    let lastSortDirection = null; // Variable to store last sort direction
-
     // Function to handle the toggling of the active class and surrounding <a> tags
     const toggleActiveClass = (columnIndex, asc) => {
       const ths = document.querySelectorAll('#<%= id %>-data-table th');
-      const th = ths[columnIndex];
-      const sortSpans = th.querySelectorAll('.table-sort');
-      const sortAsc = sortSpans[0];
-      const sortDsc = sortSpans[1];
-
-      // Add <a> tags around the non-active sorting symbols
-      const newSortAsc = asc ? sortAsc.textContent : `<a href="${headData[columnIndex]?.sort?.asc?.href}">${sortAsc.textContent}</a>`;
-      const newSortDsc = asc ? `<a href="${headData[columnIndex]?.sort?.dsc?.href}">${sortDsc.textContent}</a>` : sortDsc.textContent;
-
-      // Remove <a> tags from the previously active sorting symbol if it existed
-      if (lastSortedColumnIndex !== null && lastSortDirection !== null) {
-        const lastTh = ths[lastSortedColumnIndex];
-        const lastSortSpans = lastTh.querySelectorAll('.table-sort');
-        const lastSortAsc = lastSortSpans[0];
-        const lastSortDsc = lastSortSpans[1];
-
-        const lastSortAscContent = lastSortDirection ? lastSortAsc.textContent : `<a href="${headData[lastSortedColumnIndex]?.sort?.asc?.href}">${lastSortAsc.textContent}</a>`;
-        const lastSortDscContent = lastSortDirection ? `<a href="${headData[lastSortedColumnIndex]?.sort?.dsc?.href}">${lastSortDsc.textContent}</a>` : lastSortDsc.textContent;
-
-        lastSortAsc.innerHTML = lastSortAscContent;
-        lastSortDsc.innerHTML = lastSortDscContent;
-
-        lastSortAsc.classList.remove('active');
-        lastSortDsc.classList.remove('active');
-      }
-
-      sortAsc.innerHTML = newSortAsc;
-      sortDsc.innerHTML = newSortDsc;
-
-      sortAsc.classList.toggle('active', asc);
-      sortDsc.classList.toggle('active', !asc);
-
-      // Update last sorted column index and sort direction
-      lastSortedColumnIndex = columnIndex;
-      lastSortDirection = asc;
+      ths.forEach((th, idx) => {
+        const sortSpans = th.querySelectorAll('.table-sort');
+        const sortAsc = sortSpans[0];
+        const sortDsc = sortSpans[1];
+        if (idx !== columnIndex) {
+          sortAsc.classList.remove('active');
+          sortDsc.classList.remove('active');
+          sortAsc.innerHTML = `<a href="${headData[idx]?.sort?.asc?.href}">${sortAsc.textContent}</a>`
+          sortDsc.innerHTML = `<a href="${headData[idx]?.sort?.dsc?.href}">${sortDsc.textContent}</a>`
+        } else {
+          sortAsc.classList.toggle('active', asc);
+          sortDsc.classList.toggle('active', !asc);
+          sortAsc.innerHTML = asc ? sortAsc.textContent : `<a href="${headData[columnIndex]?.sort?.asc?.href}">${sortAsc.textContent}</a>`;
+          sortDsc.innerHTML = asc ? `<a href="${headData[columnIndex]?.sort?.dsc?.href}">${sortDsc.textContent}</a>` : sortDsc.textContent;
+        }
+      });
     }
     // Fetch the data and populate the table
+    const page = <%= page %>;
+    const itemsPerPage = <%= itemsPerPage %>;
     const populateTable = (url, columnIndex = null, asc = null) => {
-      fetch(url, {
+      fetch(`${url}?page=${page}&limit=${itemsPerPage}`, {
           method: dataMethod,
           headers: {
             "Content-Type": "application/json"
@@ -105,6 +85,7 @@
         });
     }
 
+
     // Initial population
     populateTable(dataSourceUrl);
 
@@ -113,6 +94,7 @@
     sortLinks.forEach((link, index) => {
       link.addEventListener('click', e => {
         e.preventDefault();
+        if(e.target.classList.contains('active')) return;
         const columnIndex = Math.floor(index / 2);
         const asc = index % 2 === 0;
         populateTable(e.target.getAttribute('href'), columnIndex, asc);
@@ -120,5 +102,19 @@
     });
 
 
-  });;
+  });
 </script>
+<nav aria-label="Table pagination">
+  <ul class="pagination">
+    <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+      <a class="page-link" href="<%= dataUrl %>?page=<%= page - 1 %>&limit=<%= itemsPerPage %>" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+      <a class="page-link" href="<%= dataUrl %>?page=<%= page + 1 %>&limit=<%= itemsPerPage %>" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+</nav>

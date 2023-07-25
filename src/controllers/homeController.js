@@ -1,4 +1,3 @@
-
 const home = async (req, res, next) => {
     if (req.user.validationStatus !== 'Validated') {
         return res.render('accountStatus', {
@@ -25,7 +24,7 @@ const home = async (req, res, next) => {
         return res.render('field/home', {
             header:{title: 'eyeConnect Portal - Home (Field HCP)'},
             navigation: _buildFieldNav(),
-            patientsTable: _buildPatientsTableComponent(100),
+            patientsTable: _buildPatientsTableComponent(1,10),
         });
     } else if (req.user.role === 'SpecialistHCP') {
         // Render SpecialistHCP's homepage
@@ -74,8 +73,11 @@ const _buildSpecialistNav = () => {
     };
 }
 
-const _buildPatientsTableComponent = (limit) =>{
+const _buildPatientsTableComponent = (page = 1, itemsPerPage = 5) =>{
     const table = {};
+    table.page = page;
+    table.itemsPerPage = itemsPerPage;
+    table.totalPages = 10;
     table.id = 'patients',
     table.caption = 'All Patients',
     table.head = [
@@ -83,10 +85,10 @@ const _buildPatientsTableComponent = (limit) =>{
             text: 'Name',
             sort: {
                 asc: {
-                    href: `/portal/api/patients?sortBy=name&sort=ascending&limit=${limit}`,
+                    href: `/portal/api/patients?sortBy=name&sort=ascending&limit=${itemsPerPage}`,
                 },
                 dsc: {
-                    href: `/portal/api/patients?sortBy=name&sort=descending&limit=${limit}`,
+                    href: `/portal/api/patients?sortBy=name&sort=descending&limit=${itemsPerPage}`,
                 }
             }
         },
@@ -94,10 +96,10 @@ const _buildPatientsTableComponent = (limit) =>{
             text: 'Age',
             sort: {
                 asc: {
-                    href: `/portal/api/patients?sortBy=dateOfBirth&sort=descending&limit=${limit}`
+                    href: `/portal/api/patients?sortBy=dateOfBirth&sort=descending&limit=${itemsPerPage}`
                 },
                 dsc:{
-                    href: `/portal/api/patients?sortBy=dateOfBirth&sort=ascending&limit=${limit}`
+                    href: `/portal/api/patients?sortBy=dateOfBirth&sort=ascending&limit=${itemsPerPage}`
                 }
             }
         }
