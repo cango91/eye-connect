@@ -29,7 +29,7 @@ const home = async (req, res, next) => {
                 fetchOptions: {
                     url: '/portal/api/patients',
                     page: 1,
-                    maxPage: 1,
+                    maxPage: 0,
                     limit: 0,
                     sort: {
                         sortBy: 'createdAt',
@@ -42,7 +42,11 @@ const home = async (req, res, next) => {
                         if(opts.sort?.sortBy){
                             fUrl += '?sortBy=' + opts.sort.sortBy + '&order=';
                             fUrl += opts.sort.asc ? 'ascending' : 'descending';
+                            if(parseInt(opts.limit)>0){
+                                fUrl += '&limit=' + parseInt(opts.limit);
+                            }
                         }
+                        
                         fetch(fUrl)
                         .then(response => response.json())
                         .then(data => {
@@ -122,53 +126,6 @@ const _buildSpecialistNav = () => {
         }],
         active: 'Home'
     };
-}
-
-const _buildPatientsTableComponent = (page = 1, itemsPerPage = 5) => {
-    const table = {};
-    table.page = page;
-    table.itemsPerPage = itemsPerPage;
-    table.totalPages = 10;
-    table.id = 'patients',
-        table.caption = 'All Patients',
-        table.head = [
-            {
-                text: 'Name',
-                sort: {
-                    asc: {
-                        href: `/portal/api/patients?sortBy=name&sort=ascending&limit=${itemsPerPage}`,
-                    },
-                    dsc: {
-                        href: `/portal/api/patients?sortBy=name&sort=descending&limit=${itemsPerPage}`,
-                    }
-                }
-            },
-            {
-                text: 'Age',
-                sort: {
-                    asc: {
-                        href: `/portal/api/patients?sortBy=dateOfBirth&sort=descending&limit=${itemsPerPage}`
-                    },
-                    dsc: {
-                        href: `/portal/api/patients?sortBy=dateOfBirth&sort=ascending&limit=${itemsPerPage}`
-                    }
-                }
-            }
-        ];
-    table.dataUrl = '/portal/api/patients';
-    table.parseFunction = `(data) => {
-        const today = new Date();
-        const calculateAge = (dob) => today.getFullYear() - new Date(dob).getFullYear();
-        const rows = [];
-        data.forEach(item => {
-            rows.push({
-                Name: item.name,
-                Age: calculateAge(item.dateOfBirth),
-            });
-        });
-        return rows;
-    }`
-    return table;
 }
 
 module.exports = {

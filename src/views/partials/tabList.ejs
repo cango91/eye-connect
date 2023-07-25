@@ -2,6 +2,13 @@
 <script src="/js/tableHandler.js"></script>
 <script>
   window.addEventListener('load', () => {
-    tableHandler(document.getElementById('<%=id%>-table-parent'), '<%= id %>', <%= typeof caption !== 'undefined' ? caption : 'null' %>, <%- JSON.stringify(fetchOptions) %>, <%- fetchFunction %>, <%- JSON.stringify(headerData) %>);
+    const handler = tableHandler(document.getElementById('<%=id%>-table-parent'), '<%= id %>', <%= typeof caption !== 'undefined' ? caption : 'null' %>, <%- JSON.stringify(fetchOptions) %>, <%- fetchFunction %>, <%- JSON.stringify(headerData) %>);
+    setTimeout(()=>{
+        const table = document.getElementById('<%= id %>-data-table');
+        table.dataset.limit = 1;
+        table.dataset.page = 3;
+        handler.updateOpts();
+        handler.populateTable();
+    },5000);
   });
 </script>
