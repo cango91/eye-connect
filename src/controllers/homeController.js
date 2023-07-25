@@ -1,7 +1,7 @@
 const home = async (req, res, next) => {
     if (req.user.validationStatus !== 'Validated') {
         return res.render('accountStatus', {
-            header: { title: 'eyeConnect Portal - Account Inactive' },
+            header: { title: 'eyeConnect Portal - Account Inactive', },
             navigation: {
                 items: [
                     {
@@ -22,7 +22,12 @@ const home = async (req, res, next) => {
     if (req.user.role === 'FieldHCP') {
         // Render FieldHCP's homepage
         return res.render('field/home', {
-            header: { title: 'eyeConnect Portal - Home (Field HCP)' },
+            header: {
+                title: 'eyeConnect Portal - Home (Field HCP)',
+                scripts: [{
+                    file: '/js/tableHandler.js',
+                }]
+            },
             navigation: _buildFieldNav(),
             patientsTable: {
                 id: 'patients',
@@ -61,24 +66,24 @@ const home = async (req, res, next) => {
                         });
                     });
             }`,
-            headerData:[
-                {
-                    text:'Name',
-                    sort:{
-                        sortBy:'name'
-                    },
-                    parseFunction: `(value,td) => {
+                headerData: [
+                    {
+                        text: 'Name',
+                        sort: {
+                            sortBy: 'name'
+                        },
+                        parseFunction: `(value,td) => {
                         return new Promise((res)=>{
                             td.innerText = 'loading';
                             setTimeout(()=>res(value),1000);
                         });
                     }`
-                },
-                {
-                    text: 'Age',
-                    sort:{sortBy: 'dateOfBirth'}
-                }
-            ]
+                    },
+                    {
+                        text: 'Age',
+                        sort: { sortBy: 'dateOfBirth' }
+                    }
+                ]
             },
         });
     } else if (req.user.role === 'SpecialistHCP') {

@@ -1,0 +1,12 @@
+<div class="table-responsive" id="<%= id %>-table-parent"></div>
+<script>
+  window.addEventListener('load', () => {
+    const <%= id %>handler = tableHandler(document.getElementById('<%=id%>-table-parent'), '<%= id %>', <%= typeof caption !== 'undefined' ? caption : 'null' %>, <%- JSON.stringify(fetchOptions) %>, <%- fetchFunction %>, <%- JSON.stringify(headerData) %>);
+    setTimeout(() => {
+      <%= id %>handler.table.dataset.limit = 1;
+      <%= id %>handler.table.dataset.page = 3;
+      <%= id %>handler.updateOpts();
+      <%= id %>handler.populateTable();
+    }, 5000);
+  });
+</script>

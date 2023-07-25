@@ -205,5 +205,6 @@ const tableHandler = (
     return {
         updateOpts,
         populateTable,
+        table
     }
 }

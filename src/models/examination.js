@@ -24,6 +24,9 @@ const examinationSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Funduscopy'
     }]
-});
+},
+    {
+        timestamps: true
+    });
 
 module.exports = mongoose.model('Examination', examinationSchema);
