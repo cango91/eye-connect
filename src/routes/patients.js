@@ -5,7 +5,7 @@ const patientsApi = require('../controllers/api/patientsController');
 const authorize = require('../middlewares/authorize');
 
 // GET /patients -> return all patients
-router.get('/', authorize('READ_ALL_PATIENTS'), crudLogger('Read all patients'), patientsApi.getAll);
+router.get('/', authorize('READ_ALL_PATIENTS'), crudLogger('Read all patients',req=> Object.keys(req.query).length ? {...req.query} : {} ), patientsApi.getAll);
 
 // GET /patients/s?name=&limit=&sort= patient search where name begins with name=, limited by limit=, sorted by sort=ascending or descending otherwise
 router.get('/s', authorize('SEARCH_PATIENT_BY_NAME'), crudLogger('Search patient by name', req => ({name: req.query.name})), patientsApi.searchByName);
