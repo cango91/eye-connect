@@ -23,6 +23,13 @@ const authenticate = new AuthenticationService(usersService);
 const methodOverride = require('method-override');
 
 const app = express();
+app.use((req, res, next) => {
+  if (req.header('x-forwarded-proto') !== 'https') {
+      res.redirect(`https://${req.header('host')}${req.url}`);
+  } else {
+      next();
+  }
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
