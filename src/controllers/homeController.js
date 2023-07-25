@@ -34,7 +34,7 @@ const home = async (req, res, next) => {
                 fetchOptions: {
                     url: '/portal/api/patients',
                     page: 1,
-                    maxPage: 0,
+                    pageCount: 0,
                     limit: 0,
                     sort: {
                         sortBy: 'createdAt',
@@ -58,10 +58,13 @@ const home = async (req, res, next) => {
                             const today = new Date();
                             const calculateAge = (dob) => today.getFullYear() - new Date(dob).getFullYear();
                             const rows = [];
-                            data.forEach(item => {
+                            data.data.forEach(item => {
                                 rows.push([item.name, calculateAge(item.dateOfBirth)],
                                 );
                             });
+                            opts.limit = data.limit ? data.limit : opts.limit;
+                            opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+                            opts.page = data.page ? data.page : opts.page;
                             res(rows);
                         });
                     });

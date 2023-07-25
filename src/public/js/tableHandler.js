@@ -6,7 +6,7 @@ const tableHandler = (
         method: 'GET',
         url: null,
         page: 1,
-        maxPage: 0,
+        pageCount: 0,
         limit: 0,
         sort: {} = {
             sortBy: null,
@@ -22,7 +22,7 @@ const tableHandler = (
     const table = document.createElement('table');
     table.id = `${id}-data-table`;
     table.dataset.page = fetchOptions.page;
-    table.dataset.maxPage = fetchOptions.maxPage;
+    table.dataset.pageCount = fetchOptions.pageCount;
     table.dataset.limit = fetchOptions.limit;
     table.dataset.sortBy = fetchOptions.sort.sortBy;
     table.dataset.sortAscending = fetchOptions.sort.asc;
@@ -144,7 +144,7 @@ const tableHandler = (
 
     const updateDataset = () => {
         table.dataset.page = fetchOptions.page;
-        table.dataset.maxPage = fetchOptions.maxPage;
+        table.dataset.pageCount = fetchOptions.pageCount;
         table.dataset.limit = fetchOptions.limit;
         table.dataset.sortBy = fetchOptions.sort.sortBy;
         table.dataset.sortAscending = fetchOptions.sort.asc;
@@ -152,7 +152,7 @@ const tableHandler = (
 
     const updateOpts = () => {
         fetchOptions.page = table.dataset.page;
-        fetchOptions.maxPage = table.dataset.maxPage;
+        fetchOptions.pageCount = table.dataset.pageCount;
         fetchOptions.limit = table.dataset.limit;
         fetchOptions.sort.sortBy = table.dataset.sortBy;
         fetchOptions.sort.asc = table.dataset.sortAscending;
