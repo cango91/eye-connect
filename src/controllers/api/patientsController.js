@@ -2,10 +2,12 @@ const Patient = require('../../models/patient');
 
 const getAllFiltered = async (req, res, next) => {
     try {
-        const {sortBy, sort, limit} = req.query;
-        const limitOpt = limit ? parseInt(limit) : 0;
-        const sortOpt = { [sortBy]: sort==='ascending' ? 1 : -1};
-        const patients = await Patient.find().sort(sortOpt).limit(limitOpt);
+        let {sortBy, sort, limit, page} = req.query;
+        limit = limit ? parseInt(limit) : 0;
+        sort = { [sortBy]: sort==='ascending' ? 1 : -1};
+        page = page ? parseInt(page) : 1;
+        const skip = (page - 1) * limit;
+        const patients = await Patient.find().sort(sort).limit(limit).skip(skip);
         res.status(200).json([...patients]);
     } catch (err) {
         console.error(err);
