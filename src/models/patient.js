@@ -19,6 +19,8 @@ const patientSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Examination'
     }]
+},{
+    timestamps:true,
 });
 
 module.exports = mongoose.model('Patient',patientSchema);

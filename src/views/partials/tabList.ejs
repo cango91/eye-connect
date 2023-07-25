@@ -1,0 +1,7 @@
+<div class="table-responsive" id="<%= id %>-table-parent"></div>
+<script src="/js/tableHandler.js"></script>
+<script>
+  window.addEventListener('load', () => {
+    tableHandler(document.getElementById('<%=id%>-table-parent'), '<%= id %>', <%= typeof caption !== 'undefined' ? caption : 'null' %>, <%- JSON.stringify(fetchOptions) %>, <%- fetchFunction %>, <%- JSON.stringify(headerData) %>);
+  });
+</script>

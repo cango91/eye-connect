@@ -2,9 +2,9 @@ const Patient = require('../../models/patient');
 
 const getAllFiltered = async (req, res, next) => {
     try {
-        let {sortBy, sort, limit, page} = req.query;
+        let {sortBy, order, limit, page} = req.query;
         limit = limit ? parseInt(limit) : 0;
-        sort = { [sortBy]: sort==='ascending' ? 1 : -1};
+        const sort = { [sortBy]: order ==='ascending' ? 1 : -1};
         page = page ? parseInt(page) : 1;
         const skip = (page - 1) * limit;
         const patients = await Patient.find().sort(sort).collation({locale:'en', strength:2}).limit(limit).skip(skip);

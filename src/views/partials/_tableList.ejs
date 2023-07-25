@@ -106,12 +106,12 @@
 </script>
 <nav aria-label="Table pagination">
   <ul class="pagination">
-    <li class="page-item <%= page === 1 ? 'disabled' : '' %>">
+    <li class="page-item <%= page === 1 ? 'disabled' : '' %>" id="<%= id %>-prev-page">
       <a class="page-link" href="<%= dataUrl %>?page=<%= page - 1 %>&limit=<%= itemsPerPage %>" aria-label="Previous">
         <span aria-hidden="true">&laquo;</span>
       </a>
     </li>
-    <li class="page-item <%= page === totalPages ? 'disabled' : '' %>">
+    <li class="page-item <%= page === totalPages ? 'disabled' : '' %>" id="<%= id %>-next-page" >
       <a class="page-link" href="<%= dataUrl %>?page=<%= page + 1 %>&limit=<%= itemsPerPage %>" aria-label="Next">
         <span aria-hidden="true">&raquo;</span>
       </a>
