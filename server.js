@@ -23,14 +23,15 @@ const authenticate = new AuthenticationService(usersService);
 const methodOverride = require('method-override');
 
 const app = express();
-app.use((req, res, next) => {
-  if (req.header('x-forwarded-proto') !== 'https') {
+if (process.env.NODE_ENV !== 'dev') {
+  app.use((req, res, next) => {
+    if (req.header('x-forwarded-proto') !== 'https') {
       res.redirect(`https://${req.header('host')}${req.url}`);
-  } else {
+    } else {
       next();
-  }
-});
-
+    }
+  });
+}
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -59,7 +60,7 @@ app.use((req, res, next) => {
   // TIL res.locals.debug is a reserved property name
   res.locals.debugMode = process.env.DEBUG_MODE === 'true';
   res.locals.autoValidate = process.env.AUTO_VALIDATE === 'true';
-  if(res.locals.autoValidate){
+  if (res.locals.autoValidate) {
     res.locals.autoValidateTimeout = parseInt(process.env.AUTO_VALIDATE_TIMEOUT);
   }
   next();
@@ -67,9 +68,9 @@ app.use((req, res, next) => {
 
 app.use('/', indexRouter);
 app.use('/about', aboutRouter);
-app.use('/portal',portalRouter);
-app.use('/portal/home',homeRouter);
-app.use('/portal/api',apiRouter);
+app.use('/portal', portalRouter);
+app.use('/portal/home', homeRouter);
+app.use('/portal/api', apiRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
