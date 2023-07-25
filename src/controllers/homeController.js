@@ -25,7 +25,7 @@ const home = async (req, res, next) => {
         return res.render('field/home', {
             header:{title: 'eyeConnect Portal - Home (Field HCP)'},
             navigation: _buildFieldNav(),
-            patientsTable: _buildPatientsTableComponent(10),
+            patientsTable: _buildPatientsTableComponent(100),
         });
     } else if (req.user.role === 'SpecialistHCP') {
         // Render SpecialistHCP's homepage

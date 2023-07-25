@@ -7,7 +7,7 @@ const getAllFiltered = async (req, res, next) => {
         sort = { [sortBy]: sort==='ascending' ? 1 : -1};
         page = page ? parseInt(page) : 1;
         const skip = (page - 1) * limit;
-        const patients = await Patient.find().sort(sort).limit(limit).skip(skip);
+        const patients = await Patient.find().sort(sort).collation({locale:'en', strength:2}).limit(limit).skip(skip);
         res.status(200).json([...patients]);
     } catch (err) {
         console.error(err);
