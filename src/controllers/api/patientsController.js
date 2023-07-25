@@ -5,18 +5,18 @@ const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
 
 const getAllFiltered = async (req, res, next) => {
     try {
-        let {sortBy, order, limit, page} = req.query;
+        let { sortBy, order, limit, page } = req.query;
         limit = limit ? parseInt(limit) : MAX_LIMIT;
-        limit = Math.min(MAX_LIMIT,limit);
-        const sort = { [sortBy]: order ==='ascending' ? 1 : -1};
+        limit = Math.min(MAX_LIMIT, limit);
+        const sort = { [sortBy]: order === 'ascending' ? 1 : -1 };
         page = page ? parseInt(page) : 1;
         const skip = (page - 1) * limit;
-        page = Math.max(page,1);
-        const patients = await Patient.find().sort(sort).collation({locale:'en', strength:2}).limit(limit).skip(skip);
-        if(!patientCountCache){
+        page = Math.max(page, 1);
+        const patients = await Patient.find().sort(sort).collation({ locale: 'en', strength: 2 }).limit(limit).skip(skip);
+        if (!patientCountCache) {
             patientCountCache = await Patient.countDocuments();
         }
-        const maxPages = Math.ceil(patientCountCache/limit);
+        const maxPages = Math.ceil(patientCountCache / limit);
         res.status(200).json({
             data: [...patients],
             page,
@@ -32,15 +32,15 @@ const getAllFiltered = async (req, res, next) => {
 const getAll = async (req, res, next) => {
     try {
         if (Object.keys(req.query).length) return await getAllFiltered(req, res, next);
-        if(!patientCountCache){
+        if (!patientCountCache) {
             patientCountCache = await Patient.countDocuments();
         }
-        if(patientCountCache > MAX_LIMIT){
+        if (patientCountCache > MAX_LIMIT) {
             req.query.limit = MAX_LIMIT;
             return await getAllFiltered(req, res, next);
-        } 
+        }
         const patients = await Patient.find({});
-        res.status(200).json({data: [...patients]});
+        res.status(200).json({ data: [...patients], page: 1, pageCount: 1, limit: MAX_LIMIT });
     } catch (err) {
         console.error(err);
         next(err);
