@@ -1,17 +1,20 @@
 const CRUDLog = require('../models/log');
+const DO_NOT_LOG = ['email','password','notes','image'];
 
-const crudLogger = (action, paramsFn = ()=>({})) => {
-    return async (req,res,next) => {
+const crudLogger = (action, paramsFn = () => ({})) => {
+    return async (req, res, next) => {
         try {
             let actionString = action;
             const params = paramsFn(req);
-            if(Object.keys(params).length){
+            if (Object.keys(params).length) {
                 actionString += "\nparams:\n";
-                for(const key in params){
+                for (const key in params) {
+                    if(DO_NOT_LOG.includes(key)) continue;
                     actionString += `${key}: ${params[key]}\n`;
                 }
             }
-            await CRUDLog.create({action: actionString,userId: req.user.id});
+            const log = new CRUDLog({ action: actionString, userId: req.user.id });
+            await log.save({ validateBeforeSave: false });
             next();
         } catch (err) {
             console.error(err);

@@ -1,5 +1,6 @@
 const Patient = require('../../models/patient');
 const patientsService = require('../../services/patientsService');
+const examsService = require('../../services/examsService');
 
 let patientCountCache = null;
 const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
@@ -54,8 +55,8 @@ const getById = async (req, res, next) => {
         res.status(200).json({ data: patient });
     } catch (err) {
         console.error(err);
-        if(err.name==='PatientNotFoundError')
-            res.status(404).json({error: 'Not found'});
+        if (err.name === 'PatientNotFoundError')
+            res.status(404).json({ error: 'Not found' });
         else
             next(err);
     }
@@ -63,9 +64,9 @@ const getById = async (req, res, next) => {
 
 const deleteOne = async (req, res, next) => {
     try {
-        await Patient.deleteOne({ _id: req.params.id });
+        await patientsService.deletePatientById(req.params.id);
         patientCountCache = null;
-        res.status(200).json({ data: req.params.id });
+        res.status(204).json({ status: 204 });
     } catch (err) {
         console.error(err);
         next(err);
@@ -80,7 +81,7 @@ const create = async (req, res, next) => {
         }
         const patient = await Patient.create(req.body);
         patientCountCache = null;
-        res.status(200).json({ data: patient._id });
+        res.status(201).json({ data: { ...patient } });
     } catch (err) {
         console.error(err);
         next(err);
@@ -97,7 +98,7 @@ const updateOne = async (req, res, next) => {
             }
         }
         await patient.save();
-        res.status(200).json({ data: patient });
+        res.status(200).json({ data: { ...patient } });
     } catch (err) {
         console.error(err);
         next(err);
@@ -112,14 +113,35 @@ const searchByName = async (req, res, next) => {
         const patients = await Patient.find({
             name: { $regex: name, $options: 'i' }
         }).limit(limit).sort({ name: sort === 'ascending' ? 1 : -1 });
-        return res.status(200).json({data: patients});
+        return res.status(200).json({ data: patients });
     } catch (err) {
         console.error(err);
         next(err);
     }
 }
 
+const createExamForPatient = async (req, res, next) => {
+    try {
+        const exam = await examsService.createExamForPatient(req.params.id, req.user.id, req.body);
+        res.status(201).json({ data: { ...exam } });
+    } catch (err) {
+        console.error(err);
+        if (err.name === 'PatientNotFoundError') {
+            res.status(404).json({ error: err });
+        }
+        next(err);
+    }
+}
 
+const getExamsOfPatient = async (req, res, next) => {
+    try {
+        const exams = await examsService.getExamsOfPatient(req.params.id);
+        res.status(200).json({ data: exams });
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
+}
 
 module.exports = {
     create,
@@ -128,4 +150,6 @@ module.exports = {
     getById,
     getAll,
     searchByName,
+    createExamForPatient,
+    getExamsOfPatient,
 }

@@ -23,8 +23,18 @@ router.put('/:id', authorize('UPDATE_PATIENT'), crudLogger('Update patient', req
     return { id: req.params.id, ...result };
 }), patientsApi.updateOne);
 // DELETE /patients/:id -> delete patient (NOT ALLOWED in MVP)
-router.delete('/:id', authorize('DELETE_PATIENT', crudLogger('Delete patient', req => ({ id: req.params.id }))), patientsApi.delete);
+router.delete('/:id', authorize('DELETE_PATIENT'), crudLogger('Delete patient', req => ({ id: req.params.id })), patientsApi.delete);
 
+// POST /patients/:id/examinations => create new exam for patient
+router.post('/:id/examinations', authorize('ADD_EXAM'), crudLogger('Add examination for patient', req=>{
+    const result = {};
+    for(const key in req.body){
+        if(req.body[key] !== '') result[key] = req.body[key];
+    }
+    return {patient_id: req.params.id, ...result};
+}),patientsApi.createExamForPatient);
+// GET patients/:id/examinations -> return all examinations of patient => patientController needs to use
+router.get('/:id/examinations', authorize('GET_EXAMS_OF_PATIENT'), crudLogger('Read all exams of patient', req=>({patient_id: req.params.id})), patientsApi.getExamsOfPatient);
 // GET /patients/new -> render new patient
 // GET /patients/:id/edit -> render edit patient
 

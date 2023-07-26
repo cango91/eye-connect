@@ -1,9 +1,10 @@
 const Exam = require('../../models/examination');
+const examsService = require('../../services/examsService');
 
 let examsCountCache = null;
 const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
 
-const getAllFiltered = async (req,res,next)=>{
+const getAllFiltered = async (req, res, next) => {
     try {
         let { sortBy, order, limit, page } = req.query;
         limit = limit ? parseInt(limit) : MAX_LIMIT;
@@ -14,8 +15,10 @@ const getAllFiltered = async (req,res,next)=>{
         page = page ? parseInt(page) : 1;
         const skip = (page - 1) * limit;
         page = Math.max(page, 1);
-        const exams = await Exam.find().sort(sort).collation({ locale: 'en', strength: 2 }).limit(limit).skip(skip);
-        if(!examsCountCache){
+        const collation = { locale: 'en', strength: 2 };
+        const filter = {};
+        const exams = await examsService.getExamsFiltered(filter, sort, collation, skip, limit);
+        if (!examsCountCache) {
             examsCountCache = await Exam.countDocuments();
         }
         const pageCount = Math.ceil(examsCountCache / limit);
@@ -41,29 +44,56 @@ const getAll = async (req, res, next) => {
             req.query.limit = MAX_LIMIT;
             return await getAllFiltered(req, res, next);
         }
-        const patients = await Exam.find({});
-        res.status(200).json({ data: [...patients], page: 1, pageCount: 1, limit: MAX_LIMIT });
+        const exams = await examsService.getExamsFiltered({}, { 'updatedAt': -1 }, {}, 0, 0);
+        res.status(200).json({ data: [...exams], page: 1, pageCount: 1, limit: MAX_LIMIT });
     } catch (err) {
         console.error(err);
         next(err);
     }
 }
 
-const getOne = async (req,res,next)=>{
+const getOne = async (req, res, next) => {
     try {
-        const exam = await Exam.findById(req.params.id);
-        if(exam){
-            res.status(200).json({data: exam});
-        } 
+        const exam = await examsService.findById(req.params.id);
+        res.status(200).json({ data: exam });
     } catch (err) {
         console.error(err);
+        if (err.name === 'ExamNotFound')
+            res.status(404).json({ error: err })
         next(err);
     }
 }
 
+const deleteOne = async (req, res, next) => {
+    try {
+        const ensureOwnership = req.user.role !== 'MedicalDirector';
+        await examsService.deleteExamById(req.params.id, ensureOwnership ? req.user.id : false);
+        res.status(204).json({ status: 204 });
+    } catch (err) {
+        console.error(err);
+        if (err.name === 'ExamNotFound')
+            res.status(404).json({ error: err });
+        next(err);
+    }
+}
+
+const updateOne = async (req, res, next) => {
+    try {
+        const ensureOwnership = req.user.role !== 'MedicalDirector' && req.user.id;
+        const exam = await examsService.updateExamNotes(req.params.id, res.body, ensureOwnership);
+        res.status(200).json({ data: exam });
+    } catch (err) {
+        if (err.name === 'ExamNotFound')
+            res.status(404).json({ error: err });
+        if (err.name === 'NotAllowed')
+            res.status(403).json({ error: err });
+        next(err);
+    }
+}
 
 module.exports = {
     getAll,
     getOne,
-    
+    delete: deleteOne,
+    updateOne,
 }

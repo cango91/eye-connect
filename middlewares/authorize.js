@@ -7,7 +7,11 @@ const authorizationDictionary = {
     SEARCH_PATIENT_BY_NAME: ['FieldHCP','SpecialistHCP','MedicalDirector'],
     READ_ALL_EXAMS: ['FieldHCP','MedicalDirector','SpecialistHCP'],
     READ_EXAM_BY_ID: ['FieldHCP','MedicalDirector','SpecialistHCP'],
-    READ_ALL_EXAMS_AWAITING_CONSULTATION: ['MedicalDirector','SpecialistHCP']
+    ADD_EXAM: ['FieldHCP'],
+    READ_ALL_EXAMS_AWAITING_CONSULTATION: ['MedicalDirector','SpecialistHCP'],
+    DELETE_EXAM: ['FieldHCP','MedicalDirector'],
+    GET_EXAMS_OF_PATIENT: ['FieldHCP','MedicalDirector','SpecialistHCP'],
+    UPDATE_EXAM_BY_ID: ['FieldHCP','MedicalDirector'],
 }
 
 const authorize = action => (req,res,next) =>{

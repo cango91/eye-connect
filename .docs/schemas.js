@@ -133,7 +133,8 @@ const funduscopySchema = new Schema({
     },
     examination: {
         type: Schema.Types.ObjectId,
-        ref: 'Examination'
+        ref: 'Examination',
+        required: true,
     },
     consultation: {
         type: Schema.Types.ObjectId,
