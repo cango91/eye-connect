@@ -1,11 +1,25 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
-<main class="container mt-5 py-4 bg-light shadow-lg rounded">
-    Welcome home Field Doctor
-    <%- include('../partials/tableComponent', {...patientsTable}); %>
-    <% let patientsTable2 = {...patientsTable};
-    patientsTable2.id = 'patients2';
-    patientsTable2.fetchOptions.limit = 5; %>
-    <%- include('../partials/tableComponent', {...patientsTable2}); %>
+<main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="text-center mb-3">
+    <h2>HOME</h2>
+  </div>
+  <div class="container-lg">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="d-flex flex-column">
+                <button class="btn btn-primary mb-2">New Exam</button>
+                <button class="btn btn-primary mb-2">New Patient</button>
+                <button class="btn btn-primary mb-2">Explore Consultations</button>
+              </div>
+        </div>
+      <div class="col-md-4">
+        <%- include('../partials/tableComponent', {...patientsTable}); %>
+      </div>
+      <div class="col-md-6">
+        <%- include('../partials/tableComponent', {...examsTable}); %>
+      </div>
+    </div>
+  </div>
 </main>
 <%- include('../partials/footer') %>

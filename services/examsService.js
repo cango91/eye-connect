@@ -19,11 +19,12 @@ const getExamsOfPatient = async patientId => {
 
 const getExamsFiltered = async (filter, sort, collation, skip, limit) => {
     try {
-        const exams = await Exam.find(filter).sort(sort).collation(collation).limit(limit).skip(skip);
-        if (exams.length) {
-            exams.forEach(exam => decryptExamNotes(exam));
-        }
-        return exams;
+        return await Exam.find(filter).sort(sort).collation(collation).limit(limit).skip(skip).populate('patient').then(exams => {
+            if (exams.length) {
+                exams.forEach(exam => decryptExamNotes(exam));
+            }
+            return exams;
+        });
     } catch (err) {
         console.log(err);
         throw err;
@@ -38,6 +39,7 @@ const createExamForPatient = async (patientId, examinerId, examData) => {
             examData.examiner = examinerId;
             encryptExamNotes(examData);
             const exam = await Exam.create(examData);
+            await eventService.emitEvent('examCreated', { examId: exam._id, patientId: patient._id });
             return exam;
         } catch (e) {
             console.error(e);

@@ -1,12 +1,13 @@
 const Exam = require('../../models/examination');
 const examsService = require('../../services/examsService');
+const eventService = require('../../services/eventService');
 
 let examsCountCache = null;
 const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
 
 const getAllFiltered = async (req, res, next) => {
     try {
-        let { sortBy, order, limit, page } = req.query;
+        let { sortBy, order, limit, page, filter, filterValue } = req.query;
         limit = limit ? parseInt(limit) : MAX_LIMIT;
         limit = Math.min(MAX_LIMIT, limit);
         sortBy = sortBy ? sortBy : 'updatedAt';
@@ -16,8 +17,9 @@ const getAllFiltered = async (req, res, next) => {
         const skip = (page - 1) * limit;
         page = Math.max(page, 1);
         const collation = { locale: 'en', strength: 2 };
-        const filter = {};
-        const exams = await examsService.getExamsFiltered(filter, sort, collation, skip, limit);
+        let query = {}
+        if (filter && filterValue) query = { [filter]: filterValue };
+        const exams = await examsService.getExamsFiltered(query, sort, collation, skip, limit);
         if (!examsCountCache) {
             examsCountCache = await Exam.countDocuments();
         }
@@ -69,6 +71,7 @@ const deleteOne = async (req, res, next) => {
         const ensureOwnership = req.user.role !== 'MedicalDirector';
         await examsService.deleteExamById(req.params.id, ensureOwnership ? req.user.id : false);
         res.status(204).json({ status: 204 });
+        examsCountCache = null;
     } catch (err) {
         console.error(err);
         if (err.name === 'ExamNotFound')
@@ -90,7 +93,8 @@ const updateOne = async (req, res, next) => {
         next(err);
     }
 }
-
+eventService.on('examCreated', async () => examsCountCache = null);
+eventService.on('examDeleted', async () => examsCountCache = null);
 module.exports = {
     getAll,
     getOne,

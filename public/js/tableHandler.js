@@ -208,3 +208,7 @@ const tableHandler = (
         table
     }
 }
+
+const paginationHandler = table => {
+
+}

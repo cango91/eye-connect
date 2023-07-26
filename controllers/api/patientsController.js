@@ -7,14 +7,19 @@ const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
 
 const getAllFiltered = async (req, res, next) => {
     try {
-        let { sortBy, order, limit, page } = req.query;
+        let { sortBy, order, limit, page, filter, filterValue } = req.query;
         limit = limit ? parseInt(limit) : MAX_LIMIT;
         limit = Math.min(MAX_LIMIT, limit);
         const sort = { [sortBy]: order === 'ascending' ? 1 : -1 };
         page = page ? parseInt(page) : 1;
         const skip = (page - 1) * limit;
         page = Math.max(page, 1);
-        const patients = await Patient.find().sort(sort).collation({ locale: 'en', strength: 2 }).limit(limit).skip(skip);
+        let query = {};
+        if (filter && filterValue) {
+            query = { [filter]: filterValue };
+        }
+        const collation = { locale: 'en', strength: 2 };
+        const patients = await patientsService.getPatientsFiltered(query, sort,collation,skip,limit);
         if (!patientCountCache) {
             patientCountCache = await Patient.countDocuments();
         }

@@ -75,3 +75,8 @@ a.nav-link.dropdown-toggle.notification::after{
 .table-sort a{
   text-decoration: none;
 }
+
+
+.table-responsive th{
+  text-wrap:nowrap;
+}

@@ -24,70 +24,129 @@ const home = async (req, res, next) => {
         return res.render('field/home', {
             header: {
                 title: 'eyeConnect Portal - Home (Field HCP)',
-                scripts: [{
-                    file: '/js/tableHandler.js',
-                }]
+                scripts: [
+                    { file: '/js/tableHandler.js', },
+                    { file: '/js/utils.js' }
+                ]
             },
             navigation: _buildFieldNav(),
             patientsTable: {
-                id: 'patients',
+                id: 'myPatients',
                 fetchOptions: {
-                    url: '/portal/api/patients',
+                    url: '/portal/api/examinations?filter=examiner&filterValue=' + req.user.id,
                     page: 1,
                     pageCount: 0,
                     limit: 0,
                     sort: {
-                        sortBy: 'createdAt',
-                        asc: true,
+                        sortBy: 'updatedAt',
+                        asc: false,
                     },
                 },
                 fetchFunction: `(opts)=>{
-                    return new Promise((res,err)=>{
-                        let fUrl = opts.url;
-                        if(opts.sort?.sortBy){
-                            fUrl += '?sortBy=' + opts.sort.sortBy + '&order=';
-                            fUrl += opts.sort.asc ? 'ascending' : 'descending';
-                            if(parseInt(opts.limit)>0){
-                                fUrl += '&limit=' + parseInt(opts.limit);
-                            }
-                        }
-                        
-                        fetch(fUrl)
-                        .then(response => response.json())
-                        .then(data => {
-                            const today = new Date();
-                            const calculateAge = (dob) => today.getFullYear() - new Date(dob).getFullYear();
-                            const rows = [];
-                            data.data.forEach(item => {
-                                rows.push([item.name, calculateAge(item.dateOfBirth)],
-                                );
-                            });
-                            opts.limit = data.limit ? data.limit : opts.limit;
-                            opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
-                            opts.page = data.page ? data.page : opts.page;
-                            res(rows);
-                        });
-                    });
-            }`,
+                                return new Promise((res,err)=>{
+                                    let fUrl = opts.url;
+                                    if(opts.sort?.sortBy){
+                                        fUrl += '&sortBy=' + opts.sort.sortBy + '&order=';
+                                        fUrl += opts.sort.asc ? 'ascending' : 'descending';
+                                        if(parseInt(opts.limit)>0){
+                                            fUrl += '&limit=' + parseInt(opts.limit);
+                                        }
+                                    }
+                                    
+                                    fetch(fUrl)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        const today = new Date();
+                                        const calculateAge = (dob) => today.getFullYear() - new Date(dob).getFullYear();
+                                        const rows = [];
+                                        data.data.forEach(item => {
+                                            rows.push([item.patient.name, calculateAge(item.patient.dateOfBirth)],
+                                            );
+                                        });
+                                        opts.limit = data.limit ? data.limit : opts.limit;
+                                        opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+                                        opts.page = data.page ? data.page : opts.page;
+                                        res(rows);
+                                    });
+                                });
+                        }`,
                 headerData: [
                     {
                         text: 'Name',
                         sort: {
                             sortBy: 'name'
                         },
-                        parseFunction: `(value,td) => {
-                        return new Promise((res)=>{
-                            td.innerText = 'loading';
-                            setTimeout(()=>res(value),1000);
-                        });
-                    }`
                     },
                     {
                         text: 'Age',
                         sort: { sortBy: 'dateOfBirth' }
                     }
-                ]
+                ],
+                tableClasses: ['table', 'caption-top', 'border', 'border-2', 'border-info'],
+                caption: 'My Recent Patients',
             },
+            examsTable: {
+                id: 'myExams',
+                fetchOptions: {
+                    url: '/portal/api/examinations?filter=examiner&filterValue=' + req.user.id,
+                    page: 1,
+                    pageCount: 0,
+                    limit: 0,
+                    sort: {
+                        sortBy: 'updatedAt',
+                        asc: false,
+                    },
+                },
+                fetchFunction: `(opts)=>{
+                                return new Promise((res,err)=>{
+                                    let fUrl = opts.url;
+                                    if(opts.sort?.sortBy){
+                                        fUrl += '&sortBy=' + opts.sort.sortBy + '&order=';
+                                        fUrl += opts.sort.asc ? 'ascending' : 'descending';
+                                        if(parseInt(opts.limit)>0){
+                                            fUrl += '&limit=' + parseInt(opts.limit);
+                                        }
+                                    }
+                                    
+                                    fetch(fUrl)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        const today = new Date();
+                                        const calculateAge = (dob) => today.getFullYear() - new Date(dob).getFullYear();
+                                        const rows = [];
+                                        data.data.forEach(item => {
+                                            rows.push([item.patient.name,getDate(item.date),item.consultations?.length ? 'yes' : 'no'],
+                                            );
+                                        });
+                                        opts.limit = data.limit ? data.limit : opts.limit;
+                                        opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+                                        opts.page = data.page ? data.page : opts.page;
+                                        res(rows);
+                                    });
+                                });
+                        }`,
+                headerData: [
+                    {
+                        text: 'Patient Name',
+                        sort: {
+                            sortBy: 'name'
+                        },
+                    },
+                    {
+                        text: 'Exam Date',
+                        sort: {
+                            sortBy: 'date'
+                        }
+                    },
+                    {
+                        text: 'Consultation?'
+                    },
+
+                ],
+                tableClasses: ['table', 'caption-top', 'border', 'border-2', 'border-info'],
+                caption: 'My Recent Exams',
+            },
+
         });
     } else if (req.user.role === 'SpecialistHCP') {
         // Render SpecialistHCP's homepage

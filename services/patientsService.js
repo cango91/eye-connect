@@ -27,6 +27,16 @@ const deletePatientById = async id =>{
     }
 }
 
+const getPatientsFiltered = async (filter, sort, collation, skip, limit) => {
+    try {
+        const patients = await Patient.find(filter).sort(sort).collation(collation).limit(limit).skip(skip);
+        return patients;
+    } catch (err) {
+        console.log(err);
+        throw err;
+    }
+}
+
 class PatientNotFound extends Error {
     constructor(msg){
         super(msg);
@@ -37,4 +47,5 @@ class PatientNotFound extends Error {
 module.exports = {
     getPatientById,
     deletePatientById,
+    getPatientsFiltered,
 }

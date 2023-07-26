@@ -70,7 +70,7 @@ module.exports = class AuthenticateService {
                 }));
 
             passport.serializeUser((user, cb) => {
-                cb(null, user._id);
+                cb(null, user._id.toString());
             });
 
             passport.deserializeUser(async (id, cb) => {
