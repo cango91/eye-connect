@@ -1,7 +1,7 @@
 const Patient = require('../../models/patient');
 const patientsService = require('../../services/patientsService');
 const examsService = require('../../services/examsService');
-
+const Types = require('mongoose').Types;
 let patientCountCache = null;
 const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
 
@@ -10,23 +10,24 @@ const getAllFiltered = async (req, res, next) => {
         let { sortBy, order, limit, page, filter, filterValue, includeLatestExamDate } = req.query;
         limit = limit ? parseInt(limit) : MAX_LIMIT;
         limit = Math.min(MAX_LIMIT, limit);
+        limit = Math.max(limit, 1);
         const sort = { [sortBy]: order === 'ascending' ? 1 : -1 };
         page = page ? parseInt(page) : 1;
-        const skip = (page - 1) * limit;
         page = Math.max(page, 1);
+        const skip = (page - 1) * limit;
         let query = {};
         if (filter && filterValue) {
             query = { [filter]: filterValue };
         }
         const collation = { locale: 'en', strength: 2 };
         let patients, totalCount;
-        if(includeLatestExamDate || sortBy==='numExams' || sortBy === 'latestExamDate'){
-            ({patients, totalCount}  = await patientsService.getPatientsWithLatestExamDate(query,sort,collation,skip,limit));
-        }else{
+        if (includeLatestExamDate || sortBy === 'numExams' || sortBy === 'latestExamDate') {
+            ({ patients, totalCount } = await patientsService.getPatientsWithLatestExamDate(query, sort, collation, skip, limit));
+        } else {
             // TODO refactor getPatientsFiltered to return total count from service
-            patients = await patientsService.getPatientsFiltered(query, sort,collation,skip,limit);
-            totalCount = await Patient.countDocuments({query})
-        }           
+            patients = await patientsService.getPatientsFiltered(query, sort, collation, skip, limit);
+            totalCount = await Patient.countDocuments({ query })
+        }
         const maxPages = Math.ceil(totalCount / limit);
         res.status(200).json({
             data: [...patients],
@@ -75,7 +76,7 @@ const deleteOne = async (req, res, next) => {
     try {
         await patientsService.deletePatientById(req.params.id);
         patientCountCache = null;
-        res.status(204).json({ status: 204 });
+        res.status(200).json({status:204});
     } catch (err) {
         console.error(err);
         next(err);
@@ -107,7 +108,7 @@ const updateOne = async (req, res, next) => {
             }
         }
         await patient.save();
-        res.status(200).json({ data: { ...patient } });
+        res.status(200).json({ data: { ...patient._doc } });
     } catch (err) {
         console.error(err);
         next(err);
@@ -119,7 +120,7 @@ const searchByName = async (req, res, next) => {
     try {
         let { name, limit, sort } = req.query;
         limit = limit || 10;
-        limit = Math.min(limit,MAX_LIMIT);
+        limit = Math.min(limit, MAX_LIMIT);
         sort = sort || 'ascending';
         if (!name) return res.status(400).json({ error: 'Search term missing' });
         const patients = await Patient.find({
@@ -147,8 +148,31 @@ const createExamForPatient = async (req, res, next) => {
 
 const getExamsOfPatient = async (req, res, next) => {
     try {
-        const exams = await examsService.getExamsOfPatient(req.params.id);
-        res.status(200).json({ data: exams });
+        // const exams = await examsService.getExamsOfPatient(req.params.id);
+        // res.status(200).json({ data: exams });
+        let { filter, filterValue, sortBy, order, limit, page } = req.query;
+        filter = 'patient._id';
+        filterValue = req.params.id;
+        const query = { [filter]: new Types.ObjectId(filterValue) };
+        sortBy = sortBy || 'updatedAt';
+        order = order || 'descending';
+        limit = limit ? Math.min(parseInt(limit), MAX_LIMIT) : MAX_LIMIT;
+        limit = Math.max(limit, 1);
+        page = page ? parseInt(page) : 1;
+        page = Math.max(page, 1);
+        const skip = (page - 1) * limit;
+        const sort = { [sortBy]: order === 'ascending' ? 1 : -1 };
+        const results = await examsService.getExamsFiltered(query,sort,{locale: 'en',strength: 2},skip,limit);
+        if(results.exams){
+            res.status(200).json({
+                data: results.exams,
+                pageCount: Math.ceil(results.totalCount/limit),
+                page,
+                limit,
+            });
+        }else{
+            //res.status(404).json({error: 'No Exams Found'});
+        }
     } catch (err) {
         console.error(err);
         next(err);

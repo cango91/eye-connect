@@ -1,6 +1,6 @@
 const getDate = date =>{
     date = new Date(date);
-    return `${date.getMonth().toString().padStart(2,'0')}/${date.getDay().toString().padStart(2,'0')}/${date.getFullYear()}`;
+    return `${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getDate().toString().padStart(2,'0')}/${date.getFullYear()}`;
 }
 
 const calculateAge = dob => {

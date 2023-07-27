@@ -39,16 +39,6 @@ const getAllFiltered = async (req, res, next) => {
 const getAll = async (req, res, next) => {
     try {
         return await getAllFiltered(req,res,next);
-        if (Object.keys(req.query).length) return await getAllFiltered(req, res, next);
-        if (!examsCountCache) {
-            examsCountCache = await Exam.countDocuments();
-        }
-        if (examsCountCache > MAX_LIMIT) {
-            req.query.limit = MAX_LIMIT;
-            return await getAllFiltered(req, res, next);
-        }
-        const result = await examsService.getExamsFiltered({}, { 'updatedAt': -1 }, {}, 0, 0);
-        res.status(200).json({ data: [...result.exams], page: 1, pageCount: 1, limit: MAX_LIMIT });
     } catch (err) {
         console.error(err);
         next(err);

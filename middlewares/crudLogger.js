@@ -1,10 +1,12 @@
 const CRUDLog = require('../models/log');
 const DO_NOT_LOG = ['email','password','notes','image'];
+const User = require('../models/user');
 
 const crudLogger = (action, paramsFn = () => ({})) => {
     return async (req, res, next) => {
         try {
-            let actionString = action;
+            let actionString = req.user.id ? (await User.findById(req.user.id)).name + ':' : 'SYSTEM:';
+            actionString += action;
             const params = paramsFn(req);
             if (Object.keys(params).length) {
                 actionString += "\nparams:\n";

@@ -49,8 +49,11 @@ router.post('/reject-policy', portalCtrl.rejectPolicy);
 router.get('/account-status',portalCtrl.getAccountStatus);
 
 // GET /portal/patients to view all patients for Field HCP
-router.get('/patients', authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_PATIENTS'),crudLogger('View Patients',req=>({...req.query})),patientsPortalCtrl);
-// GET /portal/exams to view owned (by default) examinations for Field HCP
+router.get('/patients', authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_PATIENTS'),crudLogger('View Patients',req=>({...req.query})),patientsPortalCtrl.index);
+// GET /portal/patients/:id to view patient details
+router.get('/patients/:id',authenticate.authenticate, ensureProfileComplete,authorize('READ_PATIENT_BY_ID'),crudLogger('View patients', req=>({id: req.params.id})),patientsPortalCtrl.details);
+
+// GET /portal/exams to view owned or all examinations for Field HCP
 router.get('/exams',authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_EXAMS'),crudLogger('View Exams',req=>({...req.query})),examsPortalCtrl);
 
 module.exports = router;

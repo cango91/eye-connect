@@ -15,7 +15,8 @@ const tableHandler = (
     },
     fetchFunction,
     headerData,
-    tableClasses = ['table', 'caption-top']
+    tableClasses = ['table', 'caption-top'],
+    alert = false,
 ) => {
     parentElement = parentElement ? parentElement : document.body;
     // BUILDING TABLE
@@ -88,6 +89,12 @@ const tableHandler = (
     table.appendChild(tbody);
     parentElement.appendChild(table);
     //FINISH TABLE
+
+    //Add alert
+    const alertDiv = document.createElement('div');
+    alertDiv.id = `${id}-table-alert`;
+    alertDiv.className = 'table-alert';
+    document.body.appendChild(alertDiv);
 
     const makeAnchor = (asc = false) => {
         const a = document.createElement('a');
@@ -184,17 +191,23 @@ const tableHandler = (
                 if (idx > -1) {
                     toggleActiveClass(idx, fetchOptions.sort.asc);
                 }
-            }).then(resolve);
+            }).then(resolve)
+                .catch(error => {
+                    if (alert) {
+                        showTableAlert(error, 'danger');
+                    }
+                    reject(error);
+                });
         });
     }
 
     // convenience functions
-    const dataCount = () => Array.from(tbody.querySelectorAll('tr')).length;
+    const dataCount = () => (tbody.querySelectorAll('tr')).length;
     const setCaption = text => capSpan.textContent = text;
     const getOpts = () => (srt => (rslt = Object.assign({}, fetchOptions), rslt.sort = srt, rslt))(Object.assign({}, fetchOptions.sort));
-    const setOpts = newOpts =>{
-        for(let key in newOpts){
-            if(key in fetchOptions){
+    const setOpts = newOpts => {
+        for (let key in newOpts) {
+            if (key in fetchOptions) {
                 fetchOptions[key] = newOpts[key];
             }
         }
@@ -214,6 +227,12 @@ const tableHandler = (
         return;
     });
 
+    const showTableAlert = (message, type) => {
+        const alertDiv = document.getElementById(`${id}-table-alert`);
+        alertDiv.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' + message +
+            '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+    }
+
     const handler = {
         updateOpts,
         populateTable,
@@ -222,6 +241,7 @@ const tableHandler = (
         setCaption,
         getOpts,
         setOpts,
+        showTableAlert,
     };
 
     populateTable().then(() => window.dispatchEvent(new CustomEvent('tableLoaded', {
@@ -229,7 +249,15 @@ const tableHandler = (
             handler: handler,
             target: table,
         }
-    })));
+    }))).catch(err=>{
+        window.dispatchEvent(new CustomEvent('tableLoaded'), {
+            detail: {
+                handler: handler,
+                target: table,
+                error: err
+            }
+        });
+    });
 
 
     //return handler;

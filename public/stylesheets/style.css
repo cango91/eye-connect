@@ -55,6 +55,13 @@ footer ul>li.nav-item>a.nav-link {
   z-index: 1;
 }
 
+.table-alert {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+}
+
 .password-hints {
   background-color: var(--password-hints-bg-color);
 }

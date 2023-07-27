@@ -6,30 +6,16 @@ const crudLogger = require('../middlewares/crudLogger');
 
 const getExamsOfPatient = async patientId => {
     try {
-        const exams = await Exam.find({ patient: patientId }).sort({ updatedAt: -1 });
-        if (exams.length) {
-            exams.forEach(exam => decryptExamNotes(exam));
-        }
-        return exams;
+        // const exams = await Exam.find({ patient: patientId }).sort({ updatedAt: -1 });
+        // if (exams.length) {
+        //     exams.forEach(exam => decryptExamNotes(exam));
+        // }
+        // return exams;
     } catch (error) {
         console.error(error);
         throw error;
     }
 }
-
-// const getExamsFiltered = async (filter, sort, collation, skip, limit) => {
-//     try {
-//         return await Exam.find(filter).sort(sort).collation(collation).limit(limit).skip(skip).populate('patient').populate({path: 'examiner', select: 'name'}).then(exams => {
-//             if (exams.length) {
-//                 exams.forEach(exam => decryptExamNotes(exam));
-//             }
-//             return exams;
-//         });
-//     } catch (err) {
-//         console.error(err);
-//         throw err;
-//     }
-// }
 
 const getExamsFiltered = async (filter, sort, collation, skip, limit) => {
     try {

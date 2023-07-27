@@ -3,7 +3,7 @@ const authorizationDictionary = {
     READ_PATIENT_BY_ID: ['FieldHCP','SpecialistHCP','MedicalDirector'],
     CREATE_PATIENT: ['FieldHCP','MedicalDirector'],
     UPDATE_PATIENT: ['FieldHCP','MedicalDirector'],
-    DELETE_PATIENT: ['MedicalDirector'],
+    DELETE_PATIENT: ['MedicalDirector','FieldHCP'],
     SEARCH_PATIENT_BY_NAME: ['FieldHCP','SpecialistHCP','MedicalDirector'],
     READ_ALL_EXAMS: ['FieldHCP','MedicalDirector','SpecialistHCP'],
     READ_EXAM_BY_ID: ['FieldHCP','MedicalDirector','SpecialistHCP'],
