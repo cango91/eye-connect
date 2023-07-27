@@ -64,28 +64,53 @@ footer ul>li.nav-item>a.nav-link {
   color: red;
 }
 
-a.nav-link.dropdown-toggle.notification::after{
+a.nav-link.dropdown-toggle.notification::after {
   content: none !important;
 }
 
-.table-sort{
-  color:#666565;
+.table-sort {
+  color: #666565;
 }
 
-.table-sort a{
+.table-sort a {
   text-decoration: #666565;
 }
 
 
-.table-responsive th{
-  text-wrap:nowrap;
+.table-responsive th {
+  text-wrap: nowrap;
 }
 
 a.dropdown-item.active {
-  background-color:#666565 !important;
+  background-color: #666565 !important;
 }
 
 .form-switch .form-check-input,
-.form-switch .switch-icon{
+.form-switch .switch-icon {
   cursor: pointer;
-} 
+}
+
+@media (max-width: 767.98px) {
+  .navbar-collapse .nav-item .dropdown-menu {
+    position: static;
+    display: block;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .dropdown-menu[data-bs-popper] {
+    margin-top: 0;
+    
+  }
+
+  .dropdown-toggle::after {
+    border:0;
+  }
+}
+
+#back-btn{
+  font-size: larger !important;
+  font-weight: 1000 !important;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+}

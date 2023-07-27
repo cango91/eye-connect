@@ -160,7 +160,6 @@ const tableHandler = (
     }
 
     const populateTable = () => {
-        //updateOpts();
         return new Promise((resolve, reject) => {
             fetchFunction(fetchOptions).then(data => {
                 while (tbody.firstChild) {
@@ -172,7 +171,7 @@ const tableHandler = (
                         const td = document.createElement('td');
                         if (headerData[idx].parseFunction) {
                             const parseFn = new Function(`return ${headerData[idx].parseFunction}`)();
-                            parseFn(value, td).then(data => td.textContent = data);
+                            parseFn(value, td);
                         } else {
                             td.textContent = value;
                         }
