@@ -125,3 +125,26 @@ a.dropdown-item.active {
 .i-add-patient svg{
   transform: scale(1.5);
 }
+
+.centered-collapse-menu{
+  justify-content: center;
+}
+
+.navbar-ul-centered{
+  text-align: center;
+}
+
+.collapse-btn-icon{
+  margin:0;
+  vertical-align: center;
+  margin-left: .25rem !important;
+}
+
+@media (max-width: 991.98px){
+  .collapse-btn-icon{
+    margin:0;
+    vertical-align: center;
+    margin: .25rem !important;
+  }
+  
+}

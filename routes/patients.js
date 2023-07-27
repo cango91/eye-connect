@@ -25,7 +25,7 @@ router.put('/:id', authorize('UPDATE_PATIENT'), crudLogger('Update patient', req
     }
     return { id: req.params.id, ...result };
 }), patientsApi.updateOne);
-// DELETE /patients/:id -> delete patient (NOT ALLOWED in MVP)
+// DELETE /patients/:id -> delete patient (NOT ALLOWED in MVP... or IS IT??)
 router.delete('/:id', authorize('DELETE_PATIENT'), crudLogger('Delete patient', req => ({ id: req.params.id })), patientsApi.delete);
 
 // POST /patients/:id/examinations => create new exam for patient

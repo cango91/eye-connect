@@ -74,7 +74,32 @@ const details = (req, res, next) => {
     }
 }
 
+const newPatient = (req, res, next) => {
+    if (req.user.role === 'FieldHCP') {
+        const navigation = Utils.Field.AuthorizedNavigation('New Patient');
+        navigation.items.push({text: 'New Patient', href:"#"});
+        res.render('field/newPatient', {
+            header: {
+                title: 'eyeConnect Portal - New Patient',
+                scripts: [{ file: '/js/utils.js' }],
+            },
+            navigation,
+            paperIcon: Utils.Icons.PaperIcon,
+            saveIcon: Utils.Icons.CheckIcon,
+            cancelIcon: Utils.Icons.CrossIcon,
+            prefillName: req.query?.name ? req.query.name : null,
+
+        });
+    } else if (req.user.role === 'SpecialistHCP') {
+
+    } else {
+
+    }
+}
+
 module.exports = {
     index,
     details,
+    new:newPatient,
+
 }
