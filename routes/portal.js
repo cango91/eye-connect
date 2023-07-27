@@ -1,5 +1,12 @@
 const express = require('express');
 const portalCtrl = require('../controllers/portalController');
+const patientsPortalCtrl = require('../controllers/portal/patientsController');
+const examsPortalCtrl = require('../controllers/portal/examsController');
+const AuthenticateService = require('../services/authenticationService');
+const authenticate  = new AuthenticateService();
+const ensureProfileComplete = require('../middlewares/ensureProfileComplete');
+const authorize = require('../middlewares/authorize');
+const crudLogger = require('../middlewares/crudLogger');
 const router = express.Router();
 
 // GET /portal -> if logged-in redirect to /portal/home
@@ -40,5 +47,10 @@ router.post('/agree-to-policy', portalCtrl.agreeToPolicy);
 router.post('/reject-policy', portalCtrl.rejectPolicy);
 //GET /portal/account-status get account status
 router.get('/account-status',portalCtrl.getAccountStatus);
+
+// GET /portal/patients to view all patients for Field HCP
+router.get('/patients', authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_PATIENTS'),crudLogger('View Patients',req=>({...req.query})),patientsPortalCtrl);
+// GET /portal/exams to view owned (by default) examinations for Field HCP
+router.get('/exams',authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_EXAMS'),crudLogger('View Exams',req=>({...req.query})),examsPortalCtrl);
 
 module.exports = router;

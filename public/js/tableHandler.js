@@ -27,11 +27,12 @@ const tableHandler = (
     table.dataset.sortBy = fetchOptions.sort.sortBy;
     table.dataset.sortAscending = fetchOptions.sort.asc;
     table.className = tableClasses.join(' ');
-    if (caption) {
-        const cap = document.createElement('caption');
-        cap.textContent = caption;
-        table.appendChild(cap);
-    }
+
+    const cap = document.createElement('caption');
+    const capSpan = document.createElement('span');
+    cap.appendChild(capSpan);
+    if (caption) capSpan.textContent = caption;
+    table.appendChild(cap);
     const thead = document.createElement('thead');
     const tr = document.createElement('tr');
     headerData.forEach((data, idx) => {
@@ -160,30 +161,44 @@ const tableHandler = (
 
     const populateTable = () => {
         //updateOpts();
-        fetchFunction(fetchOptions).then(data => {
-            while (tbody.firstChild) {
-                tbody.firstChild.remove();
-            }
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                Object.values(row).forEach((value, idx) => {
-                    const td = document.createElement('td');
-                    if (headerData[idx].parseFunction) {
-                        const parseFn = new Function(`return ${headerData[idx].parseFunction}`)();
-                        parseFn(value, td).then(data => td.textContent = data);
-                    } else {
-                        td.textContent = value;
-                    }
-                    tr.appendChild(td);
+        return new Promise((resolve, reject) => {
+            fetchFunction(fetchOptions).then(data => {
+                while (tbody.firstChild) {
+                    tbody.firstChild.remove();
+                }
+                data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    Object.values(row).forEach((value, idx) => {
+                        const td = document.createElement('td');
+                        if (headerData[idx].parseFunction) {
+                            const parseFn = new Function(`return ${headerData[idx].parseFunction}`)();
+                            parseFn(value, td).then(data => td.textContent = data);
+                        } else {
+                            td.textContent = value;
+                        }
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
                 });
-                tbody.appendChild(tr);
-            });
-            updateDataset();
-            const idx = headerData.findIndex(item => item?.sort?.sortBy === fetchOptions.sort.sortBy);
-            if (idx > -1) {
-                toggleActiveClass(idx, fetchOptions.sort.asc);
-            }
+                updateDataset();
+                const idx = headerData.findIndex(item => item?.sort?.sortBy === fetchOptions.sort.sortBy);
+                if (idx > -1) {
+                    toggleActiveClass(idx, fetchOptions.sort.asc);
+                }
+            }).then(resolve);
         });
+    }
+
+    // convenience functions
+    const dataCount = () => Array.from(tbody.querySelectorAll('tr')).length;
+    const setCaption = text => capSpan.textContent = text;
+    const getOpts = () => (srt => (rslt = Object.assign({}, fetchOptions), rslt.sort = srt, rslt))(Object.assign({}, fetchOptions.sort));
+    const setOpts = newOpts =>{
+        for(let key in newOpts){
+            if(key in fetchOptions){
+                fetchOptions[key] = newOpts[key];
+            }
+        }
     }
 
     thead.addEventListener('click', e => {
@@ -200,13 +215,26 @@ const tableHandler = (
         return;
     });
 
-    populateTable();
-
-    return {
+    const handler = {
         updateOpts,
         populateTable,
-        table
-    }
+        table,
+        dataCount,
+        setCaption,
+        getOpts,
+        setOpts,
+    };
+
+    populateTable().then(() => window.dispatchEvent(new CustomEvent('tableLoaded', {
+        detail: {
+            handler: handler,
+            target: table,
+        }
+    })));
+
+
+    //return handler;
+
 }
 
 const paginationHandler = table => {

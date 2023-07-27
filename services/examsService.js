@@ -17,16 +17,62 @@ const getExamsOfPatient = async patientId => {
     }
 }
 
+// const getExamsFiltered = async (filter, sort, collation, skip, limit) => {
+//     try {
+//         return await Exam.find(filter).sort(sort).collation(collation).limit(limit).skip(skip).populate('patient').populate({path: 'examiner', select: 'name'}).then(exams => {
+//             if (exams.length) {
+//                 exams.forEach(exam => decryptExamNotes(exam));
+//             }
+//             return exams;
+//         });
+//     } catch (err) {
+//         console.error(err);
+//         throw err;
+//     }
+// }
+
 const getExamsFiltered = async (filter, sort, collation, skip, limit) => {
     try {
-        return await Exam.find(filter).sort(sort).collation(collation).limit(limit).skip(skip).populate('patient').then(exams => {
-            if (exams.length) {
-                exams.forEach(exam => decryptExamNotes(exam));
-            }
-            return exams;
-        });
+        const totalQuery = await Exam.aggregate([
+           {
+                $lookup: {
+                    from: 'users',
+                    localField: 'examiner',
+                    foreignField: '_id',
+                    as: 'examiner'
+                },
+            },
+            { $unwind: {path: '$examiner'}},
+            {
+                $unset: ['examiner.email','examiner.password','examiner.validationStatus','examiner.notifications','examiner.additionalInfo'],
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patient',
+                    foreignField: '_id',
+                    as: 'patient',
+                }
+            },
+            { $unwind: '$patient' },
+            {
+                $addFields: {
+                    numImages: { $size: '$images' },
+                }
+            },
+            { $match: filter },
+            { $sort:  sort  },
+        ]).collation(collation);
+
+        const totalCount = totalQuery.length;
+        const paginatedQuery = totalQuery.slice(skip,skip+limit);
+        paginatedQuery.forEach(q => decryptExamNotes(q));
+        return {
+            totalCount: totalCount,
+            exams: paginatedQuery
+        };
     } catch (err) {
-        console.log(err);
+        console.error(err);
         throw err;
     }
 }
@@ -40,7 +86,7 @@ const createExamForPatient = async (patientId, examinerId, examData) => {
             encryptExamNotes(examData);
             const exam = await Exam.create(examData);
             await eventService.emitEvent('examCreated', { examId: exam._id, patientId: patient._id });
-            return exam;
+            return decryptExamNotes(exam._doc);
         } catch (e) {
             console.error(e);
             throw new CouldNotCreateExam();
@@ -71,7 +117,7 @@ const deleteExamById = async (id, mustBeCreatedBy = null) => {
             if (mustBeCreatedBy) {
                 if (exam.examiner.toString() !== mustBeCreatedBy) throw new NotAllowed();
             }
-            await eventService.emitEvent('examDeleted', exam._id);
+            await eventService.emitEvent('examDeleted', { examId: exam._id, patientId: id });
             await exam.deleteOne();
         } else {
             throw new ExamNotFound();
@@ -113,11 +159,34 @@ const updateExamNotes = async (id, examData, mustBeUpdatedBy = null) => {
         encryptExamNotes(exam);
         await exam.save();
         await eventService.emitEvent('examNotesUpdated', exam._id);
-        return exam;
+        return decryptExamNotes(exam._doc);
     } catch (err) {
         console.error(err);
         throw err;
     }
+}
+
+const onConsultationActionFactory = (action) => {
+    let fn;
+    // TODO add consultation change functions
+    switch (action) {
+        case 'added':
+            fn = ({ }) => {
+
+            }
+            break;
+        case 'removed':
+            fn = ({ }) => {
+
+            }
+            break;
+        case 'updated':
+            fn = ({ }) => {
+
+            }
+            break;
+    }
+    return fn;
 }
 
 const encryptExamNotes = exam => {
@@ -156,6 +225,9 @@ class NotAllowed extends Error {
 }
 
 eventService.on('patientDeleted', onPatientDeleted);
+eventService.on('consultationAdded', onConsultationActionFactory('added'));
+eventService.on('consultationUpdated', onConsultationActionFactory('updated'));
+eventService.on('consultationDeleted', onConsultationActionFactory('removed'));
 module.exports = {
     getExamsOfPatient,
     createExamForPatient,

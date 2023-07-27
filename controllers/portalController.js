@@ -169,6 +169,11 @@ const oAuthCallback = (req, res, next) => {
                     res.render('signupError', _buildSignupError([err]));
                     return;
                 }
+                if (req.session.redirectTo) {
+                    const redirectTo = req.session.redirectTo;
+                    delete req.session.redirectTo;
+                    res.redirect(redirectTo);
+                }
                 return res.redirect('/portal/signup');
             });
         })(req, res, next);
@@ -200,6 +205,11 @@ const login = (req, res, next) => {
                 obj.header.title = 'eyeConnect Portal - ERROR logging in';
                 res.render('loginError', _buildSignupError([obj]));
                 return;
+            }
+            if (req.session.redirectTo) {
+                const redirectTo = req.session.redirectTo;
+                delete req.session.redirectTo;
+                res.redirect(redirectTo);
             }
             return res.redirect('/portal');
         });

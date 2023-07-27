@@ -1,9 +1,10 @@
 
-
+const Utils = require('./utils');
 const about = (req, res) => {
     let title, nav;
     if (req.user) {
         title = 'About eyeConnect';
+        if(req.user.validationStatus!=='Validated'){
         nav = {
             items: [{
                 text: 'About',
@@ -17,8 +18,11 @@ const about = (req, res) => {
                     href: '/portal'
                 }]
             }],
-            active: 'About'
+            active: ['About']
         };
+    }else{
+        nav = Utils.Field.AuthorizedNavigation('About');
+    }
     } else {
         title = 'eyeConnect'
         nav = {
@@ -32,7 +36,7 @@ const about = (req, res) => {
                 href: '/portal',
                 showInFooter: true,
             }],
-            active: 'Home',
+            active: ['Home'],
         };
     }
     res.render('about', {

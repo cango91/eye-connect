@@ -70,7 +70,7 @@ module.exports = class AuthenticateService {
                 }));
 
             passport.serializeUser((user, cb) => {
-                cb(null, user._id.toString());
+                cb(null, user._id);
             });
 
             passport.deserializeUser(async (id, cb) => {
@@ -100,7 +100,7 @@ module.exports = class AuthenticateService {
         return passport.authenticate('local-signup', cb || defaultCb);
     }
 
-    authenticateLoginLocal(cb){
+    authenticateLoginLocal(cb) {
         const defaultCb = (err, user, info) => {
             if (err) throw err;
             if (!user) throw new Error(info.message);
@@ -108,10 +108,13 @@ module.exports = class AuthenticateService {
         return passport.authenticate('local-login', cb || defaultCb);
     }
 
-    authenticateLoginOAuth(cb){
+    authenticateLoginOAuth(cb) {
         const defaultCb = (err, user, info) => {
             if (err) throw err;
             if (!user) throw new Error(info.message);
+            const redirectTo = req.session.redirectTo;
+            delete req.session.redirectTo;
+            res.redirect(redirectTo);
         }
         return passport.authenticate('google', cb || defaultCb);
     }
@@ -120,6 +123,9 @@ module.exports = class AuthenticateService {
         const defaultCb = (err, user, info) => {
             if (err) throw err;
             if (!user) throw new Error(info.message);
+            const redirectTo = req.session.redirectTo;
+            delete req.session.redirectTo;
+            res.redirect(redirectTo);
         }
         return passport.authenticate(['local-login', 'google'], cb || defaultCb);
     }
@@ -127,6 +133,7 @@ module.exports = class AuthenticateService {
     authenticate = (req, res, next) => {
         try {
             if (req.isAuthenticated()) return next();
+            if (req.method === 'GET') req.session.redirectTo = req.url;
             return res.redirect('/portal/login');
         } catch (err) {
             console.error(err);

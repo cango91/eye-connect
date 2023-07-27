@@ -20,6 +20,10 @@ const examinationSchema = new Schema({
     notes: {
         type: String
     },
+    hasConsultation: {
+        type: Boolean,
+        default: false,
+    },
     images: [{
         type: Schema.Types.ObjectId,
         ref: 'Funduscopy'

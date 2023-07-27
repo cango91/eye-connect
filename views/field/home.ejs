@@ -2,7 +2,7 @@
 <%- include('../partials/navigation') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
   <div class="text-center mb-3">
-    <h2>HOME</h2>
+    <h2>Field HCP - Home</h2>
   </div>
   <div class="container-lg">
     <div class="row">
@@ -15,9 +15,11 @@
         </div>
       <div class="col-md-4">
         <%- include('../partials/tableComponent', {...patientsTable}); %>
+        <div class="float-end"><a href="/portal/patients">Go to patients</a></div>
       </div>
       <div class="col-md-6">
         <%- include('../partials/tableComponent', {...examsTable}); %>
+        <div class="float-end"><a href="/portal/exams">Go to exams</a></div>
       </div>
     </div>
   </div>

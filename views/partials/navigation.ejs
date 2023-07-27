@@ -18,16 +18,16 @@
         <% if(typeof navigation !=='undefined' ){ navigation?.items.forEach(navItem=>{
             if(!navItem?.dropdown){%>
         <li class="nav-item">
-          <a class="nav-link <%= navItem?.text===navigation?.active ? 'active' : '' %>" aria-current="page" href="<%= navItem?.href %>">
+          <a class="nav-link <%=  navigation?.active.includes(navItem?.text) ? 'active' : '' %>" aria-current="page" href="<%= navItem?.href %>">
             <%= navItem?.text %>
           </a>
         </li>
         <% }else{ %>
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><%= navItem?.text %></a>
+          <a class="nav-link dropdown-toggle <%=  navigation?.active.includes(navItem?.text) ? 'active' : '' %>" href="#" data-bs-toggle="dropdown" aria-expanded="false"><%= navItem?.text %></a>
           <ul class="dropdown-menu dropdown-menu-dark">
             <% navItem?.dropdown.forEach(dropdownItem =>{ %>
-            <li><a class="dropdown-item" href="<%= dropdownItem?.href %>"><%= dropdownItem?.text %></a></li>
+            <li><a class="dropdown-item <%=  navigation?.active.includes(dropdownItem?.text) ? 'active' : '' %>" href="<%= dropdownItem?.href %>"><%= dropdownItem?.text %></a></li>
             <% }); %>
           </ul>
         </li>

@@ -7,7 +7,7 @@ const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
 
 const getAllFiltered = async (req, res, next) => {
     try {
-        let { sortBy, order, limit, page, filter, filterValue } = req.query;
+        let { sortBy, order, limit, page, filter, filterValue, includeLatestExamDate } = req.query;
         limit = limit ? parseInt(limit) : MAX_LIMIT;
         limit = Math.min(MAX_LIMIT, limit);
         const sort = { [sortBy]: order === 'ascending' ? 1 : -1 };
@@ -19,11 +19,15 @@ const getAllFiltered = async (req, res, next) => {
             query = { [filter]: filterValue };
         }
         const collation = { locale: 'en', strength: 2 };
-        const patients = await patientsService.getPatientsFiltered(query, sort,collation,skip,limit);
-        if (!patientCountCache) {
-            patientCountCache = await Patient.countDocuments();
-        }
-        const maxPages = Math.ceil(patientCountCache / limit);
+        let patients, totalCount;
+        if(includeLatestExamDate || sortBy==='numExams' || sortBy === 'latestExamDate'){
+            ({patients, totalCount}  = await patientsService.getPatientsWithLatestExamDate(query,sort,collation,skip,limit));
+        }else{
+            // TODO refactor getPatientsFiltered to return total count from service
+            patients = await patientsService.getPatientsFiltered(query, sort,collation,skip,limit);
+            totalCount = await Patient.countDocuments({query})
+        }           
+        const maxPages = Math.ceil(totalCount / limit);
         res.status(200).json({
             data: [...patients],
             page,
@@ -113,7 +117,10 @@ const updateOne = async (req, res, next) => {
 
 const searchByName = async (req, res, next) => {
     try {
-        const { name, limit = 10, sort = 'ascending' } = req.query;
+        let { name, limit, sort } = req.query;
+        limit = limit || 10;
+        limit = Math.min(limit,MAX_LIMIT);
+        sort = sort || 'ascending';
         if (!name) return res.status(400).json({ error: 'Search term missing' });
         const patients = await Patient.find({
             name: { $regex: name, $options: 'i' }
