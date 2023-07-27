@@ -1,8 +1,62 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
-    <div class="container-lg">
-        <%- include('../partials/tableComponent',{...patientsTable}) %>
-    </div> 
+  <div class="container-lg">
+    <div class="d-flex space-around">
+      <button class="btn btn-success i-add-patient" title="add a new patient"><%- plusIcon %></button>
+      <input id="search-bar" class="form-control form-check ms-3" type="text" title="filter patients by name">
+    </div>
+    <%- include('../partials/tableComponent',{...patientsTable}) %>
+  </div>
 </main>
+<script>
+  const DEBOUNCE_TIME = 500;
+  const search = document.getElementById('search-bar');
+  const filterRegex = /(?<=(\?|&)filter=)[^&]+/;
+  const filterValueRegex = /(?<=(\?|&)filterValue=)[^&]+/;
+  let handler, originalUrl;
+  window.addEventListener('tableLoaded', (evt) => {
+    handler = evt.detail.handler;
+    originalUrl = handler.getOpts().url;
+  });
+let timerId = null;
+let minTextLength = 3;
+  const updateUrl = (url, searchTerm) => {
+
+    const filterMatch = url.match(filterRegex);
+
+    const filterValueMatch = url.match(filterValueRegex);
+
+    // Update "filter" and "filterValue" query parameters with the new searchTerm
+    if (filterMatch) {
+      url = url.replace(filterRegex, `sName`);
+    } else {
+      url += (url.includes('?') ? '&' : '?') + `filter=sName`;
+    }
+
+    if (filterValueMatch) {
+      url = url.replace(filterValueRegex, encodeURIComponent(searchTerm));
+    } else {
+      url += (url.includes('?') ? '&' : '') + `filterValue=${encodeURIComponent(searchTerm)}`;
+    }
+    return url;
+  }
+
+
+
+  search.addEventListener('input', (evt) => {
+    if (!handler) return;
+    clearTimeout(timerId);
+    timerId = setTimeout(()=>{
+        let term = evt.target.value;
+        if(term.length>=minTextLength){
+            handler.setOpts({url:updateUrl(originalUrl,term)});
+            handler.populateTable();
+        }else{
+            handler.setOpts({url:originalUrl});
+            handler.populateTable();
+        }},DEBOUNCE_TIME);
+  });
+</script>
+
 <%- include('../partials/footer') %>

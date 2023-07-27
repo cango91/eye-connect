@@ -64,6 +64,7 @@ const getPatientsWithLatestExamDate = async (filter, sort, collation, skip, limi
             },
             { $addFields: { numExams: { $size: "$exams" } } },
             { $sort: sort },
+            
         ]).collation(collation);
 
         const totalCount = totalQuery.length;

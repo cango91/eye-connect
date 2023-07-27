@@ -14,7 +14,7 @@ module.exports = async (req, res, next) => {
                     url: Utils.Field.AllExams.URL(),
                     page: 1,
                     pageCount: 0,
-                    limit: 0,
+                    limit: 5,
                     sort: {
                         sortBy: 'updatedAt',
                         asc: false,

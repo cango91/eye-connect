@@ -16,8 +16,11 @@ const tableHandler = (
     fetchFunction,
     headerData,
     tableClasses = ['table', 'caption-top'],
-    alert = false,
 ) => {
+    const originalOpts = Object.assign({},{
+        page: fetchOptions.page,
+        limit: fetchOptions.limit
+    });
     parentElement = parentElement ? parentElement : document.body;
     // BUILDING TABLE
     const table = document.createElement('table');
@@ -96,6 +99,41 @@ const tableHandler = (
     alertDiv.className = 'table-alert';
     document.body.appendChild(alertDiv);
 
+    // Add page controls
+    const prevButton = document.createElement('button');
+    prevButton.textContent = 'Previous';
+    prevButton.classList.add('btn', 'btn-primary');
+
+    const nextButton = document.createElement('button');
+    nextButton.textContent = 'Next';
+    nextButton.classList.add('btn', 'btn-primary');
+
+    // Create a container for the pagination controls
+    const paginationContainer = document.createElement('div');
+    paginationContainer.classList.add('d-flex', 'justify-content-between');
+    paginationContainer.append(prevButton, nextButton);
+
+    // Insert pagination controls into the DOM
+    table.parentNode.insertBefore(paginationContainer, table.nextSibling);
+
+    // Update the visibility of the pagination controls based on the page count
+    const updatePaginationVisibility = () => {
+        prevButton.style.display = (fetchOptions.page > 1) ? 'block' : 'none';
+        nextButton.style.display = (fetchOptions.page < fetchOptions.pageCount) ? 'block' : 'none';
+    };
+
+    prevButton.addEventListener('click', ()=>{
+        table.dataset.page = Math.min(1,parseInt(table.dataset.page)-1).toString();
+        updateOpts();
+        populateTable().then(updatePaginationVisibility);
+    })
+
+    nextButton.addEventListener('click', ()=>{
+        table.dataset.page = Math.max(table.dataset.pageCount,parseInt(table.dataset.page)+1).toString();
+        updateOpts();
+        populateTable().then(updatePaginationVisibility);
+    })
+
     const makeAnchor = (asc = false) => {
         const a = document.createElement('a');
         a.href = '#';
@@ -114,8 +152,11 @@ const tableHandler = (
         fetchOptions.sort.asc = asc;
         if (headerData[idx]?.sort?.onSortFunction) {
             headerData[idx].sort.onSortFunction(options, asc);
+        }else{
+            fetchOptions.page = 1;
+            fetchOptions.limit = originalOpts.limit;
         }
-        populateTable();
+        populateTable().then(updatePaginationVisibility());
     }
 
     const toggleActiveClass = (idx, asc = false) => {
@@ -191,11 +232,15 @@ const tableHandler = (
                 if (idx > -1) {
                     toggleActiveClass(idx, fetchOptions.sort.asc);
                 }
+                window.dispatchEvent(new CustomEvent('dataFetched', {
+                    detail: {
+                        handler: handler,
+                        target: table,
+                    }
+                }))
+                updatePaginationVisibility();
             }).then(resolve)
                 .catch(error => {
-                    if (alert) {
-                        showTableAlert(error, 'danger');
-                    }
                     reject(error);
                 });
         });
@@ -233,6 +278,8 @@ const tableHandler = (
             '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
     }
 
+
+
     const handler = {
         updateOpts,
         populateTable,
@@ -246,12 +293,14 @@ const tableHandler = (
 
     populateTable().then(() => window.dispatchEvent(new CustomEvent('tableLoaded', {
         detail: {
+            id,
             handler: handler,
             target: table,
         }
-    }))).catch(err=>{
+    }))).catch(err => {
         window.dispatchEvent(new CustomEvent('tableLoaded'), {
             detail: {
+                id,
                 handler: handler,
                 target: table,
                 error: err
@@ -259,11 +308,46 @@ const tableHandler = (
         });
     });
 
-
-    //return handler;
-
 }
 
-const paginationHandler = table => {
+const paginationHandler = (id) => {
+    const table = document.getElementById(`${id}-data-table`);
+    let init = false;
+    let tableHandler, page, pageCount;
 
-}
+
+    // Update the visibility of the pagination controls whenever the table updates
+    window.addEventListener('dataFetched', event => {
+        if (event.detail.id === id)
+            tableHandler = event.detail.handler;
+        if (init) {
+            updatePaginationVisibility();
+            pageCount = tableHandler.getOpts().pageCount;
+            page = tableHandler.getOpts().page;
+        }
+    });
+
+    window.addEventListener('tableLoaded', event => {
+        if (event.detail.handler === tableHandler) {
+            init = true;
+            page = tableHandler.getOpts().page;
+            pageCount = tableHandler.getOpts().pageCount;
+            updatePaginationVisibility();
+        }
+    });
+
+    // Attach event listeners to the pagination controls
+    prevButton.addEventListener('click', () => {
+        table.dataset.page = Math.max((parseInt(table.dataset.page) - 1), 1).toString();
+        tableHandler.updateOpts();
+        tableHandler.populateTable();
+    });
+    nextButton.addEventListener('click', () => {
+        table.dataset.page = Math.min((parseInt(table.dataset.page) + 1), pageCount).toString();
+        tableHandler.updateOpts();
+        tableHandler.populateTable();
+    });
+
+    // Update the visibility of the pagination controls initially
+    updatePaginationVisibility();
+};

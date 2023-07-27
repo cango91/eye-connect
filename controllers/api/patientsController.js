@@ -19,9 +19,13 @@ const getAllFiltered = async (req, res, next) => {
         if (filter && filterValue) {
             query = { [filter]: filterValue };
         }
+
+        if (filter === 'sName') {
+            query = { name: { $regex: filterValue, $options: 'i' } };
+        }
         const collation = { locale: 'en', strength: 2 };
         let patients, totalCount;
-        if (includeLatestExamDate || sortBy === 'numExams' || sortBy === 'latestExamDate') {
+        if (includeLatestExamDate || sortBy === 'numExams' || sortBy === 'latestExamDate' || filterBy === 'sName') {
             ({ patients, totalCount } = await patientsService.getPatientsWithLatestExamDate(query, sort, collation, skip, limit));
         } else {
             // TODO refactor getPatientsFiltered to return total count from service
@@ -76,7 +80,7 @@ const deleteOne = async (req, res, next) => {
     try {
         await patientsService.deletePatientById(req.params.id);
         patientCountCache = null;
-        res.status(200).json({status:204});
+        res.status(200).json({ status: 204 });
     } catch (err) {
         console.error(err);
         next(err);
@@ -162,15 +166,15 @@ const getExamsOfPatient = async (req, res, next) => {
         page = Math.max(page, 1);
         const skip = (page - 1) * limit;
         const sort = { [sortBy]: order === 'ascending' ? 1 : -1 };
-        const results = await examsService.getExamsFiltered(query,sort,{locale: 'en',strength: 2},skip,limit);
-        if(results.exams){
+        const results = await examsService.getExamsFiltered(query, sort, { locale: 'en', strength: 2 }, skip, limit);
+        if (results.exams) {
             res.status(200).json({
                 data: results.exams,
-                pageCount: Math.ceil(results.totalCount/limit),
+                pageCount: Math.ceil(results.totalCount / limit),
                 page,
                 limit,
             });
-        }else{
+        } else {
             //res.status(404).json({error: 'No Exams Found'});
         }
     } catch (err) {

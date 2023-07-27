@@ -12,8 +12,7 @@ const index = (req, res, next) => {
                 fetchOptions: {
                     url: Utils.Field.AllPatients.URL(),
                     page: 1,
-                    pageCount: 0,
-                    limit: 0,
+                    limit: 10,
                     sort: {
                         sortBy: 'latestExamDate',
                         asc: false,
@@ -23,7 +22,9 @@ const index = (req, res, next) => {
                 headerData: Utils.Field.AllPatients.TableHeaders(req.user.role==='FieldHCP'),
                 tableClasses: ['table', 'caption-top', 'border', 'border-2', 'border-info'],
                 caption: 'All Patients',
-            }
+
+            },
+            plusIcon: Utils.Icons.PlusIcon,
         });
     } else if (req.user.role === 'SpecialistHCP') {
 
