@@ -95,7 +95,7 @@ const create = async (req, res, next) => {
         }
         const patient = await Patient.create(req.body);
         patientCountCache = null;
-        res.status(201).json({ data: { ...patient } });
+        res.status(201).json({ data: { ...patient._doc } });
     } catch (err) {
         console.error(err);
         next(err);

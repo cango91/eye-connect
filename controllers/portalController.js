@@ -178,7 +178,7 @@ const oAuthCallback = (req, res, next) => {
             });
         })(req, res, next);
     } catch (err) {
-        console.log(err);
+        console.error(err);
         res.render('signupError', _buildSignupError([err]));
     }
 }

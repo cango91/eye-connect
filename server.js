@@ -68,8 +68,8 @@ app.use((req, res, next) => {
 
 app.use('/', indexRouter);
 app.use('/about', aboutRouter);
-app.use('/portal/api', apiRouter);
 app.use('/portal', portalRouter);
+app.use('/portal/api', apiRouter);
 app.use('/portal/home', homeRouter);
 
 
@@ -80,12 +80,8 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  // res.locals.message = req.app.get('env') === 'development' && process.env.NODE_ENV !== 'production' ? err.message : "An error has occured";
   res.locals.message = process.env.NODE_ENV === 'dev' ? err.message : 'An error has occured';
-  // res.locals.error = req.app.get('env') === 'development' && process.env.NODE_ENV !== 'production' ? err : {};
   res.locals.error = req.app.get('env') === 'dev' ? err : {};
-  // render the error page
   res.status(err.status || 500);
   res.render('error');
 });

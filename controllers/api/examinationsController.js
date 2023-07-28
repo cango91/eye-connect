@@ -21,7 +21,6 @@ const getAllFiltered = async (req, res, next) => {
         let query = {}
         if(filter && filter.endsWith('_id') && filterValue) filterValue = new Types.ObjectId(filterValue);
         if (filter && filterValue) query = { [filter]: filterValue };
-        console.log(query);
         const results = await examsService.getExamsFiltered(query, sort, collation, skip, limit);
         const pageCount = Math.ceil(results.totalCount / limit);
         res.status(200).json({

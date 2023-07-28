@@ -122,7 +122,6 @@ module.exports = class Utils {
                                 fetch(url, {method: 'post'})
                                 .then(response => response.json())
                                 .then((data)=>{
-                                    console.log(data);
                                     if(data?.error){
                                         document.querySelector('.table-alert').innerHTML = '<div class="alert alert-danger alert-dismissible fade show" role="alert">Could not delete patient.<br>Reason: '+ data.error + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
                                         modal.hide();

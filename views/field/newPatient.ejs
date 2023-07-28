@@ -5,142 +5,106 @@
     <h3><span class="float-start"><a class="btn btn-secondary" href="/portal/patients">&larr; Back</a></span>New Patient</h3>
     <hr>
   </div>
-  <h2>
+  <form class="form-control">
     <div class="row">
-      <div class="col">
-        <input type="text" value="name" class="form-control">
-      </div>
-      <div class="col">
-        <span class="float-end mx-1"><a href="#" id="edit-btn" class="btn btn-warning"><%- pencilIcon %></a></span><span class="float-end"><a href="/portal/patients/<%= patientId %>/exams/new" class="btn btn-primary" id="new-exam-btn"><%- paperIcon %></a></span>
-      </div>
-    </div>
-  </h2>
-  <div class="container-lg">
-    <div class="row g-3">
       <div class="col-sm-6">
-        <h5 class="fw-bold">Date of Birth:</h5>
-        <h5><span id="dob" class="badge text-dark"></span></h5>
+        <h5 class="fw-bold required-label">Full Name:</h5>
+        <input type="text" value="<%= typeof prefillName !== 'undefined' ? prefillName : '' %>" class="form-control" name="name" required aria-required="true" autocomplete="off" id="name">
       </div>
-
+      <div class="col-sm-6">
+        <h5 class="fw-bold required-label">Gender:</h5>
+        <select class="form-select form-control" name="gender" required aria-required="true" autocomplete="off" id="gender">
+          <option selected hidden disabled></option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
     </div>
     <div class="row">
-      <div class="col">
-        <h4>Previous Exams</h4>
-        <div id="dy-table" class="border p-3">
-          <%- include('../partials/tableComponent', examsTable) %>
-        </div>
+      <div class="col-sm-6">
+        <h5 class="fw-bold required-label">Date of Birth:</h5>
+        <input type="datetime-local" class="form-control" aria-required="true" autocomplete="off" name="dateOfBirth" id="dob">
+      </div>
+      <div class="col-sm-6">
+        <h5>&nbsp;</h5>
+        <span class="float-end"><a href="#" class="btn btn-primary m-1" id="new-exam-btn" title="save patient and start a new exam">Save & Start Exam</a></span>
+        <span class="float-end"><a href="#" class="btn btn-success m-1" id="save-patient-btn" title="save patient">Save Patient</a></span>
       </div>
     </div>
-  </div>
+  </form>
 </main>
 <script>
-  const patientId = '<%= patientId  %>';
-  const eyeIcon = '<%- eyeIcon %>';
-  const pencilIcon = '<%- pencilIcon %>';
-  const saveIcon = '<%- saveIcon %>';
+    const form = document.querySelector('form');
+    const saveBtn = document.getElementById('save-patient-btn');
+    const examBtn = document.getElementById('new-exam-btn');
+    const nameEl = document.getElementById('name');
+    const dobEl = document.getElementById('dob');
+    const genderEl = document.getElementById('gender');
+  
+    const disableButtons = () => {
+      saveBtn.classList.add('disabled');
+      examBtn.classList.add('disabled');
+    };
+  
+    const enableButtons = () => {
+      saveBtn.classList.remove('disabled');
+      examBtn.classList.remove('disabled');
+    };
+  
+    const checkInputs = () => {
+      const nameValid = nameEl.value !== '';
+      const dobValid = dobEl.value !== '' && new Date(dobEl.value) <= Date.now();
+      const genderValid = genderEl.value !== '';
+      return nameValid && dobValid && genderValid;
+    };
 
-  const editButton = document.getElementById('edit-btn');
+    const alertDiv = document.createElement('div');
+  alertDiv.classList.add('alert', 'alert-danger', 'd-none');
+  form.prepend(alertDiv);
 
-  const nameElem = document.getElementById('patient-name');
-  const genderElm = document.getElementById('patient-gender');
-  const ageElm = document.getElementById('patient-age');
-  const dobElem = document.getElementById('dob');
+  const postPatient = async () => {
+    const data = new URLSearchParams(new FormData(form)).toString();
+    const response = await fetch('/portal/api/patients', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: data
+    });
+    return response.json();
+  };
 
-  const placeholder = document.getElementById('placeholder');
-
-  let originalName, originalGender, originalDob;
-
-  let isEditing = false;
-  let patientData = null;
-
-  const getPatientData = () => {
-    fetch(`/portal/api/patients/${patientId}`)
-      .then(response => response.json())
-      .then(data => {
-        patientData = data;
-        placeholder.remove();
-        nameElem.textContent = data.data.name;
-        genderElm.textContent = `(${data.data.gender[0]}), `;
-        ageElm.textContent = `${calculateAge(data.data.dateOfBirth)} years`;
-        dobElem.textContent = getDate(data.data.dateOfBirth);
-        tableArea.appendChild(placeholder);
-        <% if(editMode){ %>
-            toggleEditState();
-        <% } %>
-      });
-  }
-
-
-  const saveChanges = (e) => {
-    if(e) e.preventDefault();
-    const nameInput = nameElem.querySelector('input');
-    const genderSelect = genderElm.querySelector('select');
-    const dobInput = dobElem.querySelector('input');
-
-    const params = new URLSearchParams();
-    params.append('name', nameInput.value);
-    params.append('gender', genderSelect.value);
-    params.append('dateOfBirth', dobInput.value + 'T00:00');
-
-    fetch(`/portal/api/patients/${patientId}?_method=put`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: params.toString()
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (!data.error) {
-          patientData = data;
-          toggleEditState();
-          ageElm.textContent = `${calculateAge(data.data.dateOfBirth)} years`;
-        } else {
-          console.error(data.error);
-        }
-      })
-      .catch(error => {
-        console.error(error);
-      });
-  }
-
-  const toggleEditState = (e) => {
-    if (e) e.preventDefault();
-    if (!patientData) return;
-
-    isEditing = !isEditing;
-    if (isEditing) {
-      nameElem.innerHTML = `<input type="text" value="${patientData.data.name}" class="form-control">`;
-      genderElm.innerHTML = `<select class="form-select"><option value="Male"${patientData.data.gender === 'Male' ? ' selected' : ''}>Male</option><option value="Female"${patientData.data.gender === 'Female' ? ' selected' : ''}>Female</option></select>`;
-      dobElem.innerHTML = `<input type="date" value="${new Date(patientData.data.dateOfBirth).toISOString().split('T')[0]}" class="form-control">`;
-      ageElm.style.visibility = 'hidden';
-      editButton.removeEventListener('click', toggleEditState);
-      editButton.addEventListener('click', saveChanges);
-      editButton.innerHTML = saveIcon;
-      editButton.className = 'btn btn-success';
-    } else {
-      nameElem.textContent = patientData.data.name;
-      genderElm.textContent = `(${patientData.data.gender[0]}), `;
-      dobElem.textContent = getDate(patientData.data.dateOfBirth);
-      ageElm.style.visibility = 'visible';
-      editButton.removeEventListener('click', saveChanges);
-      editButton.addEventListener('click', toggleEditState);
-      editButton.innerHTML = pencilIcon;
-      editButton.className = 'btn btn-warning';
+  const onButtonClick = async event => {
+    event.preventDefault();
+    if (checkInputs()) {
+      const response = await postPatient();
+      if (response.error) {
+        alertDiv.innerHTML = `Could not save patient<br>Reason: ${response.error}`;
+        alertDiv.classList.remove('d-none');
+      } else {
+        const id = response.data._id;
+        const redirectUrl = event.target === saveBtn 
+          ? `/portal/patients/${id}` 
+          : `/portal/patients/${id}/exams/new`;
+        window.location.href = redirectUrl;
+      }
     }
-  }
+  };
 
-  editButton.addEventListener('click', toggleEditState);
-
-  const tableArea = document.getElementById('dy-table');
-  window.addEventListener('tableLoaded', e => {
-    handler = e.detail.handler;
-    if (!handler.dataCount()) {
-      placeholder.textContent = 'Patient has no previous exams';
-    } else {
-      placeholder.textContent = '';
-    }
-  });
-  window.addEventListener('load', getPatientData);
-</script>
+  saveBtn.addEventListener('click', onButtonClick);
+  examBtn.addEventListener('click', onButtonClick);
+  
+    const onInputChanged = () => {
+      if (checkInputs()) {
+        enableButtons();
+      } else {
+        disableButtons();
+      }
+    };
+  
+    form.addEventListener('input', onInputChanged);
+    window.addEventListener('DOMContentLoaded', onInputChanged);
+    disableButtons();
+  </script>
+  
 <%- include('../partials/footer') %>

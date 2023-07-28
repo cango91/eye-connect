@@ -87,7 +87,7 @@ const newPatient = (req, res, next) => {
             paperIcon: Utils.Icons.PaperIcon,
             saveIcon: Utils.Icons.CheckIcon,
             cancelIcon: Utils.Icons.CrossIcon,
-            prefillName: req.query?.name ? req.query.name : null,
+            prefillName: req.query?.name
 
         });
     } else if (req.user.role === 'SpecialistHCP') {

@@ -2,14 +2,18 @@
 <%- include('../partials/navigation') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
   <div class="container-lg">
-    <div class="d-flex space-around">
-      <button class="btn btn-success i-add-patient" title="add a new patient"><%- plusIcon %></button>
-      <input id="search-bar" class="form-control form-check ms-3" type="text" title="filter patients by name">
+    <div class="d-flex">
+      <form method="get" action="/portal/patients/new?name" id="new-patient-form" class="form-control d-flex">
+        <button type="submit" class="btn btn-success i-add-patient" title="add a new patient" id="new-patient-btn" ><%- plusIcon %></button>
+        <input id="search-bar" placeholder="filter patients by name" class="form-control form-check ms-3" type="text" title="filter patients by name" autocomplete="off" name="name">
+      </form>
     </div>
     <%- include('../partials/tableComponent',{...patientsTable}) %>
   </div>
 </main>
 <script>
+  const newBtn = document.getElementById('new-patient-btn');
+  const form = document.getElementById('new-patient-form');
   const DEBOUNCE_TIME = 500;
   const search = document.getElementById('search-bar');
   const filterRegex = /(?<=(\?|&)filter=)[^&]+/;
@@ -19,8 +23,8 @@
     handler = evt.detail.handler;
     originalUrl = handler.getOpts().url;
   });
-let timerId = null;
-let minTextLength = 3;
+  let timerId = null;
+  let minTextLength = 3;
   const updateUrl = (url, searchTerm) => {
 
     const filterMatch = url.match(filterRegex);
@@ -42,20 +46,23 @@ let minTextLength = 3;
     return url;
   }
 
-
-
   search.addEventListener('input', (evt) => {
     if (!handler) return;
     clearTimeout(timerId);
-    timerId = setTimeout(()=>{
-        let term = evt.target.value;
-        if(term.length>=minTextLength){
-            handler.setOpts({url:updateUrl(originalUrl,term)});
-            handler.populateTable();
-        }else{
-            handler.setOpts({url:originalUrl});
-            handler.populateTable();
-        }},DEBOUNCE_TIME);
+    timerId = setTimeout(() => {
+      let term = evt.target.value;
+      if (term.length >= minTextLength) {
+        handler.setOpts({
+          url: updateUrl(originalUrl, term)
+        });
+        handler.populateTable();
+      } else {
+        handler.setOpts({
+          url: originalUrl
+        });
+        handler.populateTable();
+      }
+    }, DEBOUNCE_TIME);
   });
 </script>
 
