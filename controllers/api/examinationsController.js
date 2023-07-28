@@ -60,7 +60,7 @@ const deleteOne = async (req, res, next) => {
     try {
         const ensureOwnership = req.user.role !== 'MedicalDirector';
         await examsService.deleteExamById(req.params.id, ensureOwnership ? req.user.id : false);
-        res.status(204).json({ status: 204 });
+        res.status(200).json({ status: 204 });
         examsCountCache = null;
     } catch (err) {
         console.error(err);
@@ -73,13 +73,13 @@ const deleteOne = async (req, res, next) => {
 const updateOne = async (req, res, next) => {
     try {
         const ensureOwnership = req.user.role !== 'MedicalDirector' && req.user.id;
-        const exam = await examsService.updateExamNotes(req.params.id, res.body, ensureOwnership);
+        const exam = await examsService.updateExamNotes(req.params.id, req.body, ensureOwnership);
         res.status(200).json({ data: exam });
     } catch (err) {
         if (err.name === 'ExamNotFound')
             res.status(404).json({ error: err });
         if (err.name === 'NotAllowed')
-            res.status(403).json({ error: err });
+            res.status(403).json({ error: err.error });
         next(err);
     }
 }

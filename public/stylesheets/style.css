@@ -147,3 +147,14 @@ a.dropdown-item.active {
     margin: .25rem !important;
   }
 }
+
+.highlight {
+  border: 2px dashed #999;
+  background: lightgray;
+}
+
+.collapse-btn-icon-home {
+  margin: 0;
+  vertical-align: center;
+  margin: .25rem !important;
+}

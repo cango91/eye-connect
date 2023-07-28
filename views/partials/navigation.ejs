@@ -34,6 +34,7 @@
         <% }});} %>
       </ul>
       <% if(user) { %>
+        <span class="text-light"><%= navigation.active.includes('Home') ? 'Welcome, ' : '' %>Dr. <%= user.name %></span>
       <ul class="navbar-nav me-0 mb-2 mb-md-0">
         <li class="d-flex dropdown notification">
           <a class="nav-link dropdown-toggle notification <%= user.notifications.length ? '' : 'disabled' %> " href="#" data-bs-toggle="dropdown" aria-expanded="false">

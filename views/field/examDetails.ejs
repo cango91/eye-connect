@@ -1,8 +1,348 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteModalLabel">Are you sure you want to delete?</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Confirming this action will permanently delete the exam.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="text-center">
+    <h3><span class="float-start"><a class="btn btn-secondary" href="/portal/exams">&larr; All Patients</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a></span></h3>
+    <hr>
+  </div>
+  <div class="d-flex flex-column justify-content-center align-items-center" id="loading-div">
+    <h2 class="text-info">Loading exam</h2>
+    <div><strong>Please wait...</strong></div>
+    <div class="spinner-border mt-2 text-warning" role="status">
+    </div>
+  </div>
+  <div id="main-div">
     <div class="container-lg">
+      <div class="alert alert-danger d-none"></div>
+      <div class="alert" id="alert-div"></div>
+      <div class="text-start">
+        <h5><span id="examiner-name"></span></h5>
+      </div>
+      <div class="row">
+        <div class="col-md-6 order-md-2 order-lg-1">
+          <span class="text-muted">Notes</span>
+          <h4 class="d-flex justify-content-between align-items-center mb-3">
+          </h4>
+          <textarea class="form-control" id="exam-notes" rows="13"></textarea>
+        </div>
+        <div class="col-md-6 order-md-1 order-lg-2">
+          <h4 class="mb-3">Patient Info</h4>
+          <ul class="list-group mb-3">
+            <li class="list-group-item d-flex justify-content-between lh-condensed">
+              <span id="patient-name"></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between lh-condensed">
+              <span id="patient-gender"></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between lh-condensed">
+              <span id="patient-age"></span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between lh-condensed">
+              <small>Date of Birth:</small>
+              <span id="dob" class="badge text-dark"></span>
+            </li>
+          </ul>
+          <div id="upload-area">
+            <h4 class="mb-3">Image Upload</h4>
+            <form>
+              <div class="form-group">
+                <input type="file" class="form-control-file form-control" id="examImageUpload" multiple>
+              </div>
+              <div class="drag-drop-area border p-3 mt-3">
+                <h5>Drag & Drop Images Here</h5>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="container-fluid">
+          <div class="d-flex flex-nowrap overflow-auto" id="image-container">
 
-    </div> 
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </main>
+<script>
+  const mainEl = document.getElementById('main-div');
+  const loadingEl = document.getElementById('loading-div');
+  const alertDiv = document.querySelector('.alert');
+  const dropArea = document.querySelector('.drag-drop-area');
+  const notesEl = document.getElementById('exam-notes'); // should have `disabled` in view mode.
+  const dobEl = document.getElementById('dob');
+  const ageEl = document.getElementById('patient-age');
+  const genderEl = document.getElementById('patient-gender');
+  const patientNameEl = document.getElementById('patient-name');
+  const examinerNameEl = document.getElementById('examiner-name'); // displayed only in view mode.
+  const uploadEl = document.getElementById('examImageUpload');
+  const uploadArea = document.getElementById('upload-area');
+  const saveBtn = document.getElementById('save-btn');
+  const deleteBtn = document.getElementById('delete-btn');
+  const iconsArea = document.getElementById('icons-area');
+  const imagesArray = [];
+  let myExam;
+  let notesCache;
+
+  const showLoading = () => {
+    mainEl.classList.add('d-none');
+    loadingEl.classList.remove('d-none');
+  }
+
+  const hideLoading = () => {
+    mainEl.classList.remove('d-none');
+    loadingEl.classList.add('d-none');
+  }
+
+  const reportError = err => {
+    alertDiv.classList.remove('d-none');
+    alertDiv.innerHTML = `Could not create exam<br>Reason: ${err}`;
+  }
+
+  const fetchImages = async imageIds => {
+    const images = [];
+    for (let id of imageIds) {
+      const response = await fetch(`/portal/api/funduscopies/${id}`);
+      const imageData = await response.json();
+      if (!imageData.error) {
+        images.push(imageData.data);
+      } else {
+        console.error('Error fetching image:', imageData.error);
+        reportError(imageData.error);
+      }
+    }
+    return images;
+  }
+
+  const saveNotes = async () => {
+    const params = new URLSearchParams();
+    params.append('notes', notesEl.value.toString());
+    try {
+      const response = await fetch(`/portal/api/examinations/<%= examId %>?_method=put`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString()
+      });
+      data = await response.json();
+      if (!data.error) {
+        showAlert('Notes Updated', 'success');
+      } else {
+        console.error(data);
+        showAlert(`Notes update failed<br>Reason:${data}`, 'danger');
+      }
+    } catch (err) {
+      console.error(err);
+      showAlert(`Notes update failed<br>Reason:${err}`, 'danger');
+    }
+  }
+
+  const disableEditing = () => {
+    notesEl.disabled = true;
+    uploadArea.classList.add('invisible');
+    iconsArea.classList.add('d-none');
+    notesEl.rows = 6;
+  }
+
+  const enableEditing = () => {
+    notesEl.disabled = false;
+    uploadArea.classList.remove('invisible');
+    iconsArea.classList.remove('d-none');
+    notesEl.rows = 13;
+  }
+
+  const enableImageUploadAndDeleting = () => {
+
+  }
+
+  const disableImageUploadAndDeleting = () => {
+
+  }
+
+
+
+  const handleExamData = async data => {
+    if (data.notes) notesEl.textContent = data.notes;
+    examinerNameEl.innerHTML = `<b>Examiner:</b> Dr. ${data.examiner.name}`;
+    patientNameEl.textContent = data.patient.name;
+    dobEl.textContent = getDate(data.patient.dateOfBirth);
+    ageEl.textContent = calculateAge(data.patient.dateOfBirth);
+    genderEl.textContent = data.patient.gender;
+    myExam = data.examiner._id === '<%= user.id %>';
+
+    if (data.images && data.images.length) {
+      const images = await fetchImages(data.images);
+      imagesArray.concat(images);
+      displayImages(images);
+    }
+    if (!myExam) {
+      disableEditing();
+    } else {
+      notesCache = data.notes ? data.notes : '';
+      saveBtn.classList.add('disabled');
+    }
+    hideLoading();
+  }
+
+  const fetchExamData = () => {
+    fetch(`/portal/api/examinations/<%= examId %>`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) throw new Error(data.error);
+        handleExamData(data.data);
+      })
+      .catch(error => reportError(error));
+  }
+
+  const displayImages = (images) => {
+    const imageContainer = document.getElementById('image-container');
+
+    while (imageContainer.firstChild) {
+      imageContainer.removeChild(imageContainer.firstChild);
+    }
+
+    images.forEach((image, index) => {
+      const imageDiv = document.createElement('div');
+      imageDiv.id = `image-${index}`;
+      imageDiv.classList.add('image-thumbnail');
+
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(new Blob([image.data], {
+        type: image.contentType
+      }));
+      img.alt = 'Retina Image';
+
+      imageDiv.appendChild(img);
+      imageContainer.appendChild(imageDiv);
+    });
+  };
+
+
+
+
+  const uploadFile = async file => {
+    const reader = new FileReader();
+    reader.readAsArrayBuffer(file);
+
+    reader.onload = async () => {
+      const arrayBuffer = reader.result;
+      const params = new URLSearchParams();
+      params.append('examination', '<%= examId %>');
+      params.append('image', JSON.stringify({
+        data: new Uint8Array(arrayBuffer),
+        contentType: file.type
+      }));
+
+      try {
+        const response = await fetch('/portal/api/funduscopies', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: params.toString()
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+
+      } catch (error) {
+        showAlert(`Image could not be uploaded<br>Reason: ${error}`,'danger');
+      }
+    };
+  };
+
+  const deleteExam = async () =>{
+    const response = await fetch(`/portal/api/examinations/<%= examId %>?_method=delete`, {
+        method:'post'
+    });
+    if(response.status===200){
+        window.location.href = '/portal/patients';
+    }else{
+        showAlert(`Couldn't delete exam`,'danger');
+    }
+  }
+
+  const handleFiles = files => {
+    ([...files]).forEach(uploadFile);
+  };
+  const preventDefaults = e => {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  const handleDrop = e => {
+    let dt = e.dataTransfer;
+    let files = dt.items;
+
+    handleFiles(files);
+  }
+
+  const highlight = e => {
+    dropArea.classList.add('highlight');
+  }
+
+  const unhighlight = e => {
+    dropArea.classList.remove('highlight');
+  }
+
+  dropArea.addEventListener('drop', handleDrop);
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, preventDefaults)
+    document.body.addEventListener(eventName, preventDefaults)
+  });
+
+
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropArea.addEventListener(eventName, highlight);
+
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, unhighlight)
+  });
+
+  const saveEnabler = e => {
+    if (myExam && e.target.value !== notesCache) {
+      saveBtn.classList.remove('disabled');
+    } else if (myExam && e.target.value === notesCache) {
+      saveBtn.classList.add('disabled');
+    }
+  }
+
+  const showAlert = (message, type) => {
+    const alertDiv = document.getElementById('alert-div');
+    alertDiv.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' + message +
+      '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+  }
+
+  window.addEventListener('DOMContentLoaded', async (e) => {
+    showLoading();
+    await fetchExamData();
+    notesEl.addEventListener('input', saveEnabler);
+    saveBtn.addEventListener('click', saveNotes);
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async e => {
+        await deleteExam();
+    });
+  });
+</script>
 <%- include('../partials/footer') %>

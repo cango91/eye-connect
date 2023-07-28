@@ -3,7 +3,7 @@ const portalCtrl = require('../controllers/portalController');
 const patientsPortalCtrl = require('../controllers/portal/patientsController');
 const examsPortalCtrl = require('../controllers/portal/examsController');
 const AuthenticateService = require('../services/authenticationService');
-const authenticate  = new AuthenticateService();
+const authenticate = new AuthenticateService();
 const ensureProfileComplete = require('../middlewares/ensureProfileComplete');
 const authorize = require('../middlewares/authorize');
 const crudLogger = require('../middlewares/crudLogger');
@@ -46,23 +46,25 @@ router.post('/agree-to-policy', portalCtrl.agreeToPolicy);
 //POST /portal/rejectPolicy unset session variable. Logs the user out if logged in
 router.post('/reject-policy', portalCtrl.rejectPolicy);
 //GET /portal/account-status get account status
-router.get('/account-status',portalCtrl.getAccountStatus);
+router.get('/account-status', portalCtrl.getAccountStatus);
 
 // GET portal/patients/new -> render new patient
 router.get('/patients/new/', authenticate.authenticate, authorize('CREATE_PATIENT'), crudLogger('View new patient form', req => ({ query: req.query })), patientsPortalCtrl.new);
 
 // GET /portal/patients to view all patients for Field HCP
-router.get('/patients', authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_PATIENTS'),crudLogger('View Patients',req=>({...req.query})),patientsPortalCtrl.index);
+router.get('/patients', authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_PATIENTS'), crudLogger('View Patients', req => ({ ...req.query })), patientsPortalCtrl.index);
 
 // GET /portal/patients/:id to view patient details
-router.get('/patients/:id',authenticate.authenticate, ensureProfileComplete,authorize('READ_PATIENT_BY_ID'),crudLogger('View patients', req=>({id: req.params.id})),patientsPortalCtrl.details);
+router.get('/patients/:id', authenticate.authenticate, ensureProfileComplete, authorize('READ_PATIENT_BY_ID'), crudLogger('View patients', req => ({ id: req.params.id })), patientsPortalCtrl.details);
 
 // GET patients/:id/examinations/new -> render new examination for patient with id
-router.get('/patients/:id/exams/new',authenticate.authenticate, ensureProfileComplete, authorize('ADD_EXAM'), crudLogger('Create New Exam',req=>({patientId: req.params.id})),examsPortalCtrl.new);
+router.get('/patients/:id/exams/new', authenticate.authenticate, ensureProfileComplete, authorize('ADD_EXAM'), crudLogger('Create New Exam', req => ({ patientId: req.params.id })), examsPortalCtrl.new);
+
 // GET examinations/:id/edit -> update examination with id
+router.get('/exams/:id', authenticate.authenticate, ensureProfileComplete, authorize('VIEW_EXAM_DETAILS'), crudLogger('View exam details', req => ({ examId: req.params.id })), examsPortalCtrl.details);
 
 // GET /portal/exams to view owned or all examinations for Field HCP
-router.get('/exams',authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_EXAMS'),crudLogger('View Exams',req=>({...req.query})),examsPortalCtrl.index);
+router.get('/exams', authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_EXAMS'), crudLogger('View Exams', req => ({ ...req.query })), examsPortalCtrl.index);
 
 
 

@@ -50,9 +50,30 @@ const newExam = (req,res,next) =>{
 
     }
 }
+const details = (req,res,next) =>{
+    if (req.user.role === 'FieldHCP') {
+        const navigation = Utils.Field.AuthorizedNavigation('View Exam');
+        navigation.items.push({text:'View Exam',href: '#'});
+        res.render('field/examDetails', {
+            header: {
+                title: 'eyeConnect Portal - Exam Details',
+                scripts: [{file:'/js/utils.js'}],
+            },
+            navigation,
+            examId: req.params.id,
+            saveIcon: Utils.Icons.SaveIcon,
+            deleteIcon: Utils.Icons.TrashIcon,
+        });
+    } else if (req.user.role === 'SpecialistHCP') {
+
+    } else {
+        res.redirect('/portal');
+    }
+}
 
 
 module.exports = {
     index,
     new:newExam,
+    details,
 }

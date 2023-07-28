@@ -23,23 +23,23 @@
     });
     return response.json();
   }
-  const hideStatus = () =>{
+  const hideStatus = () => {
     loadingDiv.classList.add('d-none');
   }
-  const showError =(err) =>{
+  const showError = (err) => {
     backBtn.classList.remove('d-none');
     alertDiv.classList.remove('d-none');
     alertDiv.innerHTML = `Could not create exam<br>Reason: ${response.error}`;
   }
-  const redirectOrError = async () =>{
+  const redirectOrError = async () => {
     const response = await createExam();
-    if(response.error){
-        hideStatus();
-        showError(response.error);
-    }else{
-        window.location.href = `/portal/exams/${response.data._id}/edit`;
+    if (response.error) {
+      hideStatus();
+      showError(response.error);
+    } else {
+      window.location.href = `/portal/exams/${response.data._id}`;
     }
   }
-  window.addEventListener('load',redirectOrError);
+  window.addEventListener('load', redirectOrError);
 </script>
 <%- include('../partials/footer') %>

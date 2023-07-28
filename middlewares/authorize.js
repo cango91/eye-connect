@@ -12,6 +12,7 @@ const authorizationDictionary = {
     DELETE_EXAM: ['FieldHCP','MedicalDirector'],
     GET_EXAMS_OF_PATIENT: ['FieldHCP','MedicalDirector','SpecialistHCP'],
     UPDATE_EXAM_BY_ID: ['FieldHCP','MedicalDirector'],
+    VIEW_EXAM_DETAILS: ['FieldHCP','MedicalDirector','SpecialistHCP'],
 }
 
 const authorize = action => (req,res,next) =>{

@@ -23,7 +23,7 @@
     <div class="row">
       <div class="col-sm-6">
         <h5 class="fw-bold required-label">Date of Birth:</h5>
-        <input type="datetime-local" class="form-control" aria-required="true" autocomplete="off" name="dateOfBirth" id="dob">
+        <input type="date" class="form-control" aria-required="true" autocomplete="off" name="dateOfBirth" id="dob">
       </div>
       <div class="col-sm-6">
         <h5>&nbsp;</h5>
@@ -63,13 +63,14 @@
   form.prepend(alertDiv);
 
   const postPatient = async () => {
-    const data = new URLSearchParams(new FormData(form)).toString();
+    const data = new URLSearchParams(new FormData(form));
+    data.set('dateOfBirth',dobEl.value+ 'T00:00');
     const response = await fetch('/portal/api/patients', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: data
+      body: data.toString()
     });
     return response.json();
   };

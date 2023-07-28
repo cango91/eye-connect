@@ -3,6 +3,7 @@ const patientsService = require('./patientsService');
 const cryptoService = require('./cryptoService');
 const eventService = require('./eventService');
 const crudLogger = require('../middlewares/crudLogger');
+const ObjectId = require('mongoose').Types.ObjectId;
 
 const getExamsOfPatient = async patientId => {
     try {
@@ -69,6 +70,7 @@ const createExamForPatient = async (patientId, examinerId, examData) => {
         try {
             examData.patient = patient._id;
             examData.examiner = examinerId;
+            examData.notes = examData.notes || '';
             encryptExamNotes(examData);
             const exam = await Exam.create(examData);
             await eventService.emitEvent('examCreated', { examId: exam._id, patientId: patient._id });
@@ -85,14 +87,38 @@ const createExamForPatient = async (patientId, examinerId, examData) => {
 
 const findById = async id => {
     try {
-        const exam = await Exam.findById(id);
-        if (exam) {
-            return decryptExamNotes(exam);
+        const results = await Exam.aggregate([
+            {
+                $match: { _id: new ObjectId(id)}
+            },
+           {
+                $lookup: {
+                    from: 'users',
+                    localField: 'examiner',
+                    foreignField: '_id',
+                    as: 'examiner'
+                },
+            },
+            { $unwind: {path: '$examiner'}},
+            {
+                $unset: ['examiner.email','examiner.password','examiner.validationStatus','examiner.notifications','examiner.additionalInfo'],
+            },
+            {
+                $lookup: {
+                    from: 'patients',
+                    localField: 'patient',
+                    foreignField: '_id',
+                    as: 'patient',
+                }
+            },
+            { $unwind: '$patient' }
+        ]);
+        if(results && results.length){
+            return decryptExamNotes(results[0]);
         }
-        throw new ExamNotFound();
-    } catch (err) {
-        console.error(err);
-        throw err;
+    }catch(err){
+            console.error(err);
+            throw err;
     }
 }
 
