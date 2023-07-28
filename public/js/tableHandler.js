@@ -99,39 +99,46 @@ const tableHandler = (
     alertDiv.className = 'table-alert';
     document.body.appendChild(alertDiv);
 
-    // Add page controls
-    const prevButton = document.createElement('button');
-    prevButton.textContent = 'Previous';
-    prevButton.classList.add('btn', 'btn-primary');
+   // Add page controls
+   const prevButton = document.createElement('button');
+   prevButton.textContent = 'Previous';
+   prevButton.id = 'prev-button';  
+   prevButton.classList.add('btn', 'btn-primary', 'mx-2');
 
-    const nextButton = document.createElement('button');
-    nextButton.textContent = 'Next';
-    nextButton.classList.add('btn', 'btn-primary');
+   const nextButton = document.createElement('button');
+   nextButton.textContent = 'Next';
+   nextButton.id = 'next-button';  
+   nextButton.classList.add('btn', 'btn-primary', 'mx-2');
 
-    // Create a container for the pagination controls
-    const paginationContainer = document.createElement('div');
-    paginationContainer.classList.add('d-flex', 'justify-content-between');
-    paginationContainer.append(prevButton, nextButton);
+   // Add page info text
+   const pageInfo = document.createElement('div');
+   pageInfo.id = 'page-info';  
+   pageInfo.classList.add('text-center', 'mx-2');
 
-    // Insert pagination controls into the DOM
-    table.parentNode.insertBefore(paginationContainer, table.nextSibling);
+   const paginationContainer = document.createElement('div');
+   paginationContainer.classList.add('d-flex', 'justify-content-center');
+   paginationContainer.append(prevButton, pageInfo, nextButton);
 
-    // Update the visibility of the pagination controls based on the page count
-    const updatePaginationVisibility = () => {
-        prevButton.style.display = (fetchOptions.page > 1) ? 'block' : 'none';
-        nextButton.style.display = (fetchOptions.page < fetchOptions.pageCount) ? 'block' : 'none';
-    };
+   table.parentNode.insertBefore(paginationContainer, table.nextSibling);
+
+   // Update the visibility of the pagination controls and page info text based on the page count
+   const updatePaginationVisibility = () => {
+       console.log(fetchOptions);
+       prevButton.style.visibility = (fetchOptions.page > 1) ? 'visible' : 'hidden';
+       nextButton.style.visibility = (fetchOptions.page < fetchOptions.pageCount) ? 'visible' : 'hidden';
+       pageInfo.textContent = `Page ${table.dataset.page} of ${table.dataset.pageCount}`;  // update page info text
+   };
 
     prevButton.addEventListener('click', ()=>{
-        table.dataset.page = Math.min(1,parseInt(table.dataset.page)-1).toString();
+        table.dataset.page = Math.max(1,parseInt(table.dataset.page)-1).toString();
         updateOpts();
-        populateTable().then(updatePaginationVisibility);
+        populateTable();
     })
 
     nextButton.addEventListener('click', ()=>{
-        table.dataset.page = Math.max(table.dataset.pageCount,parseInt(table.dataset.page)+1).toString();
+        table.dataset.page = Math.min(table.dataset.pageCount,parseInt(table.dataset.page)+1).toString();
         updateOpts();
-        populateTable().then(updatePaginationVisibility);
+        populateTable();
     })
 
     const makeAnchor = (asc = false) => {
@@ -237,7 +244,7 @@ const tableHandler = (
                         handler: handler,
                         target: table,
                     }
-                }))
+                }));
                 updatePaginationVisibility();
             }).then(resolve)
                 .catch(error => {
@@ -309,45 +316,3 @@ const tableHandler = (
     });
 
 }
-
-const paginationHandler = (id) => {
-    const table = document.getElementById(`${id}-data-table`);
-    let init = false;
-    let tableHandler, page, pageCount;
-
-
-    // Update the visibility of the pagination controls whenever the table updates
-    window.addEventListener('dataFetched', event => {
-        if (event.detail.id === id)
-            tableHandler = event.detail.handler;
-        if (init) {
-            updatePaginationVisibility();
-            pageCount = tableHandler.getOpts().pageCount;
-            page = tableHandler.getOpts().page;
-        }
-    });
-
-    window.addEventListener('tableLoaded', event => {
-        if (event.detail.handler === tableHandler) {
-            init = true;
-            page = tableHandler.getOpts().page;
-            pageCount = tableHandler.getOpts().pageCount;
-            updatePaginationVisibility();
-        }
-    });
-
-    // Attach event listeners to the pagination controls
-    prevButton.addEventListener('click', () => {
-        table.dataset.page = Math.max((parseInt(table.dataset.page) - 1), 1).toString();
-        tableHandler.updateOpts();
-        tableHandler.populateTable();
-    });
-    nextButton.addEventListener('click', () => {
-        table.dataset.page = Math.min((parseInt(table.dataset.page) + 1), pageCount).toString();
-        tableHandler.updateOpts();
-        tableHandler.populateTable();
-    });
-
-    // Update the visibility of the pagination controls initially
-    updatePaginationVisibility();
-};

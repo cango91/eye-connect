@@ -25,7 +25,7 @@
     cp.appendChild(toggleContainer);
     toggler.addEventListener('click', evt => {
       // do not prevent default, current .checked state is what we want to upload table data with
-      handler.table.dataset.page = 1;
+      handler.table.dataset.page = '1';
       let updatedUrl;
       // Remove existing ?filter= or &filter= and ?filterValue or &filterValue string from the URL
       updatedUrl = handler.getOpts().url.replace(/(\?|&)(filter=)[^&]+/, '');

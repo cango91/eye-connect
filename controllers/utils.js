@@ -100,6 +100,7 @@ module.exports = class Utils {
                 {
                     text: '',
                     parseFunction: `(data,td) => new Promise(res => {
+                        const titles = ['add new exam','view patient details','edit patient details']
                         const svgs = ['${Utils.Icons.PaperIcon}', '${Utils.Icons.EyeIcon}', '${Utils.Icons.PencilIcon}'];
                         let {id, name} = data;
                         const val = id
@@ -109,6 +110,7 @@ module.exports = class Utils {
                         `svgs.push('${Utils.Icons.TrashIcon}');
                         hrefs.push(val);
                         classes.push('btn btn-danger collapse-btn-icon');
+                        titles.push('delete patient record')
                         const showModal = (id, name) =>{
                             const modalDiv = document.getElementById('deleteModal')
                             const modal = new bootstrap.Modal(modalDiv);
@@ -118,7 +120,7 @@ module.exports = class Utils {
                             deleteTitle.innerHTML = 'Are you sure you want to delete <b>' + name + '</b>?';
                             deleteContent.innerHTML = 'You are about the permanently delete a patient record and all associated medical records. This will permanently remove <b>' + name + '</b> from our systems. Are you sure you want to proceed?';
                             deleteButton.addEventListener('click', () => {
-                                const url = '/portal/api/patients/' + id + '?_method=delete';
+                                const url = '/portal/api/examinations/' + id + '?_method=delete';
                                 fetch(url, {method: 'post'})
                                 .then(response => response.json())
                                 .then((data)=>{
@@ -189,6 +191,7 @@ module.exports = class Utils {
                             a.href = hrefs[i];
                             a.className = classes[i];
                             a.innerHTML = svgs[i];
+                            a.title = titles[i];
                             const li = document.createElement('li');
                             li.className = 'nav-item';
                             li.appendChild(a);
@@ -205,11 +208,10 @@ module.exports = class Utils {
                                         trgt = e.target.closest('a');
                                     }
                                     showModal(trgt.dataset.delVal,trgt.dataset.delName);
-                                })
+                                });
                             }                            
                             `}
                             td.appendChild(li);
-                            //td.appendChild(a);
                         }
                         const nav = document.createElement('nav');
                         nav.className = 'navbar navbar-expand-lg navbar-light bg-light centered-collapse-menu';
@@ -293,7 +295,7 @@ module.exports = class Utils {
                 .then(data => {
                     const rows = [];
                     data.data.forEach(item => {
-                        rows.push([item.patient.name,getDate(item.date),item.hasConsultation ? 'yes' : 'no'],
+                        rows.push([item.patient.name,getDate(item.date),item.hasConsultation ? 'yes' : 'no', {id: item._id, name: item.patient.name, date: getDate(item.date)}],
                         );
                     });
                     opts.limit = data.limit ? data.limit : opts.limit;
@@ -319,6 +321,145 @@ module.exports = class Utils {
                 {
                     text: 'Consultation?'
                 },
+                {
+                    text :'',
+                    parseFunction: `(data, td) => new Promise(res => {
+                        const titles = ['view exam details','edit exam','delete exam']
+                        const svgs = ['${Utils.Icons.EyeIcon}', '${Utils.Icons.PencilIcon}','${Utils.Icons.TrashIcon}'];
+                        let {id, name, date} = data;
+                        const classes = ['btn btn-info collapse-btn-icon','btn btn-warning collapse-btn-icon','btn btn-danger collapse-btn-icon'];
+                        const hrefs = ['/portal/exams/'+id,'/portal/exams/'+id+'?edit=true',id];
+                        const showModal = (id, name, date) =>{
+                            const modalDiv = document.getElementById('deleteModal')
+                            const modal = new bootstrap.Modal(modalDiv);
+                            const deleteButton = document.getElementById('confirmDeleteBtn');
+                            const deleteContent = document.querySelector('.modal-body');
+                            const deleteTitle = document.getElementById('deleteModalLabel');
+                            deleteTitle.innerHTML = 'Are you sure you want to delete <b>' + name + '</b>s exam?';
+                            deleteContent.innerHTML = 'You are about the permanently delete an exam record. This will permanently remove <b>' + name + 's exam dated ' + date +'</b> from our systems. Are you sure you want to proceed?';
+                            deleteButton.addEventListener('click', () => {
+                                const url = '/portal/api/examinations/' + id + '?_method=delete';
+                                fetch(url, {method: 'post'})
+                                .then(response => response.json())
+                                .then((data)=>{
+                                    if(data?.error){
+                                        document.querySelector('.table-alert').innerHTML = '<div class="alert alert-danger alert-dismissible fade show" role="alert">Could not delete exam record.<br>Reason: '+ data.error + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+                                        modal.hide();
+                                    }else{
+                                        window.location.reload();
+                                    }
+                                })
+                                .catch(err=>({}));
+                            });
+                            modal.show();
+                        }
+                        if(!document.getElementById('deleteModal')){
+                            const modalDiv = document.createElement('div');
+                            modalDiv.classList.add('modal', 'fade');
+                            modalDiv.id = 'deleteModal';
+                            modalDiv.tabIndex = '-1';
+                            modalDiv.setAttribute('aria-labelledby', 'deleteModalLabel');
+                            modalDiv.setAttribute('aria-hidden', 'true');
+                            const modalDialog = document.createElement('div');
+                            modalDialog.classList.add('modal-dialog');
+                            const modalContent = document.createElement('div');
+                            modalContent.classList.add('modal-content');
+                            const modalHeader = document.createElement('div');
+                            modalHeader.classList.add('modal-header');
+                            const modalTitle = document.createElement('h5');
+                            modalTitle.classList.add('modal-title');
+                            modalTitle.id = 'deleteModalLabel';
+                            const closeButton = document.createElement('button');
+                            closeButton.type = 'button';
+                            closeButton.classList.add('btn-close');
+                            closeButton.setAttribute('data-bs-dismiss', 'modal');
+                            closeButton.setAttribute('aria-label', 'Close');
+                            const modalBody = document.createElement('div');
+                            modalBody.classList.add('modal-body');
+                            const modalFooter = document.createElement('div');
+                            modalFooter.classList.add('modal-footer');
+                            const cancelButton = document.createElement('button');
+                            cancelButton.type = 'button';
+                            cancelButton.classList.add('btn', 'btn-secondary');
+                            cancelButton.setAttribute('data-bs-dismiss', 'modal');
+                            cancelButton.textContent = 'Cancel';
+                            const deleteButton = document.createElement('button');
+                            deleteButton.type = 'button';
+                            deleteButton.classList.add('btn', 'btn-danger');
+                            deleteButton.id = 'confirmDeleteBtn';
+                            deleteButton.textContent = 'Delete';
+                            modalHeader.appendChild(modalTitle);
+                            modalHeader.appendChild(closeButton);
+                            modalFooter.appendChild(cancelButton);
+                            modalFooter.appendChild(deleteButton);
+                            modalContent.appendChild(modalHeader);
+                            modalContent.appendChild(modalBody);
+                            modalContent.appendChild(modalFooter);
+                            modalDialog.appendChild(modalContent);
+                            modalDiv.appendChild(modalDialog);
+                            document.body.appendChild(modalDiv);
+                        }
+                        for(let i = 0; i<svgs.length; i++){
+                            const a = document.createElement('a');
+                            a.href = hrefs[i];
+                            a.className = classes[i];
+                            a.innerHTML = svgs[i];
+                            a.title = titles[i];
+                            const li = document.createElement('li');
+                            li.className = 'nav-item';
+                            li.appendChild(a);
+                            if(i===svgs.length-1){
+                                a.dataset.delVal = id;
+                                a.dataset.delName = name;
+                                a.dataset.delDate = date;
+                                a.addEventListener('click',e =>{
+                                    e.preventDefault();
+                                    let trgt;
+                                    if(e.target.hasAttribute('A')){
+                                        trgt = e.target;
+                                    }else{
+                                        trgt = e.target.closest('a');
+                                    }
+                                    showModal(trgt.dataset.delVal,trgt.dataset.delName,trgt.dataset.delDate);
+                                });
+                            }
+                            td.appendChild(li);
+                        }
+                        const nav = document.createElement('nav');
+                        nav.className = 'navbar navbar-expand-lg navbar-light bg-light centered-collapse-menu';
+
+                        const button = document.createElement('button');
+                        button.className = 'navbar-toggler';
+                        button.type = 'button';
+                        button.dataset.bsToggle = 'collapse';
+                        button.dataset.bsTarget = '#navbarSupportedContent'+id;
+                        button.ariaControls = 'navbarSupportedContent';
+                        button.ariaExpanded = 'false';
+                        button.ariaLabel = 'Toggle navigation';
+
+                        const span = document.createElement('span');
+                        span.className = 'navbar-toggler-icon';
+
+                        button.appendChild(span); 
+
+                        const div = document.createElement('div');
+                        div.className = 'collapse navbar-collapse';
+                        div.id = 'navbarSupportedContent'+id;
+
+                        const ul = document.createElement('ul');
+                        ul.className = 'navbar-nav mr-auto navbar-ul-centered mb-2';
+
+                        while(td.firstChild){
+                            ul.appendChild(td.firstChild);
+                        }
+
+                        div.appendChild(ul);
+                        nav.appendChild(button);
+                        nav.appendChild(div);
+                        td.appendChild(nav);
+                        res();                            
+                    })`,
+                }
 
             ],
         },
@@ -365,7 +506,7 @@ module.exports = class Utils {
                     .then(data => {
                         const rows = [];
                         data.data.forEach(item => {
-                            rows.push([item.patient.name,item.notes.substring(0,Math.min(maxNotesLength,item.notes.length)) + '...', getDate(item.date), item.hasConsultation ? 'yes' : 'no', item.examiner.name, item.images ? item.images.length : 0 ]
+                            rows.push([item.patient.name,item.notes && item.notes.length ? item.notes.substring(0,Math.min(maxNotesLength,item.notes.length)) + '...' : '<empty notes>', getDate(item.date), item.hasConsultation ? 'yes' : 'no', item.examiner.name, item.images ? item.images.length : 0 ]
                             );
                         });
                         opts.limit = data.limit ? data.limit : opts.limit;
@@ -425,7 +566,7 @@ module.exports = class Utils {
                     .then(data => {
                         const rows = [];
                         data.data.forEach(item => {
-                            rows.push([getDate(item.date),item.examiner.name, item.notes.substring(0,Math.min(maxNotesLength,item.notes.length)) + '...', item.hasConsultation ? 'yes' : 'no',  item.images ? item.images.length : 0, item._id ]
+                            rows.push([getDate(item.date),item.examiner.name, item.notes && item.notes.length ? item.notes.substring(0,Math.min(maxNotesLength,item.notes.length)) + '...' : '<empty notes>', item.hasConsultation ? 'yes' : 'no',  item.images ? item.images.length : 0, item._id ]
                             );
                         });
                         opts.limit = data.limit ? data.limit : opts.limit;

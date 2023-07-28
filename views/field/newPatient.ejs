@@ -5,7 +5,7 @@
     <h3><span class="float-start"><a class="btn btn-secondary" href="/portal/patients">&larr; Back</a></span>New Patient</h3>
     <hr>
   </div>
-  <form class="form-control">
+  <form class="form-control" role="form">
     <div class="row">
       <div class="col-sm-6">
         <h5 class="fw-bold required-label">Full Name:</h5>
@@ -34,31 +34,31 @@
   </form>
 </main>
 <script>
-    const form = document.querySelector('form');
-    const saveBtn = document.getElementById('save-patient-btn');
-    const examBtn = document.getElementById('new-exam-btn');
-    const nameEl = document.getElementById('name');
-    const dobEl = document.getElementById('dob');
-    const genderEl = document.getElementById('gender');
-  
-    const disableButtons = () => {
-      saveBtn.classList.add('disabled');
-      examBtn.classList.add('disabled');
-    };
-  
-    const enableButtons = () => {
-      saveBtn.classList.remove('disabled');
-      examBtn.classList.remove('disabled');
-    };
-  
-    const checkInputs = () => {
-      const nameValid = nameEl.value !== '';
-      const dobValid = dobEl.value !== '' && new Date(dobEl.value) <= Date.now();
-      const genderValid = genderEl.value !== '';
-      return nameValid && dobValid && genderValid;
-    };
+  const form = document.querySelector('form');
+  const saveBtn = document.getElementById('save-patient-btn');
+  const examBtn = document.getElementById('new-exam-btn');
+  const nameEl = document.getElementById('name');
+  const dobEl = document.getElementById('dob');
+  const genderEl = document.getElementById('gender');
 
-    const alertDiv = document.createElement('div');
+  const disableButtons = () => {
+    saveBtn.classList.add('disabled');
+    examBtn.classList.add('disabled');
+  };
+
+  const enableButtons = () => {
+    saveBtn.classList.remove('disabled');
+    examBtn.classList.remove('disabled');
+  };
+
+  const checkInputs = () => {
+    const nameValid = nameEl.value !== '';
+    const dobValid = dobEl.value !== '' && new Date(dobEl.value) <= Date.now();
+    const genderValid = genderEl.value !== '';
+    return nameValid && dobValid && genderValid;
+  };
+
+  const alertDiv = document.createElement('div');
   alertDiv.classList.add('alert', 'alert-danger', 'd-none');
   form.prepend(alertDiv);
 
@@ -83,9 +83,9 @@
         alertDiv.classList.remove('d-none');
       } else {
         const id = response.data._id;
-        const redirectUrl = event.target === saveBtn 
-          ? `/portal/patients/${id}` 
-          : `/portal/patients/${id}/exams/new`;
+        const redirectUrl = event.target === saveBtn ?
+          `/portal/patients/${id}` :
+          `/portal/patients/${id}/exams/new`;
         window.location.href = redirectUrl;
       }
     }
@@ -93,18 +93,18 @@
 
   saveBtn.addEventListener('click', onButtonClick);
   examBtn.addEventListener('click', onButtonClick);
-  
-    const onInputChanged = () => {
-      if (checkInputs()) {
-        enableButtons();
-      } else {
-        disableButtons();
-      }
-    };
-  
-    form.addEventListener('input', onInputChanged);
-    window.addEventListener('DOMContentLoaded', onInputChanged);
-    disableButtons();
-  </script>
-  
+
+  const onInputChanged = () => {
+    if (checkInputs()) {
+      enableButtons();
+    } else {
+      disableButtons();
+    }
+  };
+
+  form.addEventListener('input', onInputChanged);
+  window.addEventListener('DOMContentLoaded', onInputChanged);
+  disableButtons();
+</script>
+
 <%- include('../partials/footer') %>

@@ -103,7 +103,7 @@ const deleteExamById = async (id, mustBeCreatedBy = null) => {
             if (mustBeCreatedBy) {
                 if (exam.examiner.toString() !== mustBeCreatedBy) throw new NotAllowed();
             }
-            await eventService.emitEvent('examDeleted', { examId: exam._id, patientId: id });
+            await eventService.emitEvent('examDeleted', { examId: exam._id, patientId: exam.patient });
             await exam.deleteOne();
         } else {
             throw new ExamNotFound();

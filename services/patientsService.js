@@ -64,7 +64,7 @@ const getPatientsWithLatestExamDate = async (filter, sort, collation, skip, limi
             },
             { $addFields: { numExams: { $size: "$exams" } } },
             { $sort: sort },
-            
+
         ]).collation(collation);
 
         const totalCount = totalQuery.length;
@@ -98,13 +98,14 @@ const updatePatientExams = async ({ patientId, examId }) => {
     }
 }
 
-const deleteExamFromPatient = async ({examId,patientId}) => {
+const deleteExamFromPatient = async ({ examId, patientId }) => {
     try {
         const patient = await Patient.findById(patientId);
-        if(!patient) throw new PatientNotFound();
-        const arrayIdx = patient.exams.findIndex(idx=>idx===examId);
-        if(arrayIdx < 0) throw new Error('Exam not found on patient');
-        patient.exams.splice(arrayIdx,1);
+        if (!patient) throw new PatientNotFound();
+        // const arrayIdx = patient.exams.findIndex(exam => exam === examId);
+        // if (arrayIdx < 0) throw new Error('Exam not found on patient');
+        // patient.exams.splice(arrayIdx, 1);
+        patient.updateOne({$pull:{'exams': {_id:examId}}});
         await patient.save();
     } catch (err) {
         console.error(err);

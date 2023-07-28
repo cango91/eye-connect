@@ -1,5 +1,6 @@
+const { create } = require('../../models/user');
 const Utils = require('../utils');
-module.exports = async (req, res, next) => {
+const index = async (req, res, next) => {
     if (req.user.role === 'FieldHCP') {
         res.render('field/exams', {
             header: {
@@ -14,7 +15,7 @@ module.exports = async (req, res, next) => {
                     url: Utils.Field.AllExams.URL(),
                     page: 1,
                     pageCount: 0,
-                    limit: 5,
+                    limit: 10,
                     sort: {
                         sortBy: 'updatedAt',
                         asc: false,
@@ -30,4 +31,28 @@ module.exports = async (req, res, next) => {
     } else {
 
     }
+}
+
+const newExam = (req,res,next) =>{
+    if (req.user.role === 'FieldHCP') {
+        const navigation = Utils.Field.AuthorizedNavigation('New Exam');
+        navigation.items.push({text:'New Exam',href: '#'});
+        res.render('field/newExam', {
+            header: {
+                title: 'eyeConnect Portal - New Exam',
+            },
+            navigation,
+            patientId: req.params.id,
+        });
+    } else if (req.user.role === 'SpecialistHCP') {
+
+    } else {
+
+    }
+}
+
+
+module.exports = {
+    index,
+    new:newExam,
 }

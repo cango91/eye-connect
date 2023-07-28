@@ -4,11 +4,6 @@ const authorize = require('../middlewares/authorize');
 const crudLogger = require('../middlewares/crudLogger');
 const examsApi = require('../controllers/api/examinationsController');
 
-// non-RESTful routes
-// GET patients/:id/examinations/new -> render new examination for patient with id
-// GET examinations/:id/edit -> update examination with id
-
-
 // RESTful routes
 // GET /examinations -> return all examinations
 router.get('/', authorize("READ_ALL_EXAMS"), crudLogger('Read all exams', req => Object.keys(req.query).length ? { ...req.query } : {}), examsApi.getAll);

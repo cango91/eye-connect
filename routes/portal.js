@@ -57,8 +57,12 @@ router.get('/patients', authenticate.authenticate, ensureProfileComplete, author
 // GET /portal/patients/:id to view patient details
 router.get('/patients/:id',authenticate.authenticate, ensureProfileComplete,authorize('READ_PATIENT_BY_ID'),crudLogger('View patients', req=>({id: req.params.id})),patientsPortalCtrl.details);
 
+// GET patients/:id/examinations/new -> render new examination for patient with id
+router.get('/patients/:id/exams/new',authenticate.authenticate, ensureProfileComplete, authorize('ADD_EXAM'), crudLogger('Create New Exam',req=>({patientId: req.params.id})),examsPortalCtrl.new);
+// GET examinations/:id/edit -> update examination with id
+
 // GET /portal/exams to view owned or all examinations for Field HCP
-router.get('/exams',authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_EXAMS'),crudLogger('View Exams',req=>({...req.query})),examsPortalCtrl);
+router.get('/exams',authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_EXAMS'),crudLogger('View Exams',req=>({...req.query})),examsPortalCtrl.index);
 
 
 
