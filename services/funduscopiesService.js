@@ -77,7 +77,7 @@ const checkOrphaned = (image, { checkExamination = true, checkConsultaion = true
 const onExamDeleted = async (eventData) => {
     const { examId } = eventData;
     try {
-        const images = await Funduscopy.find({ examination: examId });
+        const images = await Funduscopy.find({ examination: new ObjectId(examId) });
         if (images.length) {
             for (let i = 0; i < images.length; i++) {
                 if (checkOrphaned(images[i], { checkExamination: false })) {

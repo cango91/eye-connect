@@ -145,7 +145,7 @@ const deleteExamById = async (id, mustBeCreatedBy = null) => {
 
 const onPatientDeleted = async ({ patientId }) => {
     try {
-        const patientExams = await Exam.find({ patient: patientId });
+        const patientExams = await Exam.find({ patient: new ObjectId (patientId) });
         if (patientExams && patientExams.length) {
             for (let i = 0; i < patientExams.length; i++) {
                 await eventService.emitEvent('examDeleted', { examId: patientExams[i]._id, patientId: patientId });
@@ -243,7 +243,7 @@ const onImageCreated = async (eventData) => {
         if (!exam) throw new ExamNotFound();
         await exam.updateOne({
             $push: {
-                'images': new Object
+                'images': new ObjectId
                     (eventData.id)
             }
         });
