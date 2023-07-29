@@ -16,7 +16,7 @@ const deletePatientById = async id => {
     try {
         const patient = await Patient.findById(id);
         if (patient) {
-            await eventService.emitEvent('patientDeleted', id); //examsService.onPatientDeleted(id);
+            await eventService.emitEvent('patientDeleted', {patientId:id}); //examsService.onPatientDeleted(id);
         } else {
             throw new PatientNotFound('Patient not found!');
         }

@@ -168,7 +168,7 @@ const updateExamNotes = async (id, examData, mustBeUpdatedBy = null) => {
         if (mustBeUpdatedBy && exam.examiner.toString() !== mustBeUpdatedBy) {
             throw new NotAllowed();
         }
-        exam.notes = examData.notes;
+        console.log(examData.notes);
         encryptExamNotes(exam);
         await exam.save();
         await eventService.emitEvent('examNotesUpdated', { examId: exam._id, patientId: exam.patient._id });

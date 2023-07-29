@@ -133,7 +133,7 @@
 
   const imagesArray = [];
 
-  const ICON_DIMS = [25,25];
+  const ICON_DIMS = [25, 25];
 
 
   let myExam;
@@ -184,8 +184,9 @@
   }
 
   const saveNotes = async () => {
+    const tempCache = notesEl.value.toString();
     const params = new URLSearchParams();
-    params.append('notes', notesEl.value.toString());
+    params.append('notes', tempCache);
     try {
       const response = await fetch(`/portal/api/examinations/<%= examId %>?_method=put`, {
         method: 'POST',
@@ -204,6 +205,12 @@
         data = await response.json();
         if (!data.error) {
           showAlert('Notes Updated', 'success');
+          notesCache = tempCache;
+          saveEnabler({
+            target: {
+              value: tempCache
+            }
+          });
         } else {
           console.error(data);
           showAlert(`Notes update failed<br>Reason: ${data}`, 'danger');
@@ -342,10 +349,10 @@
 
       const magnifyIcon = createAndStyleIcon(ICON_DIMS, `<%- magnifyIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-warning', 'm-1');
       magnifyIcon.role = "enlarge preview";
-      
+
       const thumbnailContainer = document.createElement('div');
       thumbnailContainer.className = 'position-relative d-flex';
-      
+
       let container = document.createElement('div');
       container.className = 'position-absolute d-flex flex-column justify-content-start';
       container.appendChild(magnifyIcon);
@@ -417,8 +424,8 @@
         }
         parent = parent.parentNode;
       }
-    }else{
-        parent = target;
+    } else {
+      parent = target;
     }
     parent.remove();
     sessionImages--;

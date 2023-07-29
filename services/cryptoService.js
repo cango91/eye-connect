@@ -25,9 +25,7 @@ const cryptoService = {
         decrypted = Buffer.concat([decrypted, decipher.final()]);
         return decrypted;
     },
-    encryptText: text => {
-         cryptoService.encrypt(Buffer.from(text)).toString('hex');
-    },
+    encryptText: text => cryptoService.encrypt(Buffer.from(text)).toString('hex'),
     decryptText: text => cryptoService.decrypt(Buffer.from(text, 'hex')).toString(),
     hashPassword: (password, callback) => {
         // generate a new salt for each password
