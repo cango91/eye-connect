@@ -64,6 +64,9 @@ const details = (req,res,next) =>{
             saveIcon: Utils.Icons.SaveIcon,
             deleteIcon: Utils.Icons.TrashIcon,
             magnifyIcon: Utils.Icons.MagnifyIcon,
+            uploadSingleIcon: Utils.Icons.UploadSingleIcon,
+            uploadAllIcon: Utils.Icons.CheckAllIcon,
+            removeAllIcon: Utils.Icons.CrossIcon,
         });
     } else if (req.user.role === 'SpecialistHCP') {
 

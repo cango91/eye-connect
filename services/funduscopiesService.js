@@ -11,16 +11,20 @@ const getImageById = async id => {
     // while image is being decrypted. If the Exam can't be locked for any reason, we throw only if the Exam exists
     // If the Exam is already deleted, we'll delete the reference on image and do orphan checking.
     try {
-        await eventService.emitEventWithResponse('resourceLockRequest', {
-            schema: 'Exam',
-            id: encryptedImage.examination._id
-        });
-        const image = cryptoService.decrypt(encryptedImage);
-        eventService.emitEvent('resourceLockRelease', {
-            schema: 'Exam',
-            id: encryptedImage.examination._id,
-        });
-        return image;
+        // await eventService.emitEventWithResponse('resourceLockRequest', {
+        //     schema: 'Exam',
+        //     id: encryptedImage.examination._id
+        // });
+
+        const image = encryptedImage.image;
+        image.data = cryptoService.decrypt(image.data);
+
+        // eventService.emitEvent('resourceLockRelease', {
+        //     schema: 'Exam',
+        //     id: encryptedImage.examination._id,
+        // });
+        encryptedImage.set('image', image);
+        return encryptedImage;
     } catch (e) {
         // Why fail? If resource not found, we should check if image is orphaned (no cons, no exam = delete the image):
         if ((e instanceof Error && e.name === "NotFoundError") || (typeof e === 'string' && e.match(/^.*is not found|was not found|couldn\'t find|can\'t find|could not find|can not find|no longer available|is deleted|was deleted\i/))) {
@@ -41,18 +45,24 @@ const create = async (data) => {
     try {
         const { buffer, contentType, examId } = data;
         if (!buffer || !contentType || !examId) throw new Error('Missing necessary information');
-        await eventService.emitEventWithResponse('resourceLockRequest', { schema: 'Exam', id: examId });
-        const image = {buffer: cryptoService.encrypt(buffer), contentType};
+        //await eventService.emitEventWithResponse('resourceLockRequest', { schema: 'Exam', id: examId });
+        const image = { contentType, data: cryptoService.encrypt(buffer) };
+
         const funduscopy = new Funduscopy({
             image,
-            examination: new ObjectId(examId)
+            examination: new ObjectId(examId),
         });
-        await aiService.classifyFunduscopy(funduscopy);
+        const result = await aiService.classifyFunduscopy(funduscopy);
+        funduscopy.$set('classificationResult.value', result.vaule);
+        funduscopy.$set('classificationResult.result', result.result);
+        // await funduscopy.save();
+        // eventService.emitEvent('resourceLockRelease',{
+        //     schema: 'Exam',
+        //     id: examId,
+        // });
         await funduscopy.save();
-        eventService.emitEvent('resourceLockRelease',{
-            schema: 'Exam',
-            id: examId,
-        });
+        eventService.emitEvent('imageCreated', { imageId: funduscopy._id, examId: examId });
+        return funduscopy;
     } catch (e) {
         throw e;
     }
@@ -64,6 +74,29 @@ const checkOrphaned = (image, { checkExamination = true, checkConsultaion = true
     return !(hasExam || hasCons);
 }
 
+const onExamDeleted = async (eventData) => {
+    const { examId } = eventData;
+    try {
+        const images = await Funduscopy.find({ examination: examId });
+        if (images.length) {
+            for (let i = 0; i < images.length; i++) {
+                if (checkOrphaned(images[i], { checkExamination: false })) {
+                    // no eventEmit since orphaned... Who'd listen to it :'(
+                    await images[i].deleteOne();
+                } else {
+                    images[i].examination = null;
+                    await images[i].save();
+                }
+            }
+        }
+    } catch (error) {
+
+    }
+}
+
+eventService.on('examDeleted', onExamDeleted);
+
 module.exports = {
     getImageById,
+    create,
 }

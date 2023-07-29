@@ -4,6 +4,7 @@ const cryptoService = require('./cryptoService');
 const eventService = require('./eventService');
 const crudLogger = require('../middlewares/crudLogger');
 const ObjectId = require('mongoose').Types.ObjectId;
+const resourceLockService = require('./resourceLockService');
 
 const getExamsOfPatient = async patientId => {
     try {
@@ -21,7 +22,7 @@ const getExamsOfPatient = async patientId => {
 const getExamsFiltered = async (filter, sort, collation, skip, limit) => {
     try {
         const totalQuery = await Exam.aggregate([
-           {
+            {
                 $lookup: {
                     from: 'users',
                     localField: 'examiner',
@@ -29,9 +30,9 @@ const getExamsFiltered = async (filter, sort, collation, skip, limit) => {
                     as: 'examiner'
                 },
             },
-            { $unwind: {path: '$examiner'}},
+            { $unwind: { path: '$examiner' } },
             {
-                $unset: ['examiner.email','examiner.password','examiner.validationStatus','examiner.notifications','examiner.additionalInfo'],
+                $unset: ['examiner.email', 'examiner.password', 'examiner.validationStatus', 'examiner.notifications', 'examiner.additionalInfo'],
             },
             {
                 $lookup: {
@@ -48,11 +49,11 @@ const getExamsFiltered = async (filter, sort, collation, skip, limit) => {
                 }
             },
             { $match: filter },
-            { $sort:  sort  },
+            { $sort: sort },
         ]).collation(collation);
 
         const totalCount = totalQuery.length;
-        const paginatedQuery = totalQuery.slice(skip,skip+limit);
+        const paginatedQuery = totalQuery.slice(skip, skip + limit);
         paginatedQuery.forEach(q => decryptExamNotes(q));
         return {
             totalCount: totalCount,
@@ -89,9 +90,9 @@ const findById = async id => {
     try {
         const results = await Exam.aggregate([
             {
-                $match: { _id: new ObjectId(id)}
+                $match: { _id: new ObjectId(id) }
             },
-           {
+            {
                 $lookup: {
                     from: 'users',
                     localField: 'examiner',
@@ -99,9 +100,9 @@ const findById = async id => {
                     as: 'examiner'
                 },
             },
-            { $unwind: {path: '$examiner'}},
+            { $unwind: { path: '$examiner' } },
             {
-                $unset: ['examiner.email','examiner.password','examiner.validationStatus','examiner.notifications','examiner.additionalInfo'],
+                $unset: ['examiner.email', 'examiner.password', 'examiner.validationStatus', 'examiner.notifications', 'examiner.additionalInfo'],
             },
             {
                 $lookup: {
@@ -113,12 +114,12 @@ const findById = async id => {
             },
             { $unwind: '$patient' }
         ]);
-        if(results && results.length){
+        if (results && results.length) {
             return decryptExamNotes(results[0]);
         }
-    }catch(err){
-            console.error(err);
-            throw err;
+    } catch (err) {
+        console.error(err);
+        throw err;
     }
 }
 
@@ -129,7 +130,7 @@ const deleteExamById = async (id, mustBeCreatedBy = null) => {
             if (mustBeCreatedBy) {
                 if (exam.examiner.toString() !== mustBeCreatedBy) throw new NotAllowed();
             }
-            await eventService.emitEvent('examDeleted', { examId: exam._id, patientId: exam.patient });
+            await eventService.emitEvent('examDeleted', { examId: exam._id, patientId: exam.patient._id });
             await exam.deleteOne();
         } else {
             throw new ExamNotFound();
@@ -142,12 +143,12 @@ const deleteExamById = async (id, mustBeCreatedBy = null) => {
 
 
 
-const onPatientDeleted = async id => {
+const onPatientDeleted = async ({ patientId }) => {
     try {
-        const patientExams = await Exam.find({ patient: id });
+        const patientExams = await Exam.find({ patient: patientId });
         if (patientExams && patientExams.length) {
             for (let i = 0; i < patientExams.length; i++) {
-                await eventService.emitEvent('examDeleted', patientExams[i]._id);
+                await eventService.emitEvent('examDeleted', { examId: patientExams[i]._id, patientId: patientId });
                 crudLogger('Exam deleted', req => ({ id: patientExams[i]._id, reason: 'automatic removal: patient deleted' }))({}, {}, () => ({}));
             }
             await Exam.deleteMany({ patient: id });
@@ -170,7 +171,7 @@ const updateExamNotes = async (id, examData, mustBeUpdatedBy = null) => {
         exam.notes = examData.notes;
         encryptExamNotes(exam);
         await exam.save();
-        await eventService.emitEvent('examNotesUpdated', exam._id);
+        await eventService.emitEvent('examNotesUpdated', { examId: exam._id, patientId: exam.patient._id });
         return decryptExamNotes(exam._doc);
     } catch (err) {
         console.error(err);
@@ -236,10 +237,61 @@ class NotAllowed extends Error {
     };
 }
 
+const onImageCreated = async (eventData) => {
+    try {
+        const exam = await Exam.findById(eventData.examId);
+        if (!exam) throw new ExamNotFound();
+        await exam.updateOne({
+            $push: {
+                'images': new Object
+                    (eventData.id)
+            }
+        });
+        await exam.save();
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
+// const onResourceLockRequest = async data => {
+//     if (!data.eventData.schema.match(/exam\i/)) return;
+//     try {
+//         const exam = await Exam.findById(data.eventData.id);
+//         if (!exam) throw new ExamNotFound('Resource not found');
+//     } catch (error) {
+//         console.error(error);
+//         eventService.handleEventResponse('resourceLockRequest', { failure: error, correlationId: data.correlationId });
+//     }
+// }
+
+// const shouldRespond = (data) => {
+//     return (data.schema.match(/exam\i/));
+// }
+
+// const locateId = async (data) => {
+//     const { eventData, releaseRequest } = data;
+//     if (releaseRequest) return eventData.id;
+//     try {
+//         const exam = await Exam.findById(eventData.id);
+//         if (!exam)
+//             throw new ExamNotFound();
+//         return eventData.id;
+//     } catch (error) {
+//         console.log(error);
+//         throw error;
+//     }
+// }
+// resourceLockService.autoRespond(shouldRespond,locateId);
+
 eventService.on('patientDeleted', onPatientDeleted);
+eventService.on('imageCreated', onImageCreated);
+//eventService.on('imageDeleted');
+
 eventService.on('consultationAdded', onConsultationActionFactory('added'));
 eventService.on('consultationUpdated', onConsultationActionFactory('updated'));
 eventService.on('consultationDeleted', onConsultationActionFactory('removed'));
+
 module.exports = {
     getExamsOfPatient,
     createExamForPatient,

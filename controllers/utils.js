@@ -12,7 +12,7 @@ module.exports = class Utils {
         UploadSingleIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"  viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/> <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/> </svg>`,
         PlusIcon2:`<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 13.496h-4.501v4.484h-3v-4.484H6v-2.99h4.5V6.021h3.001v4.485H18v2.99zM21 .041H3C1.348.043.008 1.379 0 3.031v17.94c.008 1.65 1.348 2.986 3 2.988h18c1.651-.002 2.991-1.338 3-2.988V3.031c-.009-1.652-1.348-2.987-3-2.99z"/></svg>`,
         MagnifyIcon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" ><rect width="256" height="256" fill="none"></rect><circle cx="116" cy="116" r="84" opacity="0.2"></circle><circle cx="116" cy="116" r="84" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></circle><line x1="175.4" y1="175.4" x2="224" y2="224" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></line></svg>`,
-
+        CheckAllIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-all" viewBox="0 0 16 16"> <path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992a.252.252 0 0 1 .02-.022zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486-.943 1.179z"/> </svg>`,
     }
 
     static Field = {
@@ -126,7 +126,7 @@ module.exports = class Utils {
                             deleteTitle.innerHTML = 'Are you sure you want to delete <b>' + name + '</b>?';
                             deleteContent.innerHTML = 'You are about the permanently delete a patient record and all associated medical records. This will permanently remove <b>' + name + '</b> from our systems. Are you sure you want to proceed?';
                             deleteButton.addEventListener('click', () => {
-                                const url = '/portal/api/examinations/' + id + '?_method=delete';
+                                const url = '/portal/api/patients/' + id + '?_method=delete';
                                 fetch(url, {method: 'post'})
                                 .then(response => response.json())
                                 .then((data)=>{

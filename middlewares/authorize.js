@@ -13,6 +13,8 @@ const authorizationDictionary = {
     GET_EXAMS_OF_PATIENT: ['FieldHCP','MedicalDirector','SpecialistHCP'],
     UPDATE_EXAM_BY_ID: ['FieldHCP','MedicalDirector'],
     VIEW_EXAM_DETAILS: ['FieldHCP','MedicalDirector','SpecialistHCP'],
+    UPLOAD_FUNDUS_IMAGE: ['FieldHCP'],
+    GET_FUNDUS_IMAGE: ['FieldHCP','SpecialistHCP','MedicalDirector'],
 }
 
 const authorize = action => (req,res,next) =>{

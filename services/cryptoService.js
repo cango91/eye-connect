@@ -12,20 +12,23 @@ const cryptoService = {
         const iv = crypto.randomBytes(16); // initialization vector
         const cipher = crypto.createCipheriv(algorithm, Buffer.from(key, 'hex'), iv);
         let encrypted = cipher.update(buffer);
-        encrypted = Buffer.concat([encrypted, cipher.final()]);
-        return iv.toString('hex') + ':' + encrypted.toString('hex'); // include the IV with the encrypted data
+        encrypted = Buffer.concat([iv,encrypted, cipher.final()]);
+        return encrypted;
+        //return iv.toString('hex') + ':' + encrypted.toString('hex'); // include the IV with the encrypted data
     },
-    encryptText: text => cryptoService.encrypt(Buffer.from(text)),
-    decrypt: text => {
-        const parts = text.split(':');
-        const iv = Buffer.from(parts.shift(), 'hex');
-        const encrypted = Buffer.from(parts.join(':'), 'hex');
+    decrypt: buffer => {
+        const iv = buffer.slice(0, 16);
+        
+        const encrypted = buffer.slice(16);
         const decipher = crypto.createDecipheriv(algorithm, Buffer.from(key, 'hex'), iv);
         let decrypted = decipher.update(encrypted);
         decrypted = Buffer.concat([decrypted, decipher.final()]);
         return decrypted;
     },
-    decryptText: text => cryptoService.decrypt(text).toString(),
+    encryptText: text => {
+         cryptoService.encrypt(Buffer.from(text)).toString('hex');
+    },
+    decryptText: text => cryptoService.decrypt(Buffer.from(text, 'hex')).toString(),
     hashPassword: (password, callback) => {
         // generate a new salt for each password
         const salt = crypto.randomBytes(saltLength).toString('hex');

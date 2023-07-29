@@ -18,8 +18,25 @@
       </div>
     </div>
   </div>
+  <div class="modal fade" id="confirmBackModal" tabindex="-1" aria-labelledby="confirmBackModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmBackModalLabel">Changes will be lost</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          You have unsaved changes, navigating away from this page without saving them will loose these changes permanently. Are you sure you want to continue?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmBackBtn">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="text-center">
-    <h3><span class="float-start"><a class="btn btn-secondary" href="/portal/exams">&larr; All Patients</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a></span></h3>
+    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; All Exams</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a></span></h3>
     <hr>
   </div>
   <div class="d-flex flex-column justify-content-center align-items-center" id="loading-div">
@@ -71,7 +88,7 @@
                     <span id="existing-label"></span>
                     <span id="existing-count"></span>
                   </li>
-                  <li class="list-group-item d-flex justify-content-between"><button class="input-group-text" id="choose-files">Choose Files</button><input type="file" id="examImageUpload" multiple><span id="session-images"></span></li>
+                  <li class="list-group-item d-flex justify-content-between"><button class="input-group-text" id="choose-files">Choose Files</button><input type="file" id="examImageUpload" multiple><span id="session-images"></span><span class="btn btn-success ms-1 d-none" id="upload-all-btn"><%- uploadAllIcon %></span><span id="remove-all-btn" class="btn btn-danger ms-1 d-none"><%- removeAllIcon %></span></li>
                 </ul>
               </div>
               <div class="drag-drop-area border p-3 mt-3">
@@ -108,9 +125,17 @@
   const existingCountEl = document.getElementById('existing-count');
   const existingLabelEl = document.getElementById('existing-label');
   const chooseFilesBtn = document.getElementById('choose-files');
+  const uploadAllBtn = document.getElementById('upload-all-btn');
+  const removeAllBtn = document.getElementById('remove-all-btn');
+  const backBtn = document.getElementById('confirm-back-btn');
+  const confirmBack = document.getElementById('confirmBackBtn');
   const magnifySvg = `<%- magnifyIcon %>`;
 
   const imagesArray = [];
+
+  const ICON_DIMS = [25,25];
+
+
   let myExam;
   let notesCache;
   let examinerId;
@@ -146,6 +171,16 @@
       }
     }
     return images;
+  }
+
+  const backCheck = () => {
+
+    if (myExam && (notesCache !== notesEl.value || sessionImages)) {
+      const modal = new bootstrap.Modal(document.getElementById('confirmBackModal'));
+      modal.show();
+    } else {
+      simulateClick(confirmBack);
+    }
   }
 
   const saveNotes = async () => {
@@ -203,6 +238,9 @@
     if (data.notes) notesEl.textContent = data.notes;
     examinerId = data.examiner._id
     myExam = examinerId === '<%= user.id %>';
+    if (myExam) {
+      document.querySelector('.nav-link.active').innerText = 'Update Exam'
+    }
     patientId = data.patient._id;
     patientName = data.patient.name;
     examinerNameEl.innerHTML = `<b>Examiner:</b> Dr. ${data.examiner.name}`;
@@ -211,11 +249,6 @@
     ageEl.textContent = calculateAge(data.patient.dateOfBirth);
     genderEl.textContent = data.patient.gender;
 
-    if (data.images && data.images.length) {
-      const images = await fetchImages(data.images);
-      imagesArray.concat(images);
-      displayImages(images);
-    }
     if (!myExam) {
       disableEditing();
     } else {
@@ -223,6 +256,12 @@
       saveBtn.classList.add('disabled');
     }
     hideLoading();
+
+    if (data.images && data.images.length) {
+      const images = await fetchImages(data.images);
+      imagesArray.concat(images);
+      displayImages(images);
+    }
   }
 
   const fetchExamData = () => {
@@ -256,6 +295,66 @@
   //   };
 
 
+  const createAndStyleIcon = (dimensions, innerSvg, ...btnClasses) => {
+    const span = document.createElement('span');
+    span.className = btnClasses.join(' ');
+    const icon = document.createElement('span');
+    icon.innerHTML = innerSvg;
+    const svg = icon.querySelector('svg');
+    svg.style.width = dimensions[0];
+    svg.style.width = dimensions[1];
+    span.appendChild(icon);
+    span.style.zIndex = 1;
+    return span;
+  }
+
+  const bufferToB64 = (bufferArray, contentType) => {
+    const uint8Array = new Uint8Array(bufferArray);
+    const blob = new Blob([uint8Array], {
+      type: contentType
+    });
+    const reader = new FileReader();
+
+    return new Promise((resolve, reject) => {
+      reader.onloadend = () => {
+        resolve(reader.result);
+      };
+
+      reader.onerror = () => {
+        reject(new Error('Error occurred while reading the buffer.'));
+      };
+
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  const displayImages = (images) => {
+    for (let i = 0; i < images.length; i++) {
+      let img = document.createElement('img');
+      if (images[i].image && images[i].image.data && images[i].image.data.data && images[i].image.contentType) {
+        bufferToB64(images[i].image.data.data, images[i].image.contentType).then((src) => {
+          img.src = src;
+        });
+      } else {
+        img.src = images[i];
+      }
+      img.className = 'img-thumbnail';
+
+      const magnifyIcon = createAndStyleIcon(ICON_DIMS, `<%- magnifyIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-warning', 'm-1');
+      magnifyIcon.role = "enlarge preview";
+      
+      const thumbnailContainer = document.createElement('div');
+      thumbnailContainer.className = 'position-relative d-flex';
+      
+      let container = document.createElement('div');
+      container.className = 'position-absolute d-flex flex-column justify-content-start';
+      container.appendChild(magnifyIcon);
+
+      thumbnailContainer.appendChild(img);
+      thumbnailContainer.appendChild(container);
+      imageContainer.appendChild(thumbnailContainer);
+    }
+  }
 
   const previewFile = (file) => {
     let reader = new FileReader();
@@ -264,73 +363,110 @@
       let img = document.createElement('img');
       img.src = reader.result;
       img.className = 'img-thumbnail';
+      const dims = ICON_DIMS;
 
-      const [badgeH, badgeW] = [25, 25];
       const thumbnailContainer = document.createElement('div');
       thumbnailContainer.className = 'position-relative d-flex';
 
-      let badge = document.createElement('span');
-      badge.className = 'btn btn-warning m-1';
-      let magnifier = document.createElement('span');
-      magnifier.innerHTML = `<%- magnifyIcon %>`;
-      let svg = magnifier.querySelector('svg');
-      svg.style.width = badgeW;
-      svg.style.height = badgeH;
-      badge.appendChild(magnifier);
+      thumbnailContainer.dataset.imageContainer = true;
 
-      let secondBadge = document.createElement('span');
-      secondBadge.className = 'btn btn-danger m-1';
-      let deleteIcon = document.createElement('span');
-      deleteIcon.innerHTML = `<%- deleteIcon %>`;
-      svg = deleteIcon.querySelector('svg');
-      svg.style.width = badgeW;
-      svg.style.height = badgeH;
-      secondBadge.appendChild(deleteIcon);
-      secondBadge.style.zIndex = 1;
-      badge.style.zIndex = 1;
+      const magnifyIcon = createAndStyleIcon(dims, `<%- magnifyIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-warning', 'm-1');
+
+      const removeIcon = createAndStyleIcon(dims, `<%- deleteIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-danger', 'm-1');
+      removeIcon.addEventListener('click', e => {
+        removePreview(removeIcon);
+      });
+
+      const uploadIcon = createAndStyleIcon(dims, `<%- uploadSingleIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-success', 'm-1');
+      uploadIcon.addEventListener('click', async () => await uploadFile(img));
+
+      magnifyIcon.role = "enlarge preview";
+      removeIcon.role = "remove image";
+      removeIcon.ariaRoleDescription = 'remove a single image from upload list'
+      uploadIcon.role = "upload image";
+      uploadIcon.ariaRoleDescription = 'upload a single image'
+
 
       let container = document.createElement('div');
       container.className = 'position-absolute d-flex flex-column justify-content-start';
+      container.appendChild(magnifyIcon);
+      container.appendChild(uploadIcon);
+      container.appendChild(removeIcon);
 
-      container.appendChild(badge);
-      container.appendChild(secondBadge);
       thumbnailContainer.appendChild(img);
       thumbnailContainer.appendChild(container);
       imageContainer.prepend(thumbnailContainer);
     }
   }
 
-  const uploadFile = async file => {
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(file);
+  const uploadAllSession = () => {
+    Array.from(document.querySelectorAll('[role="upload image"]')).forEach(btn => simulateClick(btn));
+  }
 
-    reader.onload = async () => {
-      const arrayBuffer = reader.result;
-      const params = new URLSearchParams();
-      params.append('examination', '<%= examId %>');
-      params.append('image', JSON.stringify({
-        data: new Uint8Array(arrayBuffer),
-        contentType: file.type
-      }));
+  const removeAllSession = () => {
+    Array.from(document.querySelectorAll('[role="remove image"]')).forEach(btn => simulateClick(btn));
+  }
 
-      try {
-        const response = await fetch('/portal/api/funduscopies', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: params.toString()
-        });
-      } catch (e) {
-        try {
-          const data = await response.json();
-          if (data.error) throw new Error(data.error);
-        } catch (error) {
-          showAlert(`Image could not be uploaded<br>Reason: ${error}`, 'danger');
+  const removePreview = (target) => {
+    let parent;
+    if (!target.dataset.imageContainer) {
+      parent = target.parentNode;
+      while (parent) {
+        if (parent.dataset.imageContainer) {
+          break;
         }
+        parent = parent.parentNode;
       }
-    };
-  };
+    }else{
+        parent = target;
+    }
+    parent.remove();
+    sessionImages--;
+    updateSessionImages();
+  }
+
+  const uploadFile = async target => {
+    const formData = new FormData();
+    try {
+      const fileAsDataUrl = target.src;
+      // since we read the files as dataUrl and used this to populate preview img src's, we need to convert them to the proper format the backend expects.
+      const base64data = fileAsDataUrl.split(',')[1];
+      const decodedData = atob(base64data);
+      const contentType = fileAsDataUrl.split(':')[1].split(';')[0];
+      const arrayBuffer = decodedData.split('').reduce((acc, el, idx) => (acc[idx] = el.charCodeAt(0), acc), new Uint8Array(decodedData.length));
+      const blob = new Blob([arrayBuffer], {
+        type: contentType
+      });
+      formData.append('image', blob);
+      formData.append('examId', `<%- examId %>`);
+
+      // before we send our request let's add an indication this file is being uploaded
+      const btns = target.parentNode.querySelectorAll('.btn');
+      Array.from(btns).forEach(btn => btn.classList.add('disabled'));
+
+      const spinner = document.createElement('div');
+      spinner.className = 'spinner-border text-danger position-absolute';
+      spinner.style.zIndex = 3;
+      spinner.style.top = "50%";
+      spinner.style.left = "50%";
+
+      target.parentNode.appendChild(spinner);
+
+      const response = await fetch('/portal/api/funduscopies', {
+        method: 'POST',
+        body: formData
+      });
+      if (response.ok) {
+        displayImages([target.src]);
+        removePreview(target);
+      } else {
+        showAlert(`Couldn't upload imag<br>${await response.text()}`);
+      }
+    } catch (error) {
+      console.log(error);
+      showAlert(`Couldn't upload imag<br>${error}`);
+    }
+  }
 
   const deleteExam = async () => {
     const response = await fetch(`/portal/api/examinations/<%= examId %>?_method=delete`, {
@@ -376,8 +512,10 @@
   const updateSessionImages = () => {
     sessionImages = sessionImages || 0;
     if (sessionImages) {
+      [uploadAllBtn, removeAllBtn].forEach(e => e.classList.remove('d-none'));
       sessionImagesEl.innerText = `${sessionImages} images will be uploaded`;
     } else {
+      [uploadAllBtn, removeAllBtn].forEach(e => e.classList.add('d-none'));
       sessionImagesEl.innerText = '';
     }
   };
@@ -432,14 +570,18 @@
     await fetchExamData();
     notesEl.addEventListener('input', saveEnabler);
     saveBtn.addEventListener('click', saveNotes);
-    document.getElementById('confirmDeleteBtn').addEventListener('click', async e => {
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
       await deleteExam();
     });
-
+    confirmBack.addEventListener('click', (e) => window.location.href = backBtn.href);
     chooseFilesBtn.addEventListener('click', e => {
       e.preventDefault();
       simulateClick(examImageUpload);
-    })
+    });
+    backBtn.addEventListener('click', e => {
+      e.preventDefault();
+      backCheck();
+    });
 
     examImageUpload.addEventListener('change', (e) => {
       sessionImages = sessionImages || 0;
@@ -448,6 +590,11 @@
       handleFiles(newImages);
       e.target.value = null;
     });
+
+    uploadAllBtn.addEventListener('click', uploadAllSession);
+    removeAllBtn.addEventListener('click', removeAllSession);
+
+
   });
 </script>
 <%- include('../partials/footer') %>

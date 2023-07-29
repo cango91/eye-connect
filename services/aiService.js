@@ -8,12 +8,11 @@ const predict = async (buffer) =>{
     return buffer;
 }
 
-const classifyFunduscopy = async (fundscopy) =>{
-    funduscopy.classificationResult = {
+const classifyFunduscopy = async (funduscopy) =>{
+    return {
         vaule: 0.5,
         result: 'No classification. Must be seen by specialist'
     };
-    return fundscopy;
 }
 
 module.exports = {
