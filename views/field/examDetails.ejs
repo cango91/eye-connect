@@ -5,7 +5,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="deleteModalLabel">Are you sure you want to delete?</h5>
+          <h5 class="modal-title" id="deleteModalLabel">Are you sure you want to deletet this exam?</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
@@ -40,18 +40,21 @@
           <span class="text-muted">Notes</span>
           <h4 class="d-flex justify-content-between align-items-center mb-3">
           </h4>
-          <textarea class="form-control" id="exam-notes" rows="13"></textarea>
+          <textarea class="form-control" id="exam-notes" rows="15"></textarea>
         </div>
         <div class="col-md-6 order-md-1 order-lg-2">
           <h4 class="mb-3">Patient Info</h4>
           <ul class="list-group mb-3">
             <li class="list-group-item d-flex justify-content-between lh-condensed">
+              <small>Name:</small>
               <span id="patient-name"></span>
             </li>
             <li class="list-group-item d-flex justify-content-between lh-condensed">
+              <small>Sex:</small>
               <span id="patient-gender"></span>
             </li>
             <li class="list-group-item d-flex justify-content-between lh-condensed">
+              <small>Age:</small>
               <span id="patient-age"></span>
             </li>
             <li class="list-group-item d-flex justify-content-between lh-condensed">
@@ -63,7 +66,13 @@
             <h4 class="mb-3">Image Upload</h4>
             <form>
               <div class="form-group">
-                <input type="file" class="form-control-file form-control" id="examImageUpload" multiple>
+                <ul class="list-group mb-3">
+                  <li class="list-group-item d-flex justify-content-between">
+                    <span id="existing-label"></span>
+                    <span id="existing-count"></span>
+                  </li>
+                  <li class="list-group-item d-flex justify-content-between"><button class="input-group-text" id="choose-files">Choose Files</button><input type="file" id="examImageUpload" multiple><span id="session-images"></span></li>
+                </ul>
               </div>
               <div class="drag-drop-area border p-3 mt-3">
                 <h5>Drag & Drop Images Here</h5>
@@ -73,11 +82,7 @@
         </div>
       </div>
       <div class="row">
-        <div class="container-fluid">
-          <div class="d-flex flex-nowrap overflow-auto" id="image-container">
-
-          </div>
-        </div>
+        <div class="d-flex flex-nowrap overflow-auto mt-3" id="image-container"></div>
       </div>
     </div>
   </div>
@@ -98,9 +103,20 @@
   const saveBtn = document.getElementById('save-btn');
   const deleteBtn = document.getElementById('delete-btn');
   const iconsArea = document.getElementById('icons-area');
+  const imageContainer = document.getElementById('image-container');
+  const sessionImagesEl = document.getElementById('session-images');
+  const existingCountEl = document.getElementById('existing-count');
+  const existingLabelEl = document.getElementById('existing-label');
+  const chooseFilesBtn = document.getElementById('choose-files');
+  const magnifySvg = `<%- magnifyIcon %>`;
+
   const imagesArray = [];
   let myExam;
   let notesCache;
+  let examinerId;
+  let patientId;
+  let existingImages;
+  let sessionImages;
 
   const showLoading = () => {
     mainEl.classList.add('d-none');
@@ -143,51 +159,57 @@
         },
         body: params.toString()
       });
-      data = await response.json();
-      if (!data.error) {
-        showAlert('Notes Updated', 'success');
-      } else {
-        console.error(data);
-        showAlert(`Notes update failed<br>Reason:${data}`, 'danger');
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        console.error(`Request failed with status ${response.status}: ${errorMessage}`);
+        showAlert(`Notes update failed<br>Reason:${errorMessage}`, 'danger');
+        return;
+      }
+      try {
+        data = await response.json();
+        if (!data.error) {
+          showAlert('Notes Updated', 'success');
+        } else {
+          console.error(data);
+          showAlert(`Notes update failed<br>Reason: ${data}`, 'danger');
+        }
+      } catch (error) {
+        console.error(response);
+        showAlert(`Notes update failed<br>Reason: ${await response.text()}`, 'danger');
       }
     } catch (err) {
       console.error(err);
-      showAlert(`Notes update failed<br>Reason:${err}`, 'danger');
+      showAlert(`Notes update failed<br>Reason: ${err}`, 'danger');
     }
   }
 
   const disableEditing = () => {
     notesEl.disabled = true;
-    uploadArea.classList.add('invisible');
+    uploadArea.classList.add('d-none');
     iconsArea.classList.add('d-none');
     notesEl.rows = 6;
   }
 
   const enableEditing = () => {
     notesEl.disabled = false;
-    uploadArea.classList.remove('invisible');
+    uploadArea.classList.remove('d-none');
     iconsArea.classList.remove('d-none');
-    notesEl.rows = 13;
-  }
-
-  const enableImageUploadAndDeleting = () => {
-
-  }
-
-  const disableImageUploadAndDeleting = () => {
-
+    notesEl.rows = 15;
   }
 
 
 
   const handleExamData = async data => {
     if (data.notes) notesEl.textContent = data.notes;
+    examinerId = data.examiner._id
+    myExam = examinerId === '<%= user.id %>';
+    patientId = data.patient._id;
+    patientName = data.patient.name;
     examinerNameEl.innerHTML = `<b>Examiner:</b> Dr. ${data.examiner.name}`;
     patientNameEl.textContent = data.patient.name;
     dobEl.textContent = getDate(data.patient.dateOfBirth);
     ageEl.textContent = calculateAge(data.patient.dateOfBirth);
     genderEl.textContent = data.patient.gender;
-    myExam = data.examiner._id === '<%= user.id %>';
 
     if (data.images && data.images.length) {
       const images = await fetchImages(data.images);
@@ -213,31 +235,70 @@
       .catch(error => reportError(error));
   }
 
-  const displayImages = (images) => {
-    const imageContainer = document.getElementById('image-container');
+  //   const displayImages = (images) => {
+  //     while (imageContainer.firstChild) {
+  //       imageContainer.removeChild(imageContainer.firstChild);
+  //     }
+  //     images.forEach((image, index) => {
+  //       const imageDiv = document.createElement('div');
+  //       imageDiv.id = `image-${index}`;
+  //       imageDiv.classList.add('image-thumbnail');
 
-    while (imageContainer.firstChild) {
-      imageContainer.removeChild(imageContainer.firstChild);
+  //       const img = document.createElement('img');
+  //       img.src = URL.createObjectURL(new Blob([image.data], {
+  //         type: image.contentType
+  //       }));
+  //       img.alt = 'Retina Image';
+
+  //       imageDiv.appendChild(img);
+  //       imageContainer.appendChild(imageDiv);
+  //     });
+  //   };
+
+
+
+  const previewFile = (file) => {
+    let reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onloadend = () => {
+      let img = document.createElement('img');
+      img.src = reader.result;
+      img.className = 'img-thumbnail';
+
+      const [badgeH, badgeW] = [25, 25];
+      const thumbnailContainer = document.createElement('div');
+      thumbnailContainer.className = 'position-relative d-flex';
+
+      let badge = document.createElement('span');
+      badge.className = 'btn btn-warning m-1';
+      let magnifier = document.createElement('span');
+      magnifier.innerHTML = `<%- magnifyIcon %>`;
+      let svg = magnifier.querySelector('svg');
+      svg.style.width = badgeW;
+      svg.style.height = badgeH;
+      badge.appendChild(magnifier);
+
+      let secondBadge = document.createElement('span');
+      secondBadge.className = 'btn btn-danger m-1';
+      let deleteIcon = document.createElement('span');
+      deleteIcon.innerHTML = `<%- deleteIcon %>`;
+      svg = deleteIcon.querySelector('svg');
+      svg.style.width = badgeW;
+      svg.style.height = badgeH;
+      secondBadge.appendChild(deleteIcon);
+      secondBadge.style.zIndex = 1;
+      badge.style.zIndex = 1;
+
+      let container = document.createElement('div');
+      container.className = 'position-absolute d-flex flex-column justify-content-start';
+
+      container.appendChild(badge);
+      container.appendChild(secondBadge);
+      thumbnailContainer.appendChild(img);
+      thumbnailContainer.appendChild(container);
+      imageContainer.prepend(thumbnailContainer);
     }
-
-    images.forEach((image, index) => {
-      const imageDiv = document.createElement('div');
-      imageDiv.id = `image-${index}`;
-      imageDiv.classList.add('image-thumbnail');
-
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(new Blob([image.data], {
-        type: image.contentType
-      }));
-      img.alt = 'Retina Image';
-
-      imageDiv.appendChild(img);
-      imageContainer.appendChild(imageDiv);
-    });
-  };
-
-
-
+  }
 
   const uploadFile = async file => {
     const reader = new FileReader();
@@ -260,38 +321,47 @@
           },
           body: params.toString()
         });
-
-        const data = await response.json();
-        if (data.error) throw new Error(data.error);
-
-      } catch (error) {
-        showAlert(`Image could not be uploaded<br>Reason: ${error}`,'danger');
+      } catch (e) {
+        try {
+          const data = await response.json();
+          if (data.error) throw new Error(data.error);
+        } catch (error) {
+          showAlert(`Image could not be uploaded<br>Reason: ${error}`, 'danger');
+        }
       }
     };
   };
 
-  const deleteExam = async () =>{
+  const deleteExam = async () => {
     const response = await fetch(`/portal/api/examinations/<%= examId %>?_method=delete`, {
-        method:'post'
+      method: 'post'
     });
-    if(response.status===200){
-        window.location.href = '/portal/patients';
-    }else{
-        showAlert(`Couldn't delete exam`,'danger');
+    if (response.status === 200) {
+      window.location.href = '/portal/patients';
+    } else {
+      showAlert(`Couldn't delete exam`, 'danger');
     }
   }
 
   const handleFiles = files => {
-    ([...files]).forEach(uploadFile);
+    ([...files]).forEach(previewFile);
+    updateSessionImages();
   };
   const preventDefaults = e => {
     e.preventDefault();
     e.stopPropagation();
   }
   const handleDrop = e => {
-    let dt = e.dataTransfer;
-    let files = dt.items;
-
+    sessionImages = sessionImages || 0;
+    const dt = e.dataTransfer;
+    const data = dt.items;
+    const files = [];
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].kind === 'file' && data[i].type.match("^image/")) {
+        sessionImages++;
+        files.push(data[i].getAsFile());
+      }
+    }
     handleFiles(files);
   }
 
@@ -301,6 +371,20 @@
 
   const unhighlight = e => {
     dropArea.classList.remove('highlight');
+  }
+
+  const updateSessionImages = () => {
+    sessionImages = sessionImages || 0;
+    if (sessionImages) {
+      sessionImagesEl.innerText = `${sessionImages} images will be uploaded`;
+    } else {
+      sessionImagesEl.innerText = '';
+    }
+  };
+
+  const updateExistingImages = async () => {
+    // TODO fetch total image count (with image refs) for patient (when route exists)
+
   }
 
   dropArea.addEventListener('drop', handleDrop);
@@ -334,14 +418,35 @@
     alertDiv.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' + message +
       '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
   }
-
+  const simulateClick = target => {
+    const evt = new MouseEvent('click', {
+      view: window,
+      bubbles: true,
+      cancelable: true
+    });
+    return target.dispatchEvent(evt);
+  }
+  // ensure dom is loaded so all our references are available
   window.addEventListener('DOMContentLoaded', async (e) => {
     showLoading();
     await fetchExamData();
     notesEl.addEventListener('input', saveEnabler);
     saveBtn.addEventListener('click', saveNotes);
     document.getElementById('confirmDeleteBtn').addEventListener('click', async e => {
-        await deleteExam();
+      await deleteExam();
+    });
+
+    chooseFilesBtn.addEventListener('click', e => {
+      e.preventDefault();
+      simulateClick(examImageUpload);
+    })
+
+    examImageUpload.addEventListener('change', (e) => {
+      sessionImages = sessionImages || 0;
+      const newImages = Array.from(e.target.files);
+      sessionImages += newImages.length;
+      handleFiles(newImages);
+      e.target.value = null;
     });
   });
 </script>

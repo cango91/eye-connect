@@ -8,7 +8,7 @@ const authorize = require('../middlewares/authorize');
 router.get('/', authorize('READ_ALL_PATIENTS'), crudLogger('Read all patients', req => Object.keys(req.query).length ? { ...req.query } : {}), patientsApi.getAll);
 
 // GET /patients/s?name=&limit=&sort= patient search where name begins with name=, limited by limit=, sorted by sort=ascending or descending otherwise
-router.get('/s', authorize('SEARCH_PATIENT_BY_NAME'), crudLogger('Search patient by name', req => ({ name: req.query.name })), patientsApi.searchByName);
+//router.get('/s', authorize('SEARCH_PATIENT_BY_NAME'), crudLogger('Search patient by name', req => ({ name: req.query.name })), patientsApi.searchByName);
 
 // GET patients/:id/examinations -> return all examinations of patient
 router.get('/:id/examinations', authorize('GET_EXAMS_OF_PATIENT'), crudLogger('Read all exams of patient', req => ({ patient_id: req.params.id })), patientsApi.getExamsOfPatient);

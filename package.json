@@ -21,7 +21,8 @@
     "morgan": "~1.9.1",
     "passport": "^0.6.0",
     "passport-google-oauth": "^2.0.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "jest": "^29.6.1"

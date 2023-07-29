@@ -23,7 +23,7 @@ const index = async (req, res, next) => {
                 },
                 fetchFunction: Utils.Field.AllExams.FetchFunction,
                 headerData: Utils.Field.AllExams.TableHeaders,
-                tableClasses: ['table', 'caption-top', 'border', 'border-2', 'border-info'],
+                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
             }
         });
     } else if (req.user.role === 'SpecialistHCP') {
@@ -63,6 +63,7 @@ const details = (req,res,next) =>{
             examId: req.params.id,
             saveIcon: Utils.Icons.SaveIcon,
             deleteIcon: Utils.Icons.TrashIcon,
+            magnifyIcon: Utils.Icons.MagnifyIcon,
         });
     } else if (req.user.role === 'SpecialistHCP') {
 

@@ -45,7 +45,7 @@ const home = async (req, res, next) => {
                 },
                 fetchFunction: Utils.Field.RecentPatients.FetchFunction,
                 headerData: Utils.Field.RecentPatients.TableHeaders,
-                tableClasses: ['table', 'caption-top', 'border', 'border-2', 'border-info'],
+                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
                 caption: 'My Recent Patients',
             },
             examsTable: {
@@ -62,7 +62,7 @@ const home = async (req, res, next) => {
                 },
                 fetchFunction: Utils.Field.RecentExams.FetchFunction,
                 headerData: Utils.Field.RecentExams.TableHeaders,
-                tableClasses: ['table', 'caption-top', 'border', 'border-2', 'border-info'],
+                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
                 caption: 'My Recent Exams',
             },
 

@@ -20,11 +20,11 @@ const index = (req, res, next) => {
                 },
                 fetchFunction: Utils.Field.AllPatients.FetchFunction,
                 headerData: Utils.Field.AllPatients.TableHeaders(req.user.role==='FieldHCP'),
-                tableClasses: ['table', 'caption-top', 'border', 'border-2', 'border-info'],
+                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
                 caption: 'All Patients',
 
             },
-            plusIcon: Utils.Icons.PlusIcon,
+            plusIcon: Utils.Icons.PlusIcon2,
         });
     } else if (req.user.role === 'SpecialistHCP') {
 
@@ -57,7 +57,7 @@ const details = (req, res, next) => {
                 },
                 fetchFunction: Utils.Field.AllExamsOfPatient.FetchFunction,
                 headerData: Utils.Field.AllExamsOfPatient.TableHeaders,
-                tableClasses: ['table', 'border', 'border-2', 'border-info'],
+                tableClasses: ['table', 'table-striped', 'border', 'border-2', 'border-info'],
             },
             patientId: req.params.id,
             pencilIcon: Utils.Icons.PencilIcon,
