@@ -41,7 +41,7 @@ module.exports = class Utils {
             active: current,
         }),
         AwaitingConsultations: {
-            URL: `/portal/api/examinations?filter=hasConsultation&filterValue=false`,
+            URL: `/portal/api/examinations?filter=hasConsultation&filterValue=false&hasImages=true`,
             TableHeaders: [{
                 text: '',
                 parseFunction: `({image},td) => new Promise((resolve, reject) => {
@@ -84,7 +84,7 @@ module.exports = class Utils {
             },
             {
                 text: 'Exam Date',
-                sort: { sortBy: 'dateCreated' }
+                sort: { sortBy: 'date' }
             },
             {
                 text: 'Patient',

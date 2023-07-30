@@ -9,7 +9,7 @@ const notificationSchema = new Schema({
     },
     action: {
         type: String,
-        enum: ['Removed', 'Updated', 'Created'],
+        enum: ['ConsRemoved', 'ConsUpdated', 'ConsCreated','ImageAdded','ImageRemoved','ExamNotesUpdated','ExamRemoved'],
     },
 },
     {

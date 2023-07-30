@@ -25,23 +25,10 @@ const about = (req, res) => {
     }
     } else {
         title = 'eyeConnect'
-        nav = {
-            items: [{
-                text: 'Home',
-                href: '#',
-                showInFooter: true,
-            },
-            {
-                text: 'Login',
-                href: '/portal',
-                showInFooter: true,
-            }],
-            active: ['Home'],
-        };
     }
     res.render('about', {
         header: { title },
-        navigation: nav,
+        navigation: Utils.Specialist.AuthorizedNavigation('About'),
     });
 }
 

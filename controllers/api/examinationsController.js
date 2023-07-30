@@ -8,7 +8,7 @@ const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
 
 const getAllFiltered = async (req, res, next) => {
     try {
-        let { sortBy, order, limit, page, filter, filterValue } = req.query;
+        let { sortBy, order, limit, page, filter, filterValue, hasImages } = req.query;
         limit = limit ? Math.max(0, parseInt(limit)) : MAX_LIMIT;
         limit = Math.min(MAX_LIMIT, limit);
         sortBy = sortBy ? sortBy : 'updatedAt';
@@ -24,6 +24,16 @@ const getAllFiltered = async (req, res, next) => {
         if (filterValue === 'true') filterValue = true;
         if (filterValue === 'false') filterValue = false;
         if (filter && filterValue) query = { [filter]: filterValue };
+        if(hasImages){
+            if(Object.keys(query).length>0){
+                query = { $and: [
+                    {[filter]: filterValue},
+                    { 'numImages': {get: 0}}
+                ]}
+            }else{
+                query = {'numImages': {$gt: 0}};
+            }
+        }
         const results = await examsService.getExamsFiltered(query, sort, collation, skip, limit);
         const pageCount = Math.ceil(results.totalCount / limit);
         res.status(200).json({

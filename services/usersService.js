@@ -176,6 +176,18 @@ const verifyUser = async (user, password) => {
     }
 }
 
+const notifyUser = async (userId, notification) =>{
+    try {
+        const user = await User.findById(userId);
+        if(!user) throw new Error('User not found');
+        await user.updateOne({$push: {'notifications': notification}});
+        
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
 module.exports = {
     initialOAuthSignUp,
     initialLocalSignUp,
@@ -187,4 +199,5 @@ module.exports = {
     isEmailUnique,
     isStrongPassword,
     validateUser,
+    notifyUser,
 };

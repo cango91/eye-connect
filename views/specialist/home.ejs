@@ -50,13 +50,20 @@
             reader.onerror = () => {
               reject(new Error('Error occurred while reading the buffer.'));
             };
-
             reader.readAsDataURL(blob);
           });
         }
       </script>
       <div class="col-md-8">
         <%- include('../partials/tableComponent', {...awaitingConsultationsTable}); %>
+        <div id="toggleContainer" class="float-end">
+          <span></span>
+          <label class="form-switch">
+            <input class="form-check-input" type="checkbox" id="toggleSwitch">
+            <span class="switch-icon"></span>
+          </label>
+          <span> Don't show exams without images</span>
+        </div>
         <div class="float-end"><a href="/portal/patients">Go to awaiting consultations</a></div>
       </div>
       <div class="col-md-4">
@@ -66,4 +73,30 @@
     </div>
   </div>
 </main>
+<script>
+  const toggler = document.getElementById('toggleSwitch');
+  window.addEventListener('tableLoaded', e => {
+    const handler = e.detail.handler;
+    const cp = handler.table.querySelector('caption');
+    toggler.checked = handler.getOpts().url.match(/(?<=\?hasImages=true)|(?<=&hasImages=true)/) ? true : false;
+    cp.appendChild(toggleContainer);
+    toggler.addEventListener('click', evt => {
+      // do not prevent default, current .checked state is what we want to upload table data with
+      handler.table.dataset.page = '1';
+
+      // Remove existing ?filter= or &filter= and ?filterValue or &filterValue string from the URL
+      let updatedUrl = handler.getOpts().url.replace(/(\?|&)(hasImages=true)/, '');
+      if (toggler.checked) {
+        // Add ?filterValue=myId&filter=examiner to the URL
+        const separator = updatedUrl.includes('?') ? '&' : '?';
+        updatedUrl += separator + 'hasImages=true'
+      }
+      handler.setOpts({
+        url: updatedUrl,
+        page: 1
+      });
+      handler.populateTable();
+    });
+  });
+</script>
 <%- include('../partials/footer') %>
