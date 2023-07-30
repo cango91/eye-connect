@@ -57,7 +57,7 @@ module.exports = class Utils {
                     spinner.style.zIndex = 2;
                     td.appendChild(spinner);
 
-                    fetch('/portal/api/funduscopies/' + image + '/thumbnail?width=150&height=150')
+                    fetch('/portal/api/funduscopies/' + image)
                         .then(response => {
                             td.removeChild(spinner);
                             if(response.ok){
