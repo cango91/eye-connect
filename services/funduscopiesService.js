@@ -49,7 +49,7 @@ const getImageById = async id => {
     };
 }
 
-const resizeImage = async (imageData, dims) => {
+const resizeImage = async (imageData, dims,mimetype) => {
     await cvInit();
     dims = dims || [512, 512];
     const array = tf.node.decodeImage(new Uint8Array(imageData), 3);
@@ -70,11 +70,23 @@ const getThumbnailById = async (id, thumbnailDimensions = [256, 256]) => {
         const encryptedImage = await Funduscopy.findById(id);
         if (!encryptedImage) throw new Error('Resource not found');
         const image = encryptedImage.image;
+
         image.data = cryptoService.decrypt(image.data);
+  
         const dims = thumbnailDimensions.map(dim => Number(parseInt(dim)));
-        image.data = await resizeImage(image.data, dims);
-        encryptedImage.set('image', image);
-        return encryptedImage;
+
+        const newData = Buffer.from(await resizeImage(image.data, dims))
+
+        const thumbnail = {
+            id: encryptedImage._id,
+            image: {
+                data: newData,
+                contentType: image.contentType,
+            },
+            examination: encryptedImage.examination,
+        };
+        return thumbnail;
+
     } catch (error) {
         console.error(error);
         throw error;

@@ -139,7 +139,56 @@ module.exports = class Utils {
                     });
                 });
         }`,
-        }
+        },
+        RecentConsultations: {
+            URL: id => `/portal/api/consultations?filter=consultant._id&filterValue=${id}`,
+            TableHeaders: [
+                {
+                    text: 'Cons. Date',
+                    sort: { sortBy: 'data' }
+                },
+                {
+                    text: 'Patient',
+                    sort: { sortBy: 'exam.patient.name' }
+                },
+                {
+                    text: 'DR diagnosis',
+                    sort: { sortBy: 'retinopathyDiagnosis' },
+                    parseFunction: `(val,td)=> new Promise((resolve, reject) => {
+                        if(!val){
+                            td.textContent = "<no diagnosis>";
+                            resolve("<no diagnosis>");
+                        }
+                        switch(val){
+                            case 'NoApparentDR':
+                                td.textContent = 'No DR';
+                                resolve('No DR');
+                                break;
+                            case 'MildNPDR':
+                                td.textContent = "Mild NPDR";
+                                resolve('Mild NDPR');
+                                break;
+                            case 'ModerateNPDR':
+                                td.textContent = "Moderate NDPR";
+                                resolve('Moderate NPDR');
+                                break;
+                            case 'SevereNPDR':
+                                td.textContent = "Severe NPDR";
+                                resolve("Severe NPDR");
+                                break;
+                            case 'PDR':
+                                td.textContent = "Proliferative DR";
+                                resolve("Proliferative DR");
+                                break;
+                            default:
+                                reject()
+
+                        }
+                    });`,
+                }
+            ],
+            FetchFunction: ``,
+        },
     }
 
     static Field = {
