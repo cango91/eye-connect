@@ -48,7 +48,7 @@
             };
 
             reader.onerror = () => {
-              reject(new Error('Error occurred while reading the buffer.'));
+              reject(new Error('Error while reading the buffer.'));
             };
             reader.readAsDataURL(blob);
           });
@@ -64,11 +64,11 @@
           </label>
           <span> Don't show exams without images</span>
         </div>
-        <div class="float-end"><a href="/portal/patients">Go to awaiting consultations</a></div>
+        <div class="float-end"><a href="/portal/exams">Go to awaiting consultations</a></div>
       </div>
       <div class="col-md-4">
 
-        <div class="float-end"><a href="/portal/exams">Go to your consultations</a></div>
+        <div class="float-end"><a href="/portal/consultations">Go to your consultations</a></div>
       </div>
     </div>
   </div>

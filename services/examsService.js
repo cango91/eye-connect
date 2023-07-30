@@ -2,6 +2,7 @@ const Exam = require('../models/examination');
 const patientsService = require('./patientsService');
 const cryptoService = require('./cryptoService');
 const eventService = require('./eventService');
+const userService = require('./usersService');
 const crudLogger = require('../middlewares/crudLogger');
 const ObjectId = require('mongoose').Types.ObjectId;
 const resourceLockService = require('./resourceLockService');
@@ -51,7 +52,6 @@ const getExamsFiltered = async (filter, sort, collation, skip, limit) => {
             { $match: filter },
             { $sort: sort },
         ]).collation(collation);
-        console.log(totalQuery);
 
         const totalCount = totalQuery.length;
         const paginatedQuery = totalQuery.slice(skip, skip + limit);
@@ -150,7 +150,7 @@ const onPatientDeleted = async ({ patientId }) => {
         if (patientExams && patientExams.length) {
             for (let i = 0; i < patientExams.length; i++) {
                 await eventService.emitEvent('examDeleted', { examId: patientExams[i]._id, patientId: patientId });
-                crudLogger('Exam deleted', req => ({ examId: patientExams[i]._id, reason: 'automatic removal: patient deleted' }))({user:{}}, {}, () => ({}));
+                crudLogger('Exam deleted', req => ({ examId: patientExams[i]._id, reason: 'automatic removal: patient deleted' }))({ user: {} }, {}, () => ({}));
             }
             await Exam.deleteMany({ patient: new ObjectId(patientId) });
         }
@@ -185,17 +185,27 @@ const onConsultationActionFactory = (action) => {
     // TODO add consultation change functions
     switch (action) {
         case 'added':
-            fn = ({ }) => {
-
+            fn = async ({ examId, consId }) => {
+                try {
+                    const exam = await Exam.findById(examId);
+                    if(!exam) throw new ExamNotFound();
+                    exam.hasConsultation = true;
+                    await exam.save();
+                    await userService.notifyUser(exam.examiner, {action: 'ConsCreated', consultation: new ObjectId(consId)});
+                    return;
+                } catch (error) {
+                    console.error(error);
+                    throw error;
+                }
             }
             break;
         case 'removed':
-            fn = ({ }) => {
+            fn = async ({ }) => {
 
             }
             break;
         case 'updated':
-            fn = ({ }) => {
+            fn = async ({ }) => {
 
             }
             break;
@@ -250,7 +260,7 @@ const onImageCreated = async (eventData) => {
         });
         await exam.save();
     } catch (error) {
-        console.log(error);
+        console.error(error);
         throw error;
     }
 }
@@ -289,7 +299,7 @@ eventService.on('patientDeleted', onPatientDeleted);
 eventService.on('imageCreated', onImageCreated);
 //eventService.on('imageDeleted');
 
-eventService.on('consultationAdded', onConsultationActionFactory('added'));
+eventService.on('consultationCreated', onConsultationActionFactory('added'));
 eventService.on('consultationUpdated', onConsultationActionFactory('updated'));
 eventService.on('consultationDeleted', onConsultationActionFactory('removed'));
 

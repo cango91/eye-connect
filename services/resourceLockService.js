@@ -86,7 +86,7 @@ class ResourceLockService {
                     });
                     if (!resourceId && !(typeof resourceId === 'number' && resourceId === 0)) throw new ResourceNotFound();
                 } catch (error) {
-                    console.log(error);
+                    console.error(error);
                     throw error;
                 }
                 if (ResourceLockService.isLocked(key, resourceId)) {

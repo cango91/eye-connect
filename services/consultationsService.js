@@ -7,6 +7,57 @@ const userService = require('./usersService');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 
+const getConsultationsFiltered = async (filterBefore, sort, collation, skip, limit, filterAfter = {}) => {
+    const pipeline = [
+        { $match: filterBefore },
+        {
+            $lookup: {
+                from: 'examinations',
+                localField: 'examination',
+                foreignField: '_id',
+                as: 'exam'
+            },
+        },
+        { $unwind: { path: 'exam' } },
+        { $unset: ['exam.images', 'exam.hasConsultation'] },
+        {
+            $lookup: {
+                from: 'patients',
+                localField: 'exam.patient',
+                foreignField: '_id',
+                as: 'patient'
+            }
+        },
+        { $unwind: { path: 'patient' } },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'exam.examiner',
+                foreignField: '_id',
+                as: 'examiner',
+            }
+        },
+        { $unwind: { path: 'examiner' } },
+        { $unset: ['examiner.email', 'examiner.password', 'examiner.validationStatus', 'examiner.notifications', 'examiner.additionalInfo'] },
+    ];
+    if (Object.keys(filterAfter).length) {
+        pipeline.push({ $match: filterAfter });
+    }
+    pipeline.push({ $sort: sort });
+    const totalQuery = await Cons.aggregate(pipeline).collation(collation);
+    const totalCount = totalQuery.length;
+    const paginatedQuery = totalQuery.slice(skip, skip + limit);
+    paginatedQuery.forEach(q => {
+        decryptConsNotes(q);
+        decryptConsNotes(q.exam);
+    });
+
+    return {
+        totalCount: totalCount,
+        consultations: paginatedQuery
+    };
+}
+
 
 const getConsultationById = async consId => {
     try {
@@ -20,16 +71,24 @@ const getConsultationById = async consId => {
 }
 
 
-const createConsultation = async consData => {
+const createConsultationForExam = async (consData,examId) => {
     try {
         if (!consData.consultant || !consData.examination) throw new Error('Missing required info');
         if (!consData.notes) consData.notes = '';
-        const cons = await Cons.create(encryptConsNotes(consData));
+        encryptConsNotes(consData);
+        const images = await examsService.findById(consData.examination).images;
+        consData.images = images.map(img => img instanceof ObjectId ? img : new ObjectId(img));
+        const cons = await Cons.create(consData);
+        eventService.emitEvent('consultationCreated', { consId: cons._id, examId: cons.examination });
         return cons._id;
     } catch (error) {
         console.error(error);
         throw error;
     }
+}
+
+const updateConsNotes = async notes =>{
+
 }
 
 const encryptConsNotes = cons => {
@@ -61,10 +120,10 @@ const onImageCreated = async eventData => {
 
 const onExamDeleted = async eventData => {
     try {
-        const cons = await Cons.find({ 'examination': new ObjectId(eventData.examId) });
+        const cons = await Cons.findOne({ 'examination': new ObjectId(eventData.examId) });
         if (cons) {
             const consultant = await userService.getUserById(cons.consultant);
-            await userService.notifyUser(consultant._id, { action: 'ExamRemoved', consultation: new ObjectId(cons._id) });
+            await userService.notifyUser(consultant, { action: 'ExamRemoved', consultation: new ObjectId(cons._id) });
         }
     } catch (error) {
         console.error(error);
@@ -73,9 +132,11 @@ const onExamDeleted = async eventData => {
 }
 
 eventService.on('examDeleted', onExamDeleted);
-eventService.on('imageCreated',onImageCreated);
+eventService.on('imageCreated', onImageCreated);
 
 module.exports = {
-    createConsultation,
+    createConsultationForExam,
     getConsultationById,
+    getConsultationsFiltered,
+    updateConsNotes,
 }

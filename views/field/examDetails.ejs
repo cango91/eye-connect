@@ -470,7 +470,7 @@
         showAlert(`Couldn't upload imag<br>${await response.text()}`);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       showAlert(`Couldn't upload imag<br>${error}`);
     }
   }

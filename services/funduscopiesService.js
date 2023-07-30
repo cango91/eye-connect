@@ -2,6 +2,9 @@ const Funduscopy = require('../models/funduscopy');
 const aiService = require('./aiService.js');
 const cryptoService = require('./cryptoService');
 const eventService = require('./eventService');
+const consService = require('./consultationsService');
+const cvInit = require('../infra/opencvInit');
+const tf = require('@tensorflow/tfjs-node');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 const getImageById = async id => {
@@ -39,6 +42,38 @@ const getImageById = async id => {
             throw e;
         }
     };
+}
+
+const resizeImage = async (imageData, dims) => {
+    await cvInit();
+    dims = dims || [512, 512];
+    const array = tf.node.decodeImage(new Uint8Array(imageData), 3);
+    const matOrg = cv.matFromArray(array.shape[0], array.shape[1], cv.CV_8UC3, array.flatten().arraySync());
+    const mat = new cv.Mat();
+    cv.resize(matOrg, mat, new cv.Size(dims[0], dims[1]), 0, 0, cv.INTER_AREA);
+    matOrg.delete();
+    const tensor = tf.tensor(mat.data, [mat.rows, mat.cols, 3]);
+    const result = tf.node.encodePng(tensor);
+    mat.delete();
+    tensor.dispose();
+    array.dispose();
+    return result;
+}
+
+const getThumbnailById = async (id, thumbnailDimensions = [256, 256]) => {
+    try {
+        const encryptedImage = await Funduscopy.findById(id);
+        if (!encryptedImage) throw new Error('Resource not found');
+        const image = encryptedImage.image;
+        image.data = cryptoService.decrypt(image.data);
+        const dims = thumbnailDimensions.map(dim => Number(parseInt(dim)));
+        image.data = await resizeImage(image.data, dims);
+        encryptedImage.set('image', image);
+        return encryptedImage;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 }
 
 const create = async (data) => {
@@ -94,9 +129,56 @@ const onExamDeleted = async (eventData) => {
     }
 }
 
+const onConsCreated = async ({ examId, consId }) => {
+    try {
+        const funduscopy = await Funduscopy.findOne({ 'examination': new ObjectId(examId) });
+        if (!funduscopy) throw new Error('Funduscopy resource not found');
+        if (funduscopy.consultation) throw new Error('Image already has consultation');
+        funduscopy.consultation = new ObjectId(consId);
+        const cons = await consService.getConsultationById(consId);
+        if (!cons) throw new Error('Consultation not found');
+        const diagnosis = cons.retinopathyDiagnosis;
+        if (diagnosis) {
+            let resultString;
+            switch (diagnosis) {
+                case ('NoApparentDR'):
+                    resultString = 'No Apparent Diabetic Retinopathy';
+                    break;
+                case ('MildNPDR'):
+                    resultString = 'Mild non-proliferative Diabetic Retinopathy'
+                    break;
+                case ('ModerateNPDR'):
+                    resultString = 'Moderate non-proliferative Diabetic Retinopathy'
+                    break;
+                case ('SevereNPDR'):
+                    resultString = 'Severe non-proliferative Diabetic Retinoathy'
+                    break;
+                case ('PDR'):
+                    resultString = 'Proliferative Diabetic Retinopathy'
+                    break;
+            }
+            if (resultString) {
+                funduscopy.verifiedResult = resultString;
+                funduscopy.verifiedBy = cons.consultant;
+                funduscopy.verified = true;
+            } else {
+                funduscopy.verifiedResult = '';
+                funduscopy.verifiedBy = null;
+                funduscopy.verified = false;
+            }
+        }
+        await funduscopy.save();
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
 eventService.on('examDeleted', onExamDeleted);
+eventService.on('ConsCreated', onConsCreated);
 
 module.exports = {
     getImageById,
     create,
+    getThumbnailById,
 }

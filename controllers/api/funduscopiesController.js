@@ -25,7 +25,19 @@ const create = async (req,res,next) =>{
     }
 }
 
+const getFuncuscopyAsThumbnail = async (req,res,next) =>{
+    try {
+        const dims = [req.query?.width || 256, req.query?.height || 256];
+        const response = await fundusService.getThumbnailById(req.params.id, dims);
+        res.status(200).json({data:response});
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+}
+
 module.exports = {
     getSingleFunduscopy,
     create,
+    getFuncuscopyAsThumbnail,
 }

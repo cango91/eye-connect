@@ -30,6 +30,10 @@ const consultationSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'User'
     },
+    retinopathyDiagnosis: {
+        type:String,
+        enum: ['NoApparentDR', 'MildNPDR', 'ModerateNPDR', 'SevereNPDR', 'PDR']
+    },
     notes: {
         type: String,
         required: true,

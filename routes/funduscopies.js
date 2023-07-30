@@ -19,7 +19,8 @@ const multerOptions = {
 // get  api/funduscopies/:id get specific image
 router.get('/:id', authorize('GET_FUNDUS_IMAGE'), crudLogger('Retrieved fundus image', req => ({ id: req.params.id })), funduscopyApi.getSingleFunduscopy);
 
-// get api/funduscopies/:id/classificationResult -> return the automatic classification result
+// get api/funduscopies/:id/thumbnail?width&height to get a smaller image
+router.get('/:id/thumbnail',authorize('GET_FUNDUS_IMAGE'), crudLogger('Retrieved fundus image', req => ({ id: req.params.id })), funduscopyApi.getFuncuscopyAsThumbnail);
 
 // get api/funduscopies/:id/consultation -> return the consultationId
 
