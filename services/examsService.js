@@ -51,6 +51,7 @@ const getExamsFiltered = async (filter, sort, collation, skip, limit) => {
             { $match: filter },
             { $sort: sort },
         ]).collation(collation);
+        console.log(totalQuery);
 
         const totalCount = totalQuery.length;
         const paginatedQuery = totalQuery.slice(skip, skip + limit);

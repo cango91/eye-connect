@@ -226,13 +226,14 @@ const tableHandler = (
                     const tr = document.createElement('tr');
                     Object.values(row).forEach((value, idx) => {
                         const td = document.createElement('td');
+                        tr.appendChild(td);
                         if (headerData[idx].parseFunction) {
                             const parseFn = new Function(`return ${headerData[idx].parseFunction}`)();
                             parseFn(value, td);
                         } else {
                             td.textContent = value;
                         }
-                        tr.appendChild(td);
+                        
                     });
                     tbody.appendChild(tr);
                 });

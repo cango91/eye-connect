@@ -43,6 +43,46 @@ module.exports = class Utils {
         AwaitingConsultations: {
             URL: `/portal/api/examinations?filter=hasConsultation&filterValue=false`,
             TableHeaders: [{
+                text: '',
+                parseFunction: `({image},td) => new Promise((resolve, reject) => {
+                    if(!image) resolve();
+                    if(typeof(image)==='undefined'){
+                        td.textContent = '<no images>';
+                        resolve();
+                        return;
+                    }
+                    const spinner = document.createElement('div');
+                    spinner.className='spinner-border text-warning';
+                    spinner.style.zIndex = 2;
+                    td.appendChild(spinner);
+
+                    fetch('/portal/api/funduscopies/' + image)
+                        .then(response => {
+                            td.removeChild(spinner);
+                            if(response.ok){
+                                const container = createThumbnailContainer();
+                                response.json().then((data)=>{
+                                    const imageData = data.data.image;
+                                    bufferToB64(imageData.data.data,imageData.contentType).then((decoded) =>{
+                                        const img = document.createElement('img');
+                                        img.className = 'img-thumbnail';
+                                        img.style.maxWidth = '150px'
+                                        img.style.maxHeight = '75px'
+                                        img.src = decoded;
+                                        td.appendChild(img);
+                                    });
+
+                                })
+                            }else{
+                                error = document.createElement('div');
+                                error.className = 'alert alert-danger';
+                                td.appendChild(error);
+                                reject();
+                            }
+                        }).catch(reject);
+                });`,
+            },
+            {
                 text: 'Exam Date',
                 sort: { sortBy: 'dateCreated' }
             },
@@ -53,9 +93,52 @@ module.exports = class Utils {
             {
                 text: 'Age',
                 sort: {
-                    sortBy: 'patient.dateOfBirth', reversed:true }
+                    sortBy: 'patient.dateOfBirth', reversed: true
+                }
+            },
+            {
+                text: '# Images',
+                sort: { sortBy: 'numImages' }
+            },
+            {
+                text: 'Examiner',
+                sort: { sortBy: 'examiner.name' }
+            },
+            {
+                text: '',
+                parseFunction: `(data,td) => new Promise(resolve => {
+
+                });`,
             }
-            ]
+            ],
+            FetchFunction: `(opts)=>{
+                return new Promise((res,err)=>{
+                    let fUrl = opts.url;
+                    if(opts.sort?.sortBy){
+                        fUrl += '&sortBy=' + opts.sort.sortBy + '&order=';
+                        let sortAsc = opts.sort.asc;
+                        if(opts.sort.reversed) sortAsc = !sortAsc;
+                        fUrl += sortAsc ? 'ascending' : 'descending';
+                        if(parseInt(opts.limit)>0){
+                            fUrl += '&limit=' + parseInt(opts.limit) + '&page=' + parseInt(opts.page);
+                        }
+                    }
+                    
+                    fetch(fUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        const rows = [];
+                        data.data.forEach(item => {
+                            rows.push([item.images ? {image: item.images[0]} : {image: null} , getDate(item.date), item.patient.name, calculateAge(item.patient.dateOfBirth), item.images ? item.images.length : 0, item.examiner.name, {examId: item._id} ],
+                            );
+                        });
+                        opts.limit = data.limit ? data.limit : opts.limit;
+                        opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+                        opts.page = data.page ? data.page : opts.page;
+                        res(rows);
+                    });
+                });
+        }`,
         }
     }
 

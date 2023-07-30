@@ -9,17 +9,20 @@ const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
 const getAllFiltered = async (req, res, next) => {
     try {
         let { sortBy, order, limit, page, filter, filterValue } = req.query;
-        limit = limit ? Math.max(0,parseInt(limit)) : MAX_LIMIT;
+        limit = limit ? Math.max(0, parseInt(limit)) : MAX_LIMIT;
         limit = Math.min(MAX_LIMIT, limit);
         sortBy = sortBy ? sortBy : 'updatedAt';
         order = order ? order : 'descending';
         const sort = { [sortBy]: order === 'ascending' ? 1 : -1 };
         page = page ? parseInt(page) : 1;
         page = Math.max(page, 1);
+        page = Math.min(page, 1);
         const skip = (page - 1) * limit;
         const collation = { locale: 'en', strength: 2 };
         let query = {}
-        if(filter && filter.endsWith('_id') && filterValue) filterValue = new Types.ObjectId(filterValue);
+        if (filter && filter.endsWith('_id') && filterValue) filterValue = new Types.ObjectId(filterValue);
+        if (filterValue === 'true') filterValue = true;
+        if (filterValue === 'false') filterValue = false;
         if (filter && filterValue) query = { [filter]: filterValue };
         const results = await examsService.getExamsFiltered(query, sort, collation, skip, limit);
         const pageCount = Math.ceil(results.totalCount / limit);
@@ -37,7 +40,7 @@ const getAllFiltered = async (req, res, next) => {
 
 const getAll = async (req, res, next) => {
     try {
-        return await getAllFiltered(req,res,next);
+        return await getAllFiltered(req, res, next);
     } catch (err) {
         console.error(err);
         next(err);

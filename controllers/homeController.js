@@ -30,7 +30,7 @@ const home = async (req, res, next) => {
                     { file: '/js/utils.js' }
                 ]
             },
-            navigation: Utils.Field.AuthorizedNavigation('Portal','Home'),
+            navigation: Utils.Field.AuthorizedNavigation('Portal', 'Home'),
             patientsTable: {
                 id: 'myPatients',
                 fetchOptions: {
@@ -70,8 +70,29 @@ const home = async (req, res, next) => {
     } else if (req.user.role === 'SpecialistHCP') {
         // Render SpecialistHCP's homepage
         return res.render('specialist/home', {
-            header: { title: 'eyeConnect Portal - Home (Specialist HCP)' },
-            navigation: _buildSpecialistNav(),
+            header: {
+                title: 'eyeConnect Portal - Home (Specialist HCP)'
+                , scripts: [{ file: '/js/utils.js' }, { file: '/js/tableHandler.js' }]
+            },
+            navigation: Utils.Specialist.AuthorizedNavigation('Portal', 'Home'),
+            awaitingConsultationsTable: {
+                id:'awaitingCons',
+                fetchOptions: {
+                    url: Utils.Specialist.AwaitingConsultations.URL,
+                    page: 1,
+                    pageCount: 0,
+                    limit: 5,
+                    sort:{
+                        sortBy: 'date',
+                        asc: true,
+                    },
+                },
+                fetchFunction: Utils.Specialist.AwaitingConsultations.FetchFunction,
+                headerData: Utils.Specialist.AwaitingConsultations.TableHeaders,
+                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
+                caption: 'Exams awaiting consultations',
+            }
+
         });
     } else {
         res.send("Medical Director roles is not implemented for MVP");

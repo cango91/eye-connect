@@ -1,39 +1,66 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
-    <div class="modal fade" id="genericModal" tabindex="-1" aria-labelledby="genericModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="genericModalLabel"></h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-            </div>
-            <div class="modal-footer">
-              <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+  <div class="modal fade" id="genericModal" tabindex="-1" aria-labelledby="genericModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="genericModalLabel"></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+        </div>
+        <div class="modal-footer">
+          <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
               <button type="button" class="btn btn-danger" id="confirmDeleteBtn"></button> -->
-            </div>
-          </div>
         </div>
       </div>
+    </div>
+  </div>
   <div class="text-center mb-3">
     <h2>Specialist HCP - Home</h2>
   </div>
   <div class="container-lg">
     <div class="row">
-        <div class="col-md-2">
-            <div class="d-flex flex-column">
-                <a class="btn btn-primary mb-2" href="/portal/consultations">New Consultation</a>
-                <a class="btn btn-primary mb-2" href="/portal/consultations/explore">Explore Consultations</a>
-              </div>
+      <!-- <div class="col-md-2">
+        <div class="d-flex flex-column">
+          <a class="btn btn-primary mb-2" href="/portal/consultations">New Consultation</a>
+          <a class="btn btn-primary mb-2" href="/portal/consultations/explore">Explore Consultations</a>
         </div>
-      <div class="col-md-4">
+      </div> -->
+      <script>
+        const createThumbnailContainer = () => {
+          thumbnailContainer = document.createElement('div');
+          thumbnailContainer.className = 'position-relative d-flex';
+          return thumbnailContainer;
+        }
+
+        const bufferToB64 = (bufferArray, contentType) => {
+          const uint8Array = new Uint8Array(bufferArray);
+          const blob = new Blob([uint8Array], {
+            type: contentType
+          });
+          const reader = new FileReader();
+
+          return new Promise((resolve, reject) => {
+            reader.onloadend = () => {
+              resolve(reader.result);
+            };
+
+            reader.onerror = () => {
+              reject(new Error('Error occurred while reading the buffer.'));
+            };
+
+            reader.readAsDataURL(blob);
+          });
+        }
+      </script>
+      <div class="col-md-8">
         <%- include('../partials/tableComponent', {...awaitingConsultationsTable}); %>
         <div class="float-end"><a href="/portal/patients">Go to awaiting consultations</a></div>
       </div>
-      <div class="col-md-6">
-        <%- include('../partials/tableComponent', {...recentConsultaions}); %>
+      <div class="col-md-4">
+
         <div class="float-end"><a href="/portal/exams">Go to your consultations</a></div>
       </div>
     </div>
