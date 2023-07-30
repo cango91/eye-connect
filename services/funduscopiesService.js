@@ -4,7 +4,12 @@ const cryptoService = require('./cryptoService');
 const eventService = require('./eventService');
 const consService = require('./consultationsService');
 const cvInit = require('../infra/opencvInit');
-const tf = require('@tensorflow/tfjs-node');
+let tf;
+try{
+    tf = require('@tensorflow/tfjs-node');
+}catch (error) {
+    tf = require('@tensorflow/tfjs');
+}
 const ObjectId = require('mongoose').Types.ObjectId;
 
 const getImageById = async id => {
