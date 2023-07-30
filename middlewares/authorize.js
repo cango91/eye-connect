@@ -15,6 +15,7 @@ const authorizationDictionary = {
     VIEW_EXAM_DETAILS: ['FieldHCP','MedicalDirector','SpecialistHCP'],
     UPLOAD_FUNDUS_IMAGE: ['FieldHCP'],
     GET_FUNDUS_IMAGE: ['FieldHCP','SpecialistHCP','MedicalDirector'],
+    GET_CONSULTATIONS: ['SpecialistHCP','MedicalDirector'],
 }
 
 const authorize = action => (req,res,next) =>{

@@ -1,4 +1,6 @@
+const ObjectId = require('mongoose').Types.ObjectId;
 const consService = require('../../services/consultationsService');
+const MAX_LIMIT = process.env.MAX_LIMIT;
 
 const getAllFiltered = async (req, res, next) => {
     try {
@@ -14,7 +16,7 @@ const getAllFiltered = async (req, res, next) => {
         const skip = (page - 1) * limit;
         const collation = { locale: 'en', strength: 2 };
         let query = {}
-        if (filter && filter.endsWith('_id') && filterValue) filterValue = new Types.ObjectId(filterValue);
+        if (filter && filter.endsWith('_id') && filterValue) filterValue = new ObjectId(filterValue);
         if (filterValue === 'true') filterValue = true;
         if (filterValue === 'false') filterValue = false;
         if (filter && filterValue) query = { [filter]: filterValue };

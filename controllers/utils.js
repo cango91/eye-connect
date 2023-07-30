@@ -42,7 +42,8 @@ module.exports = class Utils {
         }),
         AwaitingConsultations: {
             URL: `/portal/api/examinations?filter=hasConsultation&filterValue=false&hasImages=true`,
-            TableHeaders: [{
+            TableHeaders: [                
+                {
                 text: '',
                 parseFunction: `({image},td) => new Promise((resolve, reject) => {
                     if(!image) resolve();
@@ -101,13 +102,56 @@ module.exports = class Utils {
                 sort: { sortBy: 'numImages' }
             },
             {
-                text: 'Examiner',
-                sort: { sortBy: 'examiner.name' }
-            },
-            {
                 text: '',
                 parseFunction: `(data,td) => new Promise(resolve => {
+                    const titles = ['start new consultation','view exam details'];
+                    const svgs = ['${Utils.Icons.PaperIcon}', '${Utils.Icons.EyeIcon}'];
+                    const classes = ['btn btn-primary collapse-btn-icon','btn btn-info collapse-btn-icon'];
+                    const hrefs = ['/portal/exams/' + data.examId + '/cons/new', '/portal/exams/' + data.examId]
+                    for(let i = 0; i<svgs.length; i++){
+                        const a = document.createElement('a');
+                        a.href = hrefs[i];
+                        a.className = classes[i];
+                        a.innerHTML = svgs[i];
+                        a.title = titles[i];
+                        const li = document.createElement('li');
+                        li.className = 'nav-item';
+                        li.appendChild(a);
+                        td.appendChild(li);
+                    }
+                    const nav = document.createElement('nav');
+                    nav.className = 'navbar navbar-expand-lg navbar-light bg-light-striped centered-collapse-menu';
+                    const id = data.examId;
+                    const button = document.createElement('button');
+                    button.className = 'navbar-toggler';
+                    button.type = 'button';
+                    button.dataset.bsToggle = 'collapse';
+                    button.dataset.bsTarget = '#navbarSupportedContent'+id;
+                    button.ariaControls = 'navbarSupportedContent';
+                    button.ariaExpanded = 'false';
+                    button.ariaLabel = 'Toggle navigation';
 
+                    const span = document.createElement('span');
+                    span.className = 'navbar-toggler-icon';
+
+                    button.appendChild(span); 
+
+                    const div = document.createElement('div');
+                    div.className = 'collapse navbar-collapse';
+                    div.id = 'navbarSupportedContent'+id;
+
+                    const ul = document.createElement('ul');
+                    ul.className = 'navbar-nav mr-auto navbar-ul-centered mb-2';
+
+                    while(td.firstChild){
+                        ul.appendChild(td.firstChild);
+                    }
+
+                    div.appendChild(ul);
+                    nav.appendChild(button);
+                    nav.appendChild(div);
+                    td.appendChild(nav);
+                    resolve();
                 });`,
             }
             ],
@@ -129,7 +173,7 @@ module.exports = class Utils {
                     .then(data => {
                         const rows = [];
                         data.data.forEach(item => {
-                            rows.push([item.images ? {image: item.images[0]} : {image: null} , getDate(item.date), item.patient.name, calculateAge(item.patient.dateOfBirth), item.images ? item.images.length : 0, item.examiner.name, {examId: item._id} ],
+                            rows.push([item.images ? {image: item.images[0]} : {image: null} , getDate(item.date), item.patient.name, calculateAge(item.patient.dateOfBirth), item.images ? item.images.length : 0,  {examId: item._id} ],
                             );
                         });
                         opts.limit = data.limit ? data.limit : opts.limit;
@@ -187,7 +231,34 @@ module.exports = class Utils {
                     });`,
                 }
             ],
-            FetchFunction: ``,
+            FetchFunction: `(opts)=>{
+                return new Promise((res,err)=>{
+                    let fUrl = opts.url;
+                    if(opts.sort?.sortBy){
+                        fUrl += '&sortBy=' + opts.sort.sortBy + '&order=';
+                        let sortAsc = opts.sort.asc;
+                        if(opts.sort.reversed) sortAsc = !sortAsc;
+                        fUrl += sortAsc ? 'ascending' : 'descending';
+                        if(parseInt(opts.limit)>0){
+                            fUrl += '&limit=' + parseInt(opts.limit) + '&page=' + parseInt(opts.page);
+                        }
+                    }
+                    
+                    fetch(fUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        const rows = [];
+                        data.data.forEach(item => {
+                            rows.push([ item.data, item.exam.patient.name, item.retinopathDiagnosis ],
+                            );
+                        });
+                        opts.limit = data.limit ? data.limit : opts.limit;
+                        opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+                        opts.page = data.page ? data.page : opts.page;
+                        res(rows);
+                    });
+                });
+        }`,
         },
     }
 

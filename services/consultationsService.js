@@ -18,7 +18,7 @@ const getConsultationsFiltered = async (filterBefore, sort, collation, skip, lim
                 as: 'exam'
             },
         },
-        { $unwind: { path: 'exam' } },
+        { $unwind: { path: '$exam' } },
         { $unset: ['exam.images', 'exam.hasConsultation'] },
         {
             $lookup: {
@@ -28,7 +28,7 @@ const getConsultationsFiltered = async (filterBefore, sort, collation, skip, lim
                 as: 'patient'
             }
         },
-        { $unwind: { path: 'patient' } },
+        { $unwind: { path: '$patient' } },
         {
             $lookup: {
                 from: 'users',
@@ -37,7 +37,7 @@ const getConsultationsFiltered = async (filterBefore, sort, collation, skip, lim
                 as: 'examiner',
             }
         },
-        { $unwind: { path: 'examiner' } },
+        { $unwind: { path: '$examiner' } },
         { $unset: ['examiner.email', 'examiner.password', 'examiner.validationStatus', 'examiner.notifications', 'examiner.additionalInfo'] },
     ];
     if (Object.keys(filterAfter).length) {

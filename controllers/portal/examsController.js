@@ -69,7 +69,22 @@ const details = (req,res,next) =>{
             removeAllIcon: Utils.Icons.CrossIcon,
         });
     } else if (req.user.role === 'SpecialistHCP') {
-
+        const navigation = Utils.Specialist.AuthorizedNavigation('Awaiting Consultations');
+        navigation.items.push({text:'View Exam',href: '#'});
+        res.render('field/examDetails', {
+            header: {
+                title: 'eyeConnect Portal - Exam Details',
+                scripts: [{file:'/js/utils.js'}],
+            },
+            navigation,
+            examId: req.params.id,
+            saveIcon: Utils.Icons.SaveIcon,
+            deleteIcon: Utils.Icons.TrashIcon,
+            magnifyIcon: Utils.Icons.MagnifyIcon,
+            uploadSingleIcon: Utils.Icons.UploadSingleIcon,
+            uploadAllIcon: Utils.Icons.CheckAllIcon,
+            removeAllIcon: Utils.Icons.CrossIcon,
+        });
     } else {
         res.redirect('/portal');
     }

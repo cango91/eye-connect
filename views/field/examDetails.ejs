@@ -36,7 +36,7 @@
     </div>
   </div>
   <div class="text-center">
-    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; All Exams</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a></span></h3>
+    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; All Exams</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a><a class="d-none" id="go-to-consultation-btn" class="btn ms-1"></a></span></h3>
     <hr>
   </div>
   <div class="d-flex flex-column justify-content-center align-items-center" id="loading-div">
@@ -129,6 +129,9 @@
   const removeAllBtn = document.getElementById('remove-all-btn');
   const backBtn = document.getElementById('confirm-back-btn');
   const confirmBack = document.getElementById('confirmBackBtn');
+  const consBtn = document.getElementById('go-to-consultation-btn');
+
+  //const 
   const magnifySvg = `<%- magnifyIcon %>`;
 
   const imagesArray = [];
@@ -280,26 +283,6 @@
       })
       .catch(error => reportError(error));
   }
-
-  //   const displayImages = (images) => {
-  //     while (imageContainer.firstChild) {
-  //       imageContainer.removeChild(imageContainer.firstChild);
-  //     }
-  //     images.forEach((image, index) => {
-  //       const imageDiv = document.createElement('div');
-  //       imageDiv.id = `image-${index}`;
-  //       imageDiv.classList.add('image-thumbnail');
-
-  //       const img = document.createElement('img');
-  //       img.src = URL.createObjectURL(new Blob([image.data], {
-  //         type: image.contentType
-  //       }));
-  //       img.alt = 'Retina Image';
-
-  //       imageDiv.appendChild(img);
-  //       imageContainer.appendChild(imageDiv);
-  //     });
-  //   };
 
 
   const createAndStyleIcon = (dimensions, innerSvg, ...btnClasses) => {

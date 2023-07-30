@@ -36,7 +36,7 @@ const home = async (req, res, next) => {
                 fetchOptions: {
                     url: Utils.Field.RecentExams.URL(req.user.id),
                     page: 1,
-                    pageCount: 0,
+                    pageCount: 1,
                     limit: 0,
                     sort: {
                         sortBy: 'updatedAt',
@@ -53,7 +53,7 @@ const home = async (req, res, next) => {
                 fetchOptions: {
                     url: Utils.Field.RecentExams.URL(req.user.id),
                     page: 1,
-                    pageCount: 0,
+                    pageCount: 1,
                     limit: 0,
                     sort: {
                         sortBy: 'updatedAt',
@@ -80,7 +80,7 @@ const home = async (req, res, next) => {
                 fetchOptions: {
                     url: Utils.Specialist.AwaitingConsultations.URL,
                     page: 1,
-                    pageCount: 0,
+                    pageCount: 1,
                     limit: 5,
                     sort:{
                         sortBy: 'date',
@@ -91,6 +91,24 @@ const home = async (req, res, next) => {
                 headerData: Utils.Specialist.AwaitingConsultations.TableHeaders,
                 tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
                 caption: 'Exams awaiting consultations',
+            },
+            recentConsultationsTable:{
+                id: 'recentCons',
+                fetchOptions:{
+                    url: Utils.Specialist.RecentConsultations.URL(req.user.id),
+                    page: 1,
+                    pageCount: 1,
+                    limit: 5,
+                    sort:{
+                        sortBy: 'date',
+                        asc: true,
+                    }
+                },
+                fetchFunction: Utils.Specialist.RecentConsultations.FetchFunction,
+                headerData: Utils.Specialist.RecentConsultations.TableHeaders,
+                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
+                caption: 'My recent consultations'
+
             }
 
         });
