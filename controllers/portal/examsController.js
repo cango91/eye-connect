@@ -69,7 +69,7 @@ const details = (req,res,next) =>{
             removeAllIcon: Utils.Icons.CrossIcon,
         });
     } else if (req.user.role === 'SpecialistHCP') {
-        const navigation = Utils.Specialist.AuthorizedNavigation('Awaiting Consultations');
+        const navigation = Utils.Specialist.AuthorizedNavigation('View Exam');
         navigation.items.push({text:'View Exam',href: '#'});
         res.render('field/examDetails', {
             header: {

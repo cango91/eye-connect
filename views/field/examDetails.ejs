@@ -35,8 +35,49 @@
       </div>
     </div>
   </div>
+  <div class="modal fade" id="imageViewModal" tabindex="-1" aria-labelledby="imageViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          <div class="image-container overflow-auto">
+            <img src="" alt="" class="img-fluid enlarged-image">
+          </div>
+
+          <div class="notes-container d-none">
+            <textarea class="form-control" id="cons-notes-area" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const enlargeImage = (imageSrc, noteText='', showNoteArea=false, noteAreaDisabled = true) =>{
+      const imageModal = document.getElementById('imageViewModal')
+      const imModal = new bootstrap.Modal(imageModal);
+      const noteArea = document.getElementById('cons-notes-area');
+
+      imageModal.querySelector('.image-container img').src = imageSrc;
+
+      if(showNoteArea){
+        imageModal.querySelector('.notes-container').classList.remove('d-none');
+        noteArea.value = noteText;
+      }else{
+        imageModal.querySelector('.notes-container').classList.add('d-none');
+      }
+      if(noteAreaDisabled){
+        noteArea.disabled = true;
+      }else{
+        noteArea.disabled = false;
+      }
+      imModal.show();
+    }
+  </script>
   <div class="text-center">
-    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; All Exams</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a><a class="d-none" id="go-to-consultation-btn" class="btn ms-1"></a></span></h3>
+    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; All Exams</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a></span><span class="float-end" id="specialist-icons-area"><a id="go-to-consultation-btn" class="btn btn-primary ms-1 d-none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="i i-add-exam" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M8 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V10a.5.5 0 0 1-1 0V8.5H6a.5.5 0 0 1 0-1h1.5V6a.5.5 0 0 1 .5-.5z"/> <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"/> <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"/></svg></a></span></h3>
     <hr>
   </div>
   <div class="d-flex flex-column justify-content-center align-items-center" id="loading-div">
@@ -131,12 +172,13 @@
   const confirmBack = document.getElementById('confirmBackBtn');
   const consBtn = document.getElementById('go-to-consultation-btn');
 
-  //const 
   const magnifySvg = `<%- magnifyIcon %>`;
 
   const imagesArray = [];
 
   const ICON_DIMS = [25, 25];
+
+  const isSpecialist = <%- user.role === 'SpecialistHCP' %>
 
 
   let myExam;
@@ -279,6 +321,25 @@
       .then(response => response.json())
       .then(data => {
         if (data.error) throw new Error(data.error);
+        if(isSpecialist){
+          if(data.data.hasConsultation){
+            const consData = fetch('/portal/api/consultations?filter=examination&filterValue=<%= examId %>')
+            .then(consResponse => consResponse.json())
+            .then(consData => {
+              if(consData.error) throw new Error(consData.error);
+              if(consData.data.consultant === `<%- user.id %> `){
+                // show edit cons button
+              }else{
+                // show view cons button
+              }
+            });
+            
+          }else{
+            consBtn.href= `/portal/exams/<%= examId %>/cons/new`;
+            consBtn.classList.remove('d-none');
+            consBtn.classList.add('btn-primary');
+          }
+        }
         handleExamData(data.data);
       })
       .catch(error => reportError(error));
@@ -332,7 +393,9 @@
 
       const magnifyIcon = createAndStyleIcon(ICON_DIMS, `<%- magnifyIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-warning', 'm-1');
       magnifyIcon.role = "enlarge preview";
-
+      magnifyIcon.addEventListener('click', e=>{
+        enlargeImage(img.src);
+      });
       const thumbnailContainer = document.createElement('div');
       thumbnailContainer.className = 'position-relative d-flex';
 
@@ -361,6 +424,9 @@
       thumbnailContainer.dataset.imageContainer = true;
 
       const magnifyIcon = createAndStyleIcon(dims, `<%- magnifyIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-warning', 'm-1');
+      magnifyIcon.addEventListener('click', e=>{
+        enlargeImage(img.src);
+      });
 
       const removeIcon = createAndStyleIcon(dims, `<%- deleteIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-danger', 'm-1');
       removeIcon.addEventListener('click', e => {
