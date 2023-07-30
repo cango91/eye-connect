@@ -157,7 +157,8 @@ const tableHandler = (
         fetchOptions.sort.sortBy = headerData[idx]?.sort?.sortBy;
         fetchOptions.sort.asc = asc;
         if (headerData[idx]?.sort?.onSortFunction) {
-            headerData[idx].sort.onSortFunction(options, asc);
+            const onsortFn = new Function(`return ${headerData[idx].sort.onSortFunction}`)();
+            activeThName = onsortFn(fetchOptions, asc);
         }else{
             fetchOptions.page = 1;
             fetchOptions.limit = originalOpts.limit;
@@ -234,16 +235,16 @@ const tableHandler = (
                     tbody.appendChild(tr);
                 });
                 updateDataset();
-                const idx = headerData.findIndex(item => item?.sort?.sortBy === fetchOptions.sort.sortBy);
-                if (idx > -1) {
-                    toggleActiveClass(idx, fetchOptions.sort.asc);
-                }
                 window.dispatchEvent(new CustomEvent('dataFetched', {
                     detail: {
                         handler: handler,
                         target: table,
                     }
                 }));
+                const idx = headerData.findIndex(item => item?.sort?.sortBy === fetchOptions.sort.sortBy);
+                if (idx > -1) {
+                    toggleActiveClass(idx, fetchOptions.sort.asc);
+                }
                 updatePaginationVisibility();
             }).then(resolve)
                 .catch(error => {

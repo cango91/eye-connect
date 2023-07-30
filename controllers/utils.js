@@ -10,9 +10,60 @@ module.exports = class Utils {
         SaveIcon: `<svg width="16" height="16" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M3 19V5C3 3.89543 3.89543 3 5 3H16.1716C16.702 3 17.2107 3.21071 17.5858 3.58579L20.4142 6.41421C20.7893 6.78929 21 7.29799 21 7.82843V19C21 20.1046 20.1046 21 19 21H5C3.89543 21 3 20.1046 3 19Z" stroke="currentColor" stroke-width="1.5"/> <path d="M8.6 9H15.4C15.7314 9 16 8.73137 16 8.4V3.6C16 3.26863 15.7314 3 15.4 3H8.6C8.26863 3 8 3.26863 8 3.6V8.4C8 8.73137 8.26863 9 8.6 9Z" stroke="currentColor" stroke-width="1.5"/> <path d="M6 13.6V21H18V13.6C18 13.2686 17.7314 13 17.4 13H6.6C6.26863 13 6 13.2686 6 13.6Z" stroke="currentColor" stroke-width="1.5"/> </svg>`,
         AddMultiple: `<svg width="24" height="24" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path d="M1.99219 19H4.99219M7.99219 19H4.99219M4.99219 19V16M4.99219 19V22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/> <path d="M7 2L16.5 2L21 6.5V19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/> <path d="M11 22H16.5C17.3284 22 18 21.3284 18 20.5V8.74853C18 8.5894 17.9368 8.43679 17.8243 8.32426L14.6757 5.17574C14.5632 5.06321 14.4106 5 14.2515 5H4.5C3.67157 5 3 5.67157 3 6.5V13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/> <path d="M14 8.4V5.35355C14 5.15829 14.1583 5 14.3536 5C14.4473 5 14.5372 5.03725 14.6036 5.10355L17.8964 8.39645C17.9628 8.46275 18 8.55268 18 8.64645C18 8.84171 17.8417 9 17.6464 9H14.6C14.2686 9 14 8.73137 14 8.4Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/> </svg>`,
         UploadSingleIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"  viewBox="0 0 16 16"> <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/> <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/> </svg>`,
-        PlusIcon2:`<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 13.496h-4.501v4.484h-3v-4.484H6v-2.99h4.5V6.021h3.001v4.485H18v2.99zM21 .041H3C1.348.043.008 1.379 0 3.031v17.94c.008 1.65 1.348 2.986 3 2.988h18c1.651-.002 2.991-1.338 3-2.988V3.031c-.009-1.652-1.348-2.987-3-2.99z"/></svg>`,
+        PlusIcon2: `<svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 13.496h-4.501v4.484h-3v-4.484H6v-2.99h4.5V6.021h3.001v4.485H18v2.99zM21 .041H3C1.348.043.008 1.379 0 3.031v17.94c.008 1.65 1.348 2.986 3 2.988h18c1.651-.002 2.991-1.338 3-2.988V3.031c-.009-1.652-1.348-2.987-3-2.99z"/></svg>`,
         MagnifyIcon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" ><rect width="256" height="256" fill="none"></rect><circle cx="116" cy="116" r="84" opacity="0.2"></circle><circle cx="116" cy="116" r="84" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></circle><line x1="175.4" y1="175.4" x2="224" y2="224" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16"></line></svg>`,
         CheckAllIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-all" viewBox="0 0 16 16"> <path d="M8.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L2.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093L8.95 4.992a.252.252 0 0 1 .02-.022zm-.92 5.14.92.92a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 1 0-1.091-1.028L9.477 9.417l-.485-.486-.943 1.179z"/> </svg>`,
+    }
+
+    static Specialist = {
+        AuthorizedNavigation: (...current) => ({
+            items: [{
+                text: 'About',
+                href: '/about',
+                showInFooter: true,
+            },
+            {
+                text: 'Portal',
+                dropdown: [{
+                    text: 'Home',
+                    href: '/portal'
+                },
+                {
+                    text: 'Awaiting Consultations',
+                    href: '/portal/consultations'
+                },
+                {
+                    text: 'Completed Consultations',
+                    href: '/portal/consultations/explore'
+                }
+                ]
+            }],
+            active: current,
+        }),
+        AwaitingConsultations: {
+            URL: `/portal/api/examinations?filter=hasConsultation&filterValue=false`,
+            TableHeaders: [{
+                text: 'Exam Date',
+                sort: { sortBy: 'dateCreated' }
+            },
+            {
+                text: 'Patient',
+                sort: { sortBy: 'patient.name' },
+            },
+            {
+                text: 'Age',
+                sort: { sortBy: 'patient.dateOfBirth',onSortFunction: `(opts,asc) => {
+                    opts.sort.asc = !asc;
+                    window.addEventListener('dataFetched',(e) => {
+                        const handler = e.detail.handler;
+                        const sortOptions = handler.getOpts().sort;
+                        sortOptions.asc = asc;
+                        handler.setOpts({sort:sortOptions});
+                    },{once: true});
+                }` }
+            }
+            ]
+        }
     }
 
     static Field = {
@@ -77,19 +128,37 @@ module.exports = class Utils {
                 },
                 {
                     text: 'Age',
-                    sort: { sortBy: 'patient.dateOfBirth' }
+                    sort: { sortBy: 'patient.dateOfBirth',onSortFunction: `(opts,asc) => {
+                        opts.sort.asc = !asc;
+                        window.addEventListener('dataFetched',(e) => {
+                            const handler = e.detail.handler;
+                            const sortOptions = handler.getOpts().sort;
+                            sortOptions.asc = asc;
+                            handler.setOpts({sort:sortOptions});
+                        },{once: true});
+                    }` }
                 }
             ],
         },
         AllPatients: {
-            TableHeaders: (allowDelete=false) => [
+            TableHeaders: (allowDelete = false) => [
                 {
                     text: 'Name',
                     sort: { sortBy: 'name' },
                 },
                 {
                     text: 'Age',
-                    sort: { sortBy: 'dateOfBirth' },
+                    sort: {
+                        sortBy: 'dateOfBirth',
+                        onSortFunction: `(opts,asc) => {
+                    opts.sort.asc = !asc;
+                    window.addEventListener('dataFetched',(e) => {
+                        const handler = e.detail.handler;
+                        const sortOptions = handler.getOpts().sort;
+                        sortOptions.asc = asc;
+                        handler.setOpts({sort:sortOptions});
+                    },{once: true});
+                }` },
                 },
                 {
                     text: 'Gender',
@@ -112,8 +181,8 @@ module.exports = class Utils {
                         const val = id
                         const classes = ['btn btn-primary collapse-btn-icon','btn btn-info collapse-btn-icon','btn btn-warning collapse-btn-icon'];
                         const hrefs = ['/portal/patients/'+val+'/exams/new','/portal/patients/'+val,'/portal/patients/'+val+'?edit=true'];
-                        ${!allowDelete ? '' : 
-                        `svgs.push('${Utils.Icons.TrashIcon}');
+                        ${!allowDelete ? '' :
+                            `svgs.push('${Utils.Icons.TrashIcon}');
                         hrefs.push(val);
                         classes.push('btn btn-danger collapse-btn-icon');
                         titles.push('delete patient record')
@@ -191,7 +260,7 @@ module.exports = class Utils {
                             
                         }
                         `
-                    }
+                        }
                         for(let i = 0; i<svgs.length; i++){
                             const a = document.createElement('a');
                             a.href = hrefs[i];
@@ -328,7 +397,7 @@ module.exports = class Utils {
                     text: 'Consultation?'
                 },
                 {
-                    text :'',
+                    text: '',
                     parseFunction: `(data, td) => new Promise(res => {
                         const titles = ['view exam details','edit exam','delete exam']
                         const svgs = ['${Utils.Icons.EyeIcon}', '${Utils.Icons.PencilIcon}','${Utils.Icons.TrashIcon}'];
