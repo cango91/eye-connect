@@ -16,6 +16,8 @@ RUN npm install
 # Bundle the app source inside the Docker image
 COPY . .
 
+RUN npm rebuild @tensorflow/tfjs-node --update-binary
+
 # Make port 8080 available to the world outside this container
 EXPOSE 8080
 
