@@ -14,7 +14,6 @@ const cryptoService = {
         let encrypted = cipher.update(buffer);
         encrypted = Buffer.concat([iv,encrypted, cipher.final()]);
         return encrypted;
-        //return iv.toString('hex') + ':' + encrypted.toString('hex'); // include the IV with the encrypted data
     },
     decrypt: buffer => {
         const iv = buffer.slice(0, 16);

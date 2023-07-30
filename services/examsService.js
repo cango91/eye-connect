@@ -145,13 +145,13 @@ const deleteExamById = async (id, mustBeCreatedBy = null) => {
 
 const onPatientDeleted = async ({ patientId }) => {
     try {
-        const patientExams = await Exam.find({ patient: new ObjectId (patientId) });
+        const patientExams = await Exam.find({ patient: new ObjectId(patientId) });
         if (patientExams && patientExams.length) {
             for (let i = 0; i < patientExams.length; i++) {
                 await eventService.emitEvent('examDeleted', { examId: patientExams[i]._id, patientId: patientId });
-                crudLogger('Exam deleted', req => ({ id: patientExams[i]._id, reason: 'automatic removal: patient deleted' }))({}, {}, () => ({}));
+                crudLogger('Exam deleted', req => ({ examId: patientExams[i]._id, reason: 'automatic removal: patient deleted' }))({user:{}}, {}, () => ({}));
             }
-            await Exam.deleteMany({ patient: id });
+            await Exam.deleteMany({ patient: new ObjectId(patientId) });
         }
     } catch (err) {
         console.error(err);
@@ -168,8 +168,8 @@ const updateExamNotes = async (id, examData, mustBeUpdatedBy = null) => {
         if (mustBeUpdatedBy && exam.examiner.toString() !== mustBeUpdatedBy) {
             throw new NotAllowed();
         }
-        console.log(examData.notes);
-        encryptExamNotes(exam);
+        encryptExamNotes(examData);
+        exam.notes = examData.notes;
         await exam.save();
         await eventService.emitEvent('examNotesUpdated', { examId: exam._id, patientId: exam.patient._id });
         return decryptExamNotes(exam._doc);
@@ -244,7 +244,7 @@ const onImageCreated = async (eventData) => {
         await exam.updateOne({
             $push: {
                 'images': new ObjectId
-                    (eventData.id)
+                    (eventData.imageId)
             }
         });
         await exam.save();

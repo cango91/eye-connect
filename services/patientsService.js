@@ -1,6 +1,8 @@
 const Patient = require('../models/patient');
 const eventService = require('./eventService');
 
+const tempIgnoreIds = [];
+
 const getPatientById = async patientId => {
     try {
         const patient = await Patient.findById(patientId);
@@ -16,6 +18,7 @@ const deletePatientById = async id => {
     try {
         const patient = await Patient.findById(id);
         if (patient) {
+            tempIgnoreIds.push(id);
             await eventService.emitEvent('patientDeleted', {patientId:id}); //examsService.onPatientDeleted(id);
         } else {
             throw new PatientNotFound('Patient not found!');
@@ -100,6 +103,10 @@ const updatePatientExams = async ({ patientId, examId }) => {
 
 const deleteExamFromPatient = async ({ examId, patientId }) => {
     try {
+        if(tempIgnoreIds.includes(patientId)){
+            tempIgnoreIds.splice(tempIgnoreIds.findIndex(id=>id===patientId),1);
+            return;
+        }
         const patient = await Patient.findById(patientId);
         if (!patient) throw new PatientNotFound();
         // const arrayIdx = patient.exams.findIndex(exam => exam === examId);
@@ -121,6 +128,7 @@ class PatientNotFound extends Error {
 }
 eventService.on('examCreated', updatePatientExams);
 eventService.on('examDeleted', deleteExamFromPatient);
+
 module.exports = {
     getPatientById,
     deletePatientById,

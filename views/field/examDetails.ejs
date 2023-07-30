@@ -184,9 +184,9 @@
   }
 
   const saveNotes = async () => {
-    const tempCache = notesEl.value.toString();
+    const tempCache = notesEl.value;
     const params = new URLSearchParams();
-    params.append('notes', tempCache);
+    params.append('notes', tempCache.toString());
     try {
       const response = await fetch(`/portal/api/examinations/<%= examId %>?_method=put`, {
         method: 'POST',
