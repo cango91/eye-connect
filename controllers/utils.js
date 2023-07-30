@@ -52,15 +52,8 @@ module.exports = class Utils {
             },
             {
                 text: 'Age',
-                sort: { sortBy: 'patient.dateOfBirth',onSortFunction: `(opts,asc) => {
-                    opts.sort.asc = !asc;
-                    window.addEventListener('dataFetched',(e) => {
-                        const handler = e.detail.handler;
-                        const sortOptions = handler.getOpts().sort;
-                        sortOptions.asc = asc;
-                        handler.setOpts({sort:sortOptions});
-                    },{once: true});
-                }` }
+                sort: {
+                    sortBy: 'patient.dateOfBirth', reversed:true }
             }
             ]
         }
@@ -98,7 +91,9 @@ module.exports = class Utils {
                     let fUrl = opts.url;
                     if(opts.sort?.sortBy){
                         fUrl += '&sortBy=' + opts.sort.sortBy + '&order=';
-                        fUrl += opts.sort.asc ? 'ascending' : 'descending';
+                        let sortAsc = opts.sort.asc;
+                        if(opts.sort.reversed) sortAsc = !sortAsc;
+                        fUrl += sortAsc ? 'ascending' : 'descending';
                         if(parseInt(opts.limit)>0){
                             fUrl += '&limit=' + parseInt(opts.limit) + '&page=' + parseInt(opts.page);
                         }
@@ -128,15 +123,7 @@ module.exports = class Utils {
                 },
                 {
                     text: 'Age',
-                    sort: { sortBy: 'patient.dateOfBirth',onSortFunction: `(opts,asc) => {
-                        opts.sort.asc = !asc;
-                        window.addEventListener('dataFetched',(e) => {
-                            const handler = e.detail.handler;
-                            const sortOptions = handler.getOpts().sort;
-                            sortOptions.asc = asc;
-                            handler.setOpts({sort:sortOptions});
-                        },{once: true});
-                    }` }
+                    sort: { sortBy: 'patient.dateOfBirth', reversed: true }
                 }
             ],
         },
@@ -150,15 +137,8 @@ module.exports = class Utils {
                     text: 'Age',
                     sort: {
                         sortBy: 'dateOfBirth',
-                        onSortFunction: `(opts,asc) => {
-                    opts.sort.asc = !asc;
-                    window.addEventListener('dataFetched',(e) => {
-                        const handler = e.detail.handler;
-                        const sortOptions = handler.getOpts().sort;
-                        sortOptions.asc = asc;
-                        handler.setOpts({sort:sortOptions});
-                    },{once: true});
-                }` },
+                        reversed: true
+                    },
                 },
                 {
                     text: 'Gender',
@@ -330,7 +310,9 @@ module.exports = class Utils {
                     let fUrl = opts.url;
                     if(opts.sort?.sortBy){
                         fUrl += '&sortBy=' + opts.sort.sortBy + '&order=';
-                        fUrl += opts.sort.asc ? 'ascending' : 'descending';
+                        let sortAsc = opts.sort.asc;
+                        if(opts.sort.reversed) sortAsc = !sortAsc;
+                        fUrl += sortAsc ? 'ascending' : 'descending';
                         if(parseInt(opts.limit)>0){
                             fUrl += '&limit=' + parseInt(opts.limit) + '&page=' + parseInt(opts.page);
                         }
@@ -359,7 +341,9 @@ module.exports = class Utils {
                 let fUrl = opts.url;
                 if(opts.sort?.sortBy){
                     fUrl += '&sortBy=' + opts.sort.sortBy + '&order=';
-                    fUrl += opts.sort.asc ? 'ascending' : 'descending';
+                    let sortAsc = opts.sort.asc;
+                    if(opts.sort.reversed) sortAsc = !sortAsc;
+                    fUrl += sortAsc ? 'ascending' : 'descending';
                     if(parseInt(opts.limit)>0){
                         fUrl += '&limit=' + parseInt(opts.limit) + '&page=' + parseInt(opts.page);
                     }
@@ -580,7 +564,9 @@ module.exports = class Utils {
                     let fUrl = opts.url;
                     if(opts.sort?.sortBy){
                         fUrl += '&sortBy=' + opts.sort.sortBy + '&order=';
-                        fUrl += opts.sort.asc ? 'ascending' : 'descending';
+                        let sortAsc = opts.sort.asc;
+                        if(opts.sort.reversed) sortAsc = !sortAsc;
+                        fUrl += sortAsc ? 'ascending' : 'descending';
                         if(parseInt(opts.limit)>0){
                             fUrl += '&limit=' + parseInt(opts.limit) + '&page=' + parseInt(opts.page);
                         }
@@ -640,7 +626,9 @@ module.exports = class Utils {
                     let fUrl = opts.url;
                     if(opts.sort?.sortBy){
                         fUrl += '&sortBy=' + opts.sort.sortBy + '&order=';
-                        fUrl += opts.sort.asc ? 'ascending' : 'descending';
+                        let sortAsc = opts.sort.asc;
+                        if(opts.sort.reversed) sortAsc = !sortAsc;
+                        fUrl += sortAsc ? 'ascending' : 'descending';
                         if(parseInt(opts.limit)>0){
                             fUrl += '&limit=' + parseInt(opts.limit) + '&page=' + parseInt(opts.page);
                         }

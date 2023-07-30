@@ -11,13 +11,14 @@ const tableHandler = (
         sort: {} = {
             sortBy: null,
             asc: null,
+            reversed: false
         }
     },
     fetchFunction,
     headerData,
     tableClasses = ['table', 'caption-top'],
 ) => {
-    const originalOpts = Object.assign({},{
+    const originalOpts = Object.assign({}, {
         page: fetchOptions.page,
         limit: fetchOptions.limit
     });
@@ -44,7 +45,7 @@ const tableHandler = (
         th.scope = "col";
         th.textContent = data.text;
         if (data.sort) {
-            th.dataset
+            th.dataset.reversed = !! data.sort.reversed;
             th.dataset.sortBy = data.sort.sortBy;
             th.dataset.colIdx = idx;
             const spanAsc = document.createElement('span');
@@ -99,43 +100,43 @@ const tableHandler = (
     alertDiv.className = 'table-alert';
     document.body.appendChild(alertDiv);
 
-   // Add page controls
-   const prevButton = document.createElement('button');
-   prevButton.textContent = 'Previous';
-   prevButton.id = 'prev-button';  
-   prevButton.classList.add('btn', 'btn-primary', 'mx-2');
+    // Add page controls
+    const prevButton = document.createElement('button');
+    prevButton.textContent = 'Previous';
+    prevButton.id = 'prev-button';
+    prevButton.classList.add('btn', 'btn-primary', 'mx-2');
 
-   const nextButton = document.createElement('button');
-   nextButton.textContent = 'Next';
-   nextButton.id = 'next-button';  
-   nextButton.classList.add('btn', 'btn-primary', 'mx-2');
+    const nextButton = document.createElement('button');
+    nextButton.textContent = 'Next';
+    nextButton.id = 'next-button';
+    nextButton.classList.add('btn', 'btn-primary', 'mx-2');
 
-   // Add page info text
-   const pageInfo = document.createElement('div');
-   pageInfo.id = 'page-info';  
-   pageInfo.classList.add('text-center', 'mx-2');
+    // Add page info text
+    const pageInfo = document.createElement('div');
+    pageInfo.id = 'page-info';
+    pageInfo.classList.add('text-center', 'mx-2');
 
-   const paginationContainer = document.createElement('div');
-   paginationContainer.classList.add('d-flex', 'justify-content-center');
-   paginationContainer.append(prevButton, pageInfo, nextButton);
+    const paginationContainer = document.createElement('div');
+    paginationContainer.classList.add('d-flex', 'justify-content-center');
+    paginationContainer.append(prevButton, pageInfo, nextButton);
 
-   table.parentNode.insertBefore(paginationContainer, table.nextSibling);
+    table.parentNode.insertBefore(paginationContainer, table.nextSibling);
 
-   // Update the visibility of the pagination controls and page info text based on the page count
-   const updatePaginationVisibility = () => {
-       prevButton.style.visibility = (fetchOptions.page > 1) ? 'visible' : 'hidden';
-       nextButton.style.visibility = (fetchOptions.page < fetchOptions.pageCount) ? 'visible' : 'hidden';
-       pageInfo.textContent = `Page ${table.dataset.page} of ${table.dataset.pageCount}`;  // update page info text
-   };
+    // Update the visibility of the pagination controls and page info text based on the page count
+    const updatePaginationVisibility = () => {
+        prevButton.style.visibility = (fetchOptions.page > 1) ? 'visible' : 'hidden';
+        nextButton.style.visibility = (fetchOptions.page < fetchOptions.pageCount) ? 'visible' : 'hidden';
+        pageInfo.textContent = `Page ${table.dataset.page} of ${table.dataset.pageCount}`;  // update page info text
+    };
 
-    prevButton.addEventListener('click', ()=>{
-        table.dataset.page = Math.max(1,parseInt(table.dataset.page)-1).toString();
+    prevButton.addEventListener('click', () => {
+        table.dataset.page = Math.max(1, parseInt(table.dataset.page) - 1).toString();
         updateOpts();
         populateTable();
     })
 
-    nextButton.addEventListener('click', ()=>{
-        table.dataset.page = Math.min(table.dataset.pageCount,parseInt(table.dataset.page)+1).toString();
+    nextButton.addEventListener('click', () => {
+        table.dataset.page = Math.min(table.dataset.pageCount, parseInt(table.dataset.page) + 1).toString();
         updateOpts();
         populateTable();
     })
@@ -153,13 +154,14 @@ const tableHandler = (
         return a;
     }
 
-    const onSort = (idx, asc = false) => {
+    const onSort = (idx, asc = false, reversed = false) => {
         fetchOptions.sort.sortBy = headerData[idx]?.sort?.sortBy;
         fetchOptions.sort.asc = asc;
+        fetchOptions.sort.reversed = reversed;
         if (headerData[idx]?.sort?.onSortFunction) {
             const onsortFn = new Function(`return ${headerData[idx].sort.onSortFunction}`)();
             activeThName = onsortFn(fetchOptions, asc);
-        }else{
+        } else {
             fetchOptions.page = 1;
             fetchOptions.limit = originalOpts.limit;
         }
@@ -207,11 +209,11 @@ const tableHandler = (
     }
 
     const updateOpts = () => {
-        fetchOptions.page = table.dataset.page;
-        fetchOptions.pageCount = table.dataset.pageCount;
-        fetchOptions.limit = table.dataset.limit;
+        fetchOptions.page = parseInt(table.dataset.page);
+        fetchOptions.pageCount = parseInt(table.dataset.pageCount);
+        fetchOptions.limit = parseInt(table.dataset.limit);
         fetchOptions.sort.sortBy = table.dataset.sortBy;
-        fetchOptions.sort.asc = table.dataset.sortAscending;
+        fetchOptions.sort.asc = table.dataset.sortAscending === 'true';
     }
 
     const populateTable = () => {
@@ -272,7 +274,7 @@ const tableHandler = (
             if (span.classList.contains('active')) return;
             const asc = e.target.hasAttribute('data-sort-asc');
             const th = span.parentElement;
-            onSort(th.dataset.colIdx, asc);
+            onSort(th.dataset.colIdx, asc, th.dataset.reversed === 'true');
             toggleActiveClass(th.dataset.colIdx, asc);
             return;
         }
