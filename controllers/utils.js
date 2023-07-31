@@ -185,7 +185,7 @@ module.exports = class Utils {
         }`,
         },
         RecentConsultations: {
-            URL: id => `/portal/api/consultations?filter=consultant._id&filterValue=${id}`,
+            URL: id => `/portal/api/consultations?filter=consultant&filterValue=_id${id}`,
             TableHeaders: [
                 {
                     text: 'Cons. Date',
@@ -249,7 +249,7 @@ module.exports = class Utils {
                     .then(data => {
                         const rows = [];
                         data.data.forEach(item => {
-                            rows.push([ item.data, item.exam.patient.name, item.retinopathDiagnosis ],
+                            rows.push([ getDate(item.date), item.patient.name, item.retinopathDiagnosis ],
                             );
                         });
                         opts.limit = data.limit ? data.limit : opts.limit;

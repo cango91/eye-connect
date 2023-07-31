@@ -55,29 +55,33 @@
     </div>
   </div>
   <script>
-    const enlargeImage = (imageSrc, noteText='', showNoteArea=false, noteAreaDisabled = true) =>{
+    const enlargeImage = (imageSrc, noteText = '', showNoteArea = false, noteAreaDisabled = true) => {
       const imageModal = document.getElementById('imageViewModal')
       const imModal = new bootstrap.Modal(imageModal);
       const noteArea = document.getElementById('cons-notes-area');
 
       imageModal.querySelector('.image-container img').src = imageSrc;
 
-      if(showNoteArea){
+      if (showNoteArea) {
         imageModal.querySelector('.notes-container').classList.remove('d-none');
         noteArea.value = noteText;
-      }else{
+      } else {
         imageModal.querySelector('.notes-container').classList.add('d-none');
       }
-      if(noteAreaDisabled){
+      if (noteAreaDisabled) {
         noteArea.disabled = true;
-      }else{
+      } else {
         noteArea.disabled = false;
       }
       imModal.show();
     }
   </script>
   <div class="text-center">
-    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; All Exams</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a></span><span class="float-end" id="specialist-icons-area"><a id="go-to-consultation-btn" class="btn btn-primary ms-1 d-none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="i i-add-exam" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M8 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V10a.5.5 0 0 1-1 0V8.5H6a.5.5 0 0 1 0-1h1.5V6a.5.5 0 0 1 .5-.5z"/> <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"/> <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"/></svg></a></span></h3>
+    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; All Exams</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a></span><span class="float-end" id="specialist-icons-area"><a id="go-to-consultation-btn" class="btn btn-primary ms-1 d-none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="i i-add-exam" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M8 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V10a.5.5 0 0 1-1 0V8.5H6a.5.5 0 0 1 0-1h1.5V6a.5.5 0 0 1 .5-.5z" />
+            <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z" />
+            <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z" />
+          </svg></a></span></h3>
     <hr>
   </div>
   <div class="d-flex flex-column justify-content-center align-items-center" id="loading-div">
@@ -321,25 +325,36 @@
       .then(response => response.json())
       .then(data => {
         if (data.error) throw new Error(data.error);
-        if(isSpecialist){
-          if(data.data.hasConsultation){
-            const consData = fetch('/portal/api/consultations?filter=examination&filterValue=<%= examId %>')
+        if (data.data.hasConsultation) {
+          consBtn.href = `/portal/exams/<%= examId %>/consultation/`
+          const consData = fetch('/portal/api/consultations?filter=examination&filterValue=_id<%= examId %>')
             .then(consResponse => consResponse.json())
             .then(consData => {
-              if(consData.error) throw new Error(consData.error);
-              if(consData.data.consultant === `<%- user.id %> `){
+              console.log(consData.data[0])
+              if (consData.error) throw new Error(consData.error);
+              if (consData.data[0].consultant._id === `<%- user.id %>`) {
                 // show edit cons button
-              }else{
+                consBtn.innerHTML = `<%- pencilIcon %>`;
+                consBtn.classList.remove('d-none');
+                consBtn.classList.add('btn-warning');
+                consBtn.title = 'edit consultation'
+              } else {
                 // show view cons button
+                consBtn.innerHTML = `<%- eyeIcon %>`;
+                consBtn.classList.remove('d-none');
+                consBtn.classList.add('btn-primary');
+                consBtn.title = 'view consultation'
               }
             });
-            
-          }else{
-            consBtn.href= `/portal/exams/<%= examId %>/consultation/new`;
-            consBtn.classList.remove('d-none');
-            consBtn.classList.add('btn-primary');
-          }
+
+        } else if (isSpecialist) {
+          consBtn.href = `/portal/exams/<%= examId %>/consultation/new`;
+          consBtn.classList.remove('d-none');
+          consBtn.classList.add('btn-primary');
+          consBtn.title = 'begin new consultation'
         }
+
+
         handleExamData(data.data);
       })
       .catch(error => reportError(error));
@@ -393,7 +408,7 @@
 
       const magnifyIcon = createAndStyleIcon(ICON_DIMS, `<%- magnifyIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-warning', 'm-1');
       magnifyIcon.role = "enlarge preview";
-      magnifyIcon.addEventListener('click', e=>{
+      magnifyIcon.addEventListener('click', e => {
         enlargeImage(img.src);
       });
       const thumbnailContainer = document.createElement('div');
@@ -424,7 +439,7 @@
       thumbnailContainer.dataset.imageContainer = true;
 
       const magnifyIcon = createAndStyleIcon(dims, `<%- magnifyIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-warning', 'm-1');
-      magnifyIcon.addEventListener('click', e=>{
+      magnifyIcon.addEventListener('click', e => {
         enlargeImage(img.src);
       });
 
