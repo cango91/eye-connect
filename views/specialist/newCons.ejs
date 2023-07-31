@@ -1,0 +1,51 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navigation') %>
+<main class="container-lg mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="text-center">
+    <h3><span class="float-start d-none" id="back-btn"><a class="btn btn-secondary" href="/portal/exams">&larr; Back</a></span>New Consultation</h3>
+    <hr>
+  </div>
+  <div class="alert alert-danger d-none" id="alert-div"></div>
+  <div class="d-flex flex-column justify-content-center align-items-center" id="loading-div">
+    <h2 class="text-info">Creating new consultaion</h2>
+    <div><strong>Please wait...</strong></div>
+    <div class="spinner-border mt-2 text-warning" role="status">
+    </div>
+  </div>
+</main>
+<script>
+  const backBtn = document.getElementById('back-btn');
+  const loadingDiv = document.getElementById('loading-div');
+  const alertDiv = document.getElementById('alert-div');
+  const createCons = async () => {
+    const params = new URLSearchParams();
+    params.append('examId',`<%- examId %>`);
+    const response = await fetch('/portal/api/consultations', {
+      method: 'POST',
+      headers:{
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params.toString()
+    });
+    return await response.json();
+  }
+  const hideStatus = () => {
+    loadingDiv.classList.add('d-none');
+  }
+  const showError = (err) => {
+    backBtn.classList.remove('d-none');
+    alertDiv.classList.remove('d-none');
+    alertDiv.innerHTML = `Could not create consultation<br>Reason: ${response.error}`;
+  }
+  const redirectOrError = async () => {
+    const response = await createCons();
+    if (response.error) {
+      hideStatus();
+      showError(response.error);
+    } else {
+      window.location.href = `/portal/exams/<%- examId %>/consultation`;
+    }
+  }
+  window.addEventListener('load', redirectOrError);
+</script>
+<%- include('../partials/footer') %>

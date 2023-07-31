@@ -21,19 +21,25 @@ const getAllFiltered = async (req, res, next) => {
         const collation = { locale: 'en', strength: 2 };
         let query = {}
         if (filter && filter.endsWith('_id') && filterValue) filterValue = new Types.ObjectId(filterValue);
-        if (filterValue === 'true') filterValue = true;
-        if (filterValue === 'false') filterValue = false;
         if (filter && filterValue) query = { [filter]: filterValue };
-        if(hasImages){
-            if(Object.keys(query).length>0){
-                query = { $and: [
-                    {[filter]: filterValue},
-                    { 'numImages': {get: 0}}
-                ]}
-            }else{
-                query = {'numImages': {$gt: 0}};
+        //if (filterValue === 'true') filterValue = true;
+        if (filterValue === 'false') filterValue = false;
+        if (hasImages) {
+            if (Object.keys(query).length > 0) {
+                query = {
+                    $and: [
+                        { [filter]: filterValue },
+                        { 'numImages': { $gt: 0 } }
+                    ]
+                }
+            } else {
+                query = { 'numImages': { $gt: 0 } };
             }
+        } else {
+            if (Object.keys(query).length > 0)
+                query = { [filter]: filterValue };
         }
+        console.log(query);
         const results = await examsService.getExamsFiltered(query, sort, collation, skip, limit);
         const pageCount = Math.ceil(results.totalCount / limit);
         res.status(200).json({

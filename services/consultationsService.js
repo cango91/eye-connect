@@ -18,7 +18,7 @@ const getConsultationsFiltered = async (filterBefore, sort, collation, skip, lim
                 as: 'exam'
             },
         },
-        { $unwind: { path: 'exam' } },
+        { $unwind: { path: '$exam' } },
         { $unset: ['exam.images', 'exam.hasConsultation'] },
         {
             $lookup: {
@@ -28,7 +28,7 @@ const getConsultationsFiltered = async (filterBefore, sort, collation, skip, lim
                 as: 'patient'
             }
         },
-        { $unwind: { path: 'patient' } },
+        { $unwind: { path: '$patient' } },
         {
             $lookup: {
                 from: 'users',
@@ -37,8 +37,18 @@ const getConsultationsFiltered = async (filterBefore, sort, collation, skip, lim
                 as: 'examiner',
             }
         },
-        { $unwind: { path: 'examiner' } },
-        { $unset: ['examiner.email', 'examiner.password', 'examiner.validationStatus', 'examiner.notifications', 'examiner.additionalInfo'] },
+        { $unwind: { path: '$examiner' } },
+        { $unset: ['examiner.email', 'examiner.password', 'examiner.validationStatus', 'examiner.notifications', 'examiner.additionalInfo', 'examiner.googleId'] },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'consultant',
+                foreignField: '_id',
+                as: 'consultant'
+            },
+        },
+        { $unwind: { path: '$consultant' } },
+        { $unset: ['consultant.email', 'consultant.password', 'consultant.validationStatus', 'consultant.notifications', 'consultant.additionalInfo', 'consultant.googleId'] },
     ];
     if (Object.keys(filterAfter).length) {
         pipeline.push({ $match: filterAfter });
@@ -71,13 +81,19 @@ const getConsultationById = async consId => {
 }
 
 
-const createConsultationForExam = async (consData,examId) => {
+const createConsultationForExam = async (consData, examId) => {
     try {
-        if (!consData.consultant || !consData.examination) throw new Error('Missing required info');
+        if (!consData.consultant || !examId) throw new Error('Missing required info');
         if (!consData.notes) consData.notes = '';
+        const existingCons = await Cons.findOne({ examination: new ObjectId(examId) });
+        if (existingCons) throw new Error('Exam already has consultation');
+        consData.examination = await examsService.findById(examId);
+        if (consData.examination.images.length) {
+            consData.images = consData.examination.images.map(e => e);
+        } else {
+            consData.images = [];
+        }
         encryptConsNotes(consData);
-        const images = await examsService.findById(consData.examination).images;
-        consData.images = images.map(img => img instanceof ObjectId ? img : new ObjectId(img));
         const cons = await Cons.create(consData);
         eventService.emitEvent('consultationCreated', { consId: cons._id, examId: cons.examination });
         return cons._id;
@@ -87,8 +103,52 @@ const createConsultationForExam = async (consData,examId) => {
     }
 }
 
-const updateConsNotes = async notes =>{
+const updateConsultation = async consultationData => {
+    let { notes, retinopathyDiagnosis, id, userId } = consultationData;
+    if (!notes || !retinopathyDiagnosis || !['NoApparentDR', 'MildNPDR', 'ModerateNPDR', 'SevereNPDR', 'PDR'].includes(retinopathyDiagnosis)) throw new Error('Incomplete Consultation Data');
+    try {
+        const cons = await Cons.findById(id);
+        if (!cons) throw new Error('Consultation resource not found!');
+        if (userId) {
+            if (userId !== cons.consultant.toString()) throw new Error('Not authorized');
+        }
+        cons.notes = notes;
+        cons.retinopathyDiagnosis = retinopathyDiagnosis;
+        encryptConsNotes(cons);
+        await cons.save();
+        decryptConsNotes(cons);
+        eventService.emitEvent('consultationUpdated', { consId: cons._id, examId: cons.examination, consNotes: cons.notes, retinopathyDiagnosis: cons.retinopathyDiagnosis });
+        console.log(await cons.populate('examination'));
+        await userService.notifyUser((await cons.populate('examination')).examination.examiner, {
+            consultation: cons._id,
+            action: 'ConsUpdated',
+            href: '/portal/exams/' + cons.examination._id + '/consultation'
+        });
+        return cons;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
 
+const deleteCons = async (id, userId) => {
+    try {
+        const cons = await Cons.findById(id);
+        if (!cons) throw new Error('Consultation notfound!');
+        if (userId) {
+            if (cons.consultant.toString() !== userId) throw new Error('Not Authorized');
+        }
+        eventService.emitEvent('consultationDeleted', { consId: cons._id, examId: cons.examination });
+        if (cons.examination) userService.notifyUser((await cons.populate('examination')).examination.examiner, {
+            consultation: cons._id,
+            action: 'ConsRemoved',
+            href: '/portal/exams/' + cons.examination._id
+        });
+        await cons.deleteOne();
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 }
 
 const encryptConsNotes = cons => {
@@ -124,6 +184,8 @@ const onExamDeleted = async eventData => {
         if (cons) {
             const consultant = await userService.getUserById(cons.consultant);
             await userService.notifyUser(consultant, { action: 'ExamRemoved', consultation: new ObjectId(cons._id) });
+            cons.examination = null;
+            cons.save();
         }
     } catch (error) {
         console.error(error);
@@ -138,5 +200,6 @@ module.exports = {
     createConsultationForExam,
     getConsultationById,
     getConsultationsFiltered,
-    updateConsNotes,
+    updateConsultation,
+    delete: deleteCons,
 }

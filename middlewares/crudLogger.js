@@ -15,9 +15,15 @@ const crudLogger = (action, paramsFn = () => ({})) => {
                     actionString += `${key}: ${params[key]}\n`;
                 }
             }
-            const log = new CRUDLog({ action: actionString, userId: req.user.id });
-            await log.save({ validateBeforeSave: false });
-            next();
+            
+            try {
+                const log = new CRUDLog({ action: actionString, userId: req.user.id });
+                await log.save({ validateBeforeSave: false });
+                next();
+            } catch (error) {
+                console.log(error);
+                res.redirect('/portal/home');
+            }
         } catch (err) {
             console.error(err);
             next(err);

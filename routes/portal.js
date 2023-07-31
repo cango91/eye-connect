@@ -2,6 +2,7 @@ const express = require('express');
 const portalCtrl = require('../controllers/portalController');
 const patientsPortalCtrl = require('../controllers/portal/patientsController');
 const examsPortalCtrl = require('../controllers/portal/examsController');
+const consPortallCtrl = require('../controllers/portal/consController');
 const AuthenticateService = require('../services/authenticationService');
 const authenticate = new AuthenticateService();
 const ensureProfileComplete = require('../middlewares/ensureProfileComplete');
@@ -66,6 +67,9 @@ router.get('/exams/:id', authenticate.authenticate, ensureProfileComplete, autho
 // GET /portal/exams to view owned or all examinations for Field HCP
 router.get('/exams', authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_EXAMS'), crudLogger('View Exams', req => ({ ...req.query })), examsPortalCtrl.index);
 
+// GET /portal/exams/:id/consultation/new -> create new consultation for exam with id
+router.get('/exams/:id/consultation/new',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_NEW_CONS_PAGE'),crudLogger('View create new cons page',req=>({examId: req.params.id})),consPortallCtrl.new);
 
+router.get('/exams/:id/consultation',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_CONSULTATION'),crudLogger('View consultation',req=>({examId: req.params.id})),consPortallCtrl.details)
 
 module.exports = router;

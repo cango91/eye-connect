@@ -28,12 +28,12 @@ a {
   color: #333;
 }
 
-.img-fluid:not(.funduscopy) {
+/* .img-fluid:not(.enlarged-image) {
   max-width: 50%;
   height: auto;
   border-radius: 5px;
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.15);
-}
+} */
 
 footer ul>li.nav-item>a.nav-link.active,
 footer {

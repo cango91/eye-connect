@@ -1,0 +1,12 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navigation') %>
+<main class="container-lg mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="text-center">
+    <h3><%= error.title %></h3>
+    <hr>
+  </div>
+  <div class="alert alert-danger">
+    <%- error.message %>
+  </div>
+</main>
+<%- include('../partials/footer') %>
