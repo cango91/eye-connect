@@ -131,6 +131,26 @@ const updateConsultation = async consultationData => {
     }
 }
 
+const deleteCons = async (id,userId) =>{
+    try {
+        const cons = await Cons.findById(id);
+        if(!cons) throw new Error('Consultation notfound!');
+        if(userId){
+            if(cons.consultant.toString()!==userId) throw new Error('Not Authorized');
+        }
+        eventService.emitEvent('consultationDeleted',{consId: cons._id, examId: cons.examination});
+        userService.notifyUser((await cons.populate('examination')).examination.examiner,{
+            consultation: cons._id,
+            action: 'ConsRemoved',
+            href: '/portal/exams/' + cons.examination._id
+        });
+        await cons.deleteOne();
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
 const encryptConsNotes = cons => {
     if (cons.notes) {
         cons.notes = cryptoService.encryptText(cons.notes);
@@ -179,4 +199,5 @@ module.exports = {
     getConsultationById,
     getConsultationsFiltered,
     updateConsultation,
+    delete:deleteCons,
 }

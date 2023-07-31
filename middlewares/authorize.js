@@ -19,6 +19,7 @@ const authorizationDictionary = {
     VIEW_NEW_CONS_PAGE: ['SpecialistHCP'],
     CREATE_CONSULTATION: ['SpecialistHCP'],
     VIEW_CONSULTATION: ['SpecialistHCP','FieldHCP','MedicalDirector'],
+    DELETE_CONSULTATION: ['SpecialistHCP'],
 }
 
 const authorize = action => (req,res,next) =>{

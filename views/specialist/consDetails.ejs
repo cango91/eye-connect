@@ -90,7 +90,7 @@
     patientData = {},
     examNotes, examinerData = {},
     consultantData = {},
-    notesCache, diagnosis,consId;
+    notesCache, diagnosis, consId;
 
   const ICON_DIMS = [25, 25];
 
@@ -158,34 +158,60 @@
 
   const saveConsultation = async () => {
     try {
-        const params = new URLSearchParams();
-        params.append('notes',consNotesEl.value);
-        params.append('retinopathyDiagnosis',diagEl.value);
-        const response = await fetch(`/portal/api/consultations/${consId}?_method=put`,{
-            method:'post',
-            headers:{'Content-Type': 'application/x-www-form-urlencoded'},
-            body: params.toString(),
-        });
-        if(!response.ok){
-            throw new Error(await response.text());
-        }
-        data = await response.json();
-        notesCache = data.data.notes;
-        diagnosis = data.data.retinopathyDiagnosis;
-        showAlert('Update Successful','success');
-        saveEnabler({target: consNotesEl});
+      const params = new URLSearchParams();
+      params.append('notes', consNotesEl.value);
+      params.append('retinopathyDiagnosis', diagEl.value);
+      const response = await fetch(`/portal/api/consultations/${consId}?_method=put`, {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params.toString(),
+      });
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      data = await response.json();
+      notesCache = data.data.notes;
+      diagnosis = data.data.retinopathyDiagnosis;
+      showAlert('Update Successful', 'success');
+      saveEnabler({
+        target: consNotesEl
+      });
     } catch (error) {
-        console.error(error);
-        reportError(`Couldn't save consultation<br>${error}`);
+      console.error(error);
+      reportError(`Couldn't save consultation<br>${error}`);
     }
   }
 
   const deleteConsultation = async () => {
+    try {
+      const response = await fetch(`/portal/api/consultations/${consId}?_method=delete`, {
+        method: 'post'
+      });
+      if (response.ok) {
+        window.location.href = '/portal';
+      } else {
+        throw new Error(await response.text());
+      }
+    } catch (error) {
+      console.error(error);
+      reportError(`Couldn't delete consultation<br>${error}`);
 
+    }
   }
 
   const showDeleteConfirmation = () => {
-
+    const title = 'Are you sure you want to delete?';
+    const body = 'You are about to permanently delete this consultation. Are you sure you wish to proceed';
+    const cancelClass = ['btn', 'btn-success'];
+    const confirmClass = ['btn', 'btn-danger'];
+    const callback = async (decision) => {
+      if (decision) {
+        await deleteConsultation();
+      }
+    }
+    showConfirmation(title,body,cancelClass,confirmClass,callback);
   }
 
   const showUnsavedChangesConfirmation = () => {
@@ -233,9 +259,9 @@
 
   const saveEnabler = e => {
     const validDiagnosis = ['NoApparentDR', 'MildNPDR', 'ModerateNPDR', 'SevereNPDR', 'PDR'].includes(diagEl.value);
-    if(!validDiagnosis || !consNotesEl.value){
-        saveBtn.classList.add('disabled');
-        return;
+    if (!validDiagnosis || !consNotesEl.value) {
+      saveBtn.classList.add('disabled');
+      return;
     }
     if (`<%- user.id %>` === consultantData._id && (e.target.value !== notesCache || diagEl.value !== diagnosis)) {
       saveBtn.classList.remove('disabled');
@@ -313,7 +339,8 @@
 
     consNotesEl.addEventListener('input', saveEnabler);
     diagEl.addEventListener('change', saveEnabler);
-    saveBtn.addEventListener('click',saveConsultation);
+    saveBtn.addEventListener('click', saveConsultation);
+    document.getElementById('delete-btn').addEventListener('click',showDeleteConfirmation);
 
     showLoading();
     await fetchData();

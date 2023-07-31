@@ -24,15 +24,20 @@ const getAllFiltered = async (req, res, next) => {
         if (filter && filterValue) query = { [filter]: filterValue };
         //if (filterValue === 'true') filterValue = true;
         if (filterValue === 'false') filterValue = false;
-        if(hasImages){
-            if(Object.keys(query).length>0){
-                query = { $and: [
-                    {[filter]: filterValue},
-                    { 'numImages': {$gt: 0}}
-                ]}
-            }else{
-                query = {'numImages': {$gt: 0}};
+        if (hasImages) {
+            if (Object.keys(query).length > 0) {
+                query = {
+                    $and: [
+                        { [filter]: filterValue },
+                        { 'numImages': { $gt: 0 } }
+                    ]
+                }
+            } else {
+                query = { 'numImages': { $gt: 0 } };
             }
+        } else {
+            if (Object.keys(query).length > 0)
+                query = { [filter]: filterValue };
         }
         console.log(query);
         const results = await examsService.getExamsFiltered(query, sort, collation, skip, limit);

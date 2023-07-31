@@ -19,11 +19,9 @@
     const confirmModal = document.getElementById('confirmModal')
     const confModal = new bootstrap.Modal(confirmModal);
     const titleEl = document.getElementById('confirmModalLabel');
-    const bodyEl = confirmModal.querySelector('modal-body');
+    const bodyEl = confirmModal.querySelector('.modal-body');
     const confirmBtn = document.getElementById('confirm-modal-btn');
     const cancelBtn = document.getElementById('cancel-modal-btn');
-
-    imageModal.querySelector('.image-container img').src = imageSrc;
 
     title = title || 'Confirm Action';
     body = body || 'Are you sure you want to proceed'
@@ -33,12 +31,14 @@
     confirmBtn.innerText = confirmBtnTxt;
     cancelBtn.innerText = cancelBtnTxt;
 
+    confirmBtn.className = confirmBtnClasses.join(' ');
+    cancelBtn.className = cancelBtnClasses.join(' ');
 
 
 
-    confModal.show();
+
     if (callback) {
-      confModal.addEventListener('hidden.bs.modal', evt => {
+      confirmModal.addEventListener('hidden.bs.modal', evt => {
         callback(false);
       });
       confirmBtn.addEventListener('click', e => {
@@ -48,5 +48,6 @@
         callback(true);
       })
     }
+    confModal.show(confirmModal);
   }
 </script>

@@ -150,7 +150,8 @@ const onExamDeleted = async (eventData) => {
 const onConsCreated = async ({ examId, consId }) => {
     try {
         const funduscopies = await Funduscopy.find({ 'examination': new ObjectId(examId) });
-        if (!funduscopies.length) throw new Error('Funduscopy resource not found');
+        //if (!funduscopies || !funduscopies.length) throw new Error('Funduscopy resource not found');
+        if (!funduscopies || !funduscopies.length) return;
         for (let i = 0; i < funduscopies.length; i++) {
             let funduscopy = funduscopies[i];
 
@@ -172,7 +173,7 @@ const onConsCreated = async ({ examId, consId }) => {
                         resultString = 'Moderate non-proliferative Diabetic Retinopathy'
                         break;
                     case ('SevereNPDR'):
-                        resultString = 'Severe non-proliferative Diabetic Retinoathy'
+                        resultString = 'Severe non-proliferative Diabetic Retinopathy'
                         break;
                     case ('PDR'):
                         resultString = 'Proliferative Diabetic Retinopathy'
@@ -196,13 +197,76 @@ const onConsCreated = async ({ examId, consId }) => {
     }
 }
 
-const onConsDeleted = async ({examId, consId}) =>{
+const onConsUpdated = async ({examId, consId})=>{
+    try {
+        const funduscopies = await Funduscopy.find({ 'examination': new ObjectId(examId) });
+        if(funduscopies && funduscopies.length){
+            for (let i = 0; i < funduscopies.length; i++) {
+                let funduscopy = funduscopies[i];
+                const cons = await consService.getConsultationById(consId);
+                if (!cons) throw new Error('Consultation not found');
+                const diagnosis = cons.retinopathyDiagnosis;
+                if (diagnosis) {
+                    let resultString;
+                    switch (diagnosis) {
+                        case ('NoApparentDR'):
+                            resultString = 'No Apparent Diabetic Retinopathy';
+                            break;
+                        case ('MildNPDR'):
+                            resultString = 'Mild non-proliferative Diabetic Retinopathy'
+                            break;
+                        case ('ModerateNPDR'):
+                            resultString = 'Moderate non-proliferative Diabetic Retinopathy'
+                            break;
+                        case ('SevereNPDR'):
+                            resultString = 'Severe non-proliferative Diabetic Retinopathy'
+                            break;
+                        case ('PDR'):
+                            resultString = 'Proliferative Diabetic Retinopathy'
+                            break;
+                    }
+                    if (resultString) {
+                        funduscopy.verifiedResult = resultString;
+                        funduscopy.verifiedBy = cons.consultant;
+                        funduscopy.verified = true;
+                    } else {
+                        funduscopy.verifiedResult = '';
+                        funduscopy.verifiedBy = null;
+                        funduscopy.verified = false;
+                    }
+                }
+                await funduscopy.save();
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
 
+const onConsDeleted = async ({examId, consId}) =>{
+    try {
+        const funduscopies = await Funduscopy.find({consultation: new ObjectId(consId)});
+        if(funduscopies && funduscopies.length ){
+            for(let i=0; i< funduscopies.length; i++){
+                if(checkOrphaned(funduscopies[i],{checkConsultaion:false})){
+                    await funduscopies[i].deleteOne();
+                }else{
+                    funduscopies[i].consultation = null;
+                    await funduscopies[i].save();
+                }
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 }
 
 eventService.on('examDeleted', onExamDeleted);
 eventService.on('consultationCreated', onConsCreated);
 eventService.on('consultationDeleted',onConsDeleted);
+eventService.on('consultationUpdated',onConsUpdated);
 
 module.exports = {
     getImageById,

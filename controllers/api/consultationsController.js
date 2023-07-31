@@ -69,11 +69,21 @@ const updateConsultation = async (req, res, next) => {
     }
 }
 
+const deleteOne = async (req, res, next) => {
+    try {
+        await consService.delete(req.params.id, req.user.id);
+        res.status(200).json({ status: 204 });
+    } catch (error) {
+        console.log(error);
+        next(error);
+    }
+}
 
 module.exports = {
     getAllFiltered,
     getOne,
     createConsultationForExam,
     updateConsultation,
+    delete: deleteOne
 
 }
