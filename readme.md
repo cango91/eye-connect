@@ -12,7 +12,7 @@ Also, please be decent and don't share inappropriate content</blockquote>
 
 # Getting Started
 
-+ [Click here to visit the live deployment](eye-connect-6befc020749e.herokuapp.com/)
++ [Click here to visit the live deployment](https://eye-connect-6befc020749e.herokuapp.com/)
 + Click the `login` link on the navbar to get to the portal page.
 ![login screen policy pop-up](./docs/screenshots/localhost_3000_portal_login.png)
 You'll have to agree to the ToS, privacy policy and acknowledge you are healthcare professional (not really of course. Though server won't let you register/login without it)
