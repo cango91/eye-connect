@@ -18,9 +18,10 @@ const getAllFiltered = async (req, res, next) => {
         let query = {}
         if (filter && filter.endsWith('_id') && filterValue) filterValue = new ObjectId(filterValue);
         if (typeof filterValue === 'string' && filterValue.startsWith('_id')) filterValue = new ObjectId(filterValue.substring(3));
+        if (filter && filterValue) query = { [filter]: filterValue };
         if (filterValue === 'true') filterValue = true;
         if (filterValue === 'false') filterValue = false;
-        if (filter && filterValue) query = { [filter]: filterValue };
+
         const results = await consService.getConsultationsFiltered(query, sort, collation, skip, limit);
         const pageCount = Math.ceil(results.totalCount / limit);
         res.status(200).json({
@@ -58,10 +59,21 @@ const createConsultationForExam = async (req, res, next) => {
     }
 }
 
+const updateConsultation = async (req, res, next) => {
+    try {
+        const cons = await consService.updateConsultation({ userId: req.user.id, id: req.params.id, ...req.body });
+        res.status(200).json({ data: cons });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+}
+
 
 module.exports = {
     getAllFiltered,
     getOne,
     createConsultationForExam,
+    updateConsultation,
 
 }

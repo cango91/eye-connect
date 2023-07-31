@@ -13,5 +13,8 @@ router.get('/',authorize('GET_CONSULTATIONS'),crudLogger('Get all consultations'
 // POST portal/api/consultations -> create new consultation
 router.post('/',authorize('CREATE_CONSULTATION'),crudLogger('Get all consultations',req=>({examId: req.body.examId})),consApi.createConsultationForExam);
 
+// PUT /portal/api/consultations/:id
+router.put('/:id',authorize('CREATE_CONSULTATION'),crudLogger('Get all consultations',req=>({consId: req.params.id, ...req.body})),consApi.updateConsultation);
+
 
 module.exports = router;

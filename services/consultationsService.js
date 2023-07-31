@@ -85,6 +85,8 @@ const createConsultationForExam = async (consData, examId) => {
     try {
         if (!consData.consultant || !examId) throw new Error('Missing required info');
         if (!consData.notes) consData.notes = '';
+        const existingCons = await Cons.findOne({examination: new ObjectId(examId)});
+        if(existingCons) throw new Error('Exam already has consultation');
         consData.examination = await examsService.findById(examId);
         if (consData.examination.images.length) {
             consData.images = consData.examination.images.map(e => e);
@@ -101,8 +103,32 @@ const createConsultationForExam = async (consData, examId) => {
     }
 }
 
-const updateConsNotes = async notes => {
-
+const updateConsultation = async consultationData => {
+    let {notes, retinopathyDiagnosis, id, userId} = consultationData;
+    if(!notes || !retinopathyDiagnosis || !['NoApparentDR', 'MildNPDR', 'ModerateNPDR', 'SevereNPDR', 'PDR'].includes(retinopathyDiagnosis)) throw new Error('Incomplete Consultation Data');
+    try {
+        const cons = await Cons.findById(id);
+        if(!cons) throw new Error('Consultation resource not found!');
+        if(userId){
+            if(userId !== cons.consultant.toString()) throw new Error('Not authorized');
+        }
+        cons.notes = notes;
+        cons.retinopathyDiagnosis = retinopathyDiagnosis;
+        encryptConsNotes(cons);
+        await cons.save();
+        decryptConsNotes(cons);
+        eventService.emitEvent('consultationUpdated', { consId: cons._id, examId: cons.examination, consNotes: cons.notes, retinopathyDiagnosis: cons.retinopathyDiagnosis });
+        console.log(await cons.populate('examination'));
+        await userService.notifyUser((await cons.populate('examination')).examination.examiner,{
+            consultation: cons._id,
+            action: 'ConsUpdated',
+            href: '/portal/exams/' + cons.examination._id + '/consultation'
+        });
+        return cons;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
 }
 
 const encryptConsNotes = cons => {
@@ -152,5 +178,5 @@ module.exports = {
     createConsultationForExam,
     getConsultationById,
     getConsultationsFiltered,
-    updateConsNotes,
+    updateConsultation,
 }

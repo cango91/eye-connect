@@ -191,7 +191,6 @@ const onConsultationActionFactory = (action) => {
                     if(!exam) throw new ExamNotFound();
                     exam.hasConsultation = true;
                     await exam.save();
-                    await userService.notifyUser(exam.examiner, {action: 'ConsCreated', consultation: new ObjectId(consId)});
                     return;
                 } catch (error) {
                     console.error(error);
@@ -200,8 +199,17 @@ const onConsultationActionFactory = (action) => {
             }
             break;
         case 'removed':
-            fn = async ({ }) => {
-
+            fn = async ({ consId, examId }) => {
+                try {
+                    const exam = await Exam.findById(examId);
+                    if(!exam) throw new ExamNotFound();
+                    exam.hasConsultation = false;
+                    await exam.save();
+                    return;
+                } catch (error) {
+                    console.error(error);
+                    throw error;
+                }
             }
             break;
         case 'updated':

@@ -16,7 +16,9 @@ const notificationSchema = new Schema({
         enum: ['New', 'Acknowledged'],
         required: true,
         default: 'New'
-    }
+    },
+    href: String,
+    message: String,
 },
     {
         timestamps: true,

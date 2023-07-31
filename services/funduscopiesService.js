@@ -5,9 +5,9 @@ const eventService = require('./eventService');
 const consService = require('./consultationsService');
 const cvInit = require('../infra/opencvInit');
 let tf;
-try{
+try {
     tf = require('@tensorflow/tfjs-node');
-}catch (error) {
+} catch (error) {
     tf = require('@tensorflow/tfjs');
 }
 const ObjectId = require('mongoose').Types.ObjectId;
@@ -49,7 +49,7 @@ const getImageById = async id => {
     };
 }
 
-const resizeImage = async (imageData, dims,mimetype) => {
+const resizeImage = async (imageData, dims, mimetype) => {
     await cvInit();
     dims = dims || [512, 512];
     const array = tf.node.decodeImage(new Uint8Array(imageData), 3);
@@ -72,7 +72,7 @@ const getThumbnailById = async (id, thumbnailDimensions = [256, 256]) => {
         const image = encryptedImage.image;
 
         image.data = cryptoService.decrypt(image.data);
-  
+
         const dims = thumbnailDimensions.map(dim => Number(parseInt(dim)));
 
         const newData = Buffer.from(await resizeImage(image.data, dims))
@@ -142,57 +142,67 @@ const onExamDeleted = async (eventData) => {
             }
         }
     } catch (error) {
-
+        console.error(error);
+        throw error;
     }
 }
 
 const onConsCreated = async ({ examId, consId }) => {
     try {
-        const funduscopy = await Funduscopy.findOne({ 'examination': new ObjectId(examId) });
-        if (!funduscopy) throw new Error('Funduscopy resource not found');
-        if (funduscopy.consultation) throw new Error('Image already has consultation');
-        funduscopy.consultation = new ObjectId(consId);
-        const cons = await consService.getConsultationById(consId);
-        if (!cons) throw new Error('Consultation not found');
-        const diagnosis = cons.retinopathyDiagnosis;
-        if (diagnosis) {
-            let resultString;
-            switch (diagnosis) {
-                case ('NoApparentDR'):
-                    resultString = 'No Apparent Diabetic Retinopathy';
-                    break;
-                case ('MildNPDR'):
-                    resultString = 'Mild non-proliferative Diabetic Retinopathy'
-                    break;
-                case ('ModerateNPDR'):
-                    resultString = 'Moderate non-proliferative Diabetic Retinopathy'
-                    break;
-                case ('SevereNPDR'):
-                    resultString = 'Severe non-proliferative Diabetic Retinoathy'
-                    break;
-                case ('PDR'):
-                    resultString = 'Proliferative Diabetic Retinopathy'
-                    break;
+        const funduscopies = await Funduscopy.find({ 'examination': new ObjectId(examId) });
+        if (!funduscopies.length) throw new Error('Funduscopy resource not found');
+        for (let i = 0; i < funduscopies.length; i++) {
+            let funduscopy = funduscopies[i];
+
+            if (funduscopy.consultation) throw new Error('Image already has consultation');
+            funduscopy.consultation = new ObjectId(consId);
+            const cons = await consService.getConsultationById(consId);
+            if (!cons) throw new Error('Consultation not found');
+            const diagnosis = cons.retinopathyDiagnosis;
+            if (diagnosis) {
+                let resultString;
+                switch (diagnosis) {
+                    case ('NoApparentDR'):
+                        resultString = 'No Apparent Diabetic Retinopathy';
+                        break;
+                    case ('MildNPDR'):
+                        resultString = 'Mild non-proliferative Diabetic Retinopathy'
+                        break;
+                    case ('ModerateNPDR'):
+                        resultString = 'Moderate non-proliferative Diabetic Retinopathy'
+                        break;
+                    case ('SevereNPDR'):
+                        resultString = 'Severe non-proliferative Diabetic Retinoathy'
+                        break;
+                    case ('PDR'):
+                        resultString = 'Proliferative Diabetic Retinopathy'
+                        break;
+                }
+                if (resultString) {
+                    funduscopy.verifiedResult = resultString;
+                    funduscopy.verifiedBy = cons.consultant;
+                    funduscopy.verified = true;
+                } else {
+                    funduscopy.verifiedResult = '';
+                    funduscopy.verifiedBy = null;
+                    funduscopy.verified = false;
+                }
             }
-            if (resultString) {
-                funduscopy.verifiedResult = resultString;
-                funduscopy.verifiedBy = cons.consultant;
-                funduscopy.verified = true;
-            } else {
-                funduscopy.verifiedResult = '';
-                funduscopy.verifiedBy = null;
-                funduscopy.verified = false;
-            }
+            await funduscopy.save();
         }
-        await funduscopy.save();
     } catch (error) {
         console.error(error);
         throw error;
     }
 }
 
+const onConsDeleted = async ({examId, consId}) =>{
+
+}
+
 eventService.on('examDeleted', onExamDeleted);
-eventService.on('ConsCreated', onConsCreated);
+eventService.on('consultationCreated', onConsCreated);
+eventService.on('consultationDeleted',onConsDeleted);
 
 module.exports = {
     getImageById,

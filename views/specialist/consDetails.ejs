@@ -72,7 +72,7 @@
 <script>
   const mainEl = document.getElementById('main-div');
   const loadingEl = document.getElementById('loading-div');
-  const alertDiv = document.querySelector('.alert');
+  const alertDiv = document.querySelector('.alert.alert-danger.d-none');
   const dobEl = document.getElementById('dob');
   const ageEl = document.getElementById('patient-age');
   const genderEl = document.getElementById('patient-gender');
@@ -90,7 +90,7 @@
     patientData = {},
     examNotes, examinerData = {},
     consultantData = {},
-    notesCache, diagnosis;
+    notesCache, diagnosis,consId;
 
   const ICON_DIMS = [25, 25];
 
@@ -150,9 +150,34 @@
       target: consNotesEl
     });
   }
+  const showAlert = (message, type) => {
+    const alertDiv = document.getElementById('alert-div');
+    alertDiv.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' + message +
+      '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+  }
 
   const saveConsultation = async () => {
-
+    try {
+        const params = new URLSearchParams();
+        params.append('notes',consNotesEl.value);
+        params.append('retinopathyDiagnosis',diagEl.value);
+        const response = await fetch(`/portal/api/consultations/${consId}?_method=put`,{
+            method:'post',
+            headers:{'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params.toString(),
+        });
+        if(!response.ok){
+            throw new Error(await response.text());
+        }
+        data = await response.json();
+        notesCache = data.data.notes;
+        diagnosis = data.data.retinopathyDiagnosis;
+        showAlert('Update Successful','success');
+        saveEnabler({target: consNotesEl});
+    } catch (error) {
+        console.error(error);
+        reportError(`Couldn't save consultation<br>${error}`);
+    }
   }
 
   const deleteConsultation = async () => {
@@ -185,6 +210,7 @@
         examNotes = data.data[0].exam.notes;
         consNotes = data.data[0].notes;
         diagnosis = data.data[0].retinopathyDiagnosis || '';
+        consId = data.data[0]._id;
         notesCache = consNotes;
         updateDOM();
         hideLoading();
@@ -287,6 +313,7 @@
 
     consNotesEl.addEventListener('input', saveEnabler);
     diagEl.addEventListener('change', saveEnabler);
+    saveBtn.addEventListener('click',saveConsultation);
 
     showLoading();
     await fetchData();

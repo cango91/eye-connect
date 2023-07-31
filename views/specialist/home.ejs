@@ -1,6 +1,6 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
-<main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
+<main class="container-xxl mt-5 py-4 bg-light shadow-lg rounded">
   <div class="modal fade" id="genericModal" tabindex="-1" aria-labelledby="genericModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -20,7 +20,7 @@
   <div class="text-center mb-3">
     <h2>Specialist HCP - Home</h2>
   </div>
-  <div class="container-lg">
+  <div class="container-xl">
     <div class="row">
       <script>
         const createThumbnailContainer = () => {
@@ -48,7 +48,7 @@
           });
         }
       </script>
-      <div class="col-md-8">
+      <div class="col-md-7">
         <%- include('../partials/tableComponent', {...awaitingConsultationsTable}); %>
         <div id="toggleContainer" class="float-end">
           <span></span>
@@ -60,7 +60,7 @@
         </div>
         <div class="float-end"><a href="/portal/exams">Go to awaiting consultations</a></div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-5">
         <%- include('../partials/tableComponent', {...recentConsultationsTable}); %>
         <div class="float-end"><a href="/portal/consultations">Go to your consultations</a></div>
       </div>

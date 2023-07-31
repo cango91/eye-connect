@@ -30,11 +30,11 @@ module.exports = class Utils {
                 },
                 {
                     text: 'Awaiting Consultations',
-                    href: '/portal/consultations'
+                    href: '/portal/exams'
                 },
                 {
                     text: 'Completed Consultations',
-                    href: '/portal/exams'
+                    href: '/portal/consultations'
                 }
                 ]
             }],
@@ -229,6 +229,19 @@ module.exports = class Utils {
 
                         }
                     });`,
+                },
+                {
+                    text: '',
+                    parseFunction: `(val,td) => new Promise(resolve => {
+                        const svg = '${Utils.Icons.PencilIcon}';
+                        const a = document.createElement('a');
+                        a.href = '/portal/exams/' + val + '/consultation';
+                        a.className = 'btn btn-warning';
+                        a.innerHTML = svg;
+                        a.title = 'edit your consultation';
+                        td.appendChild(a);
+                        resolve();
+                    });`,
                 }
             ],
             FetchFunction: `(opts)=>{
@@ -249,7 +262,7 @@ module.exports = class Utils {
                     .then(data => {
                         const rows = [];
                         data.data.forEach(item => {
-                            rows.push([ getDate(item.date), item.patient.name, item.retinopathDiagnosis ],
+                            rows.push([ getDate(item.date), item.patient.name, item.retinopathyDiagnosis, item.examination ],
                             );
                         });
                         opts.limit = data.limit ? data.limit : opts.limit;
