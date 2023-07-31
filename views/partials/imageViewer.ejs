@@ -1,0 +1,47 @@
+<div class="modal fade" id="imageViewModal" tabindex="-1" aria-labelledby="imageViewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <div class="image-container overflow-auto">
+          <img src="" alt="" class="img-fluid enlarged-image">
+        </div>
+
+        <div class="notes-container d-none">
+          <textarea class="form-control border border-info mt-2" id="cons-notes-area" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const enlargeImage = (imageSrc, noteText = '', showNoteArea = false, noteAreaDisabled = true, callback) => {
+    const imageModal = document.getElementById('imageViewModal')
+    const imModal = new bootstrap.Modal(imageModal);
+    const noteArea = document.getElementById('cons-notes-area');
+
+    imageModal.querySelector('.image-container img').src = imageSrc;
+
+    if (showNoteArea) {
+      imageModal.querySelector('.notes-container').classList.remove('d-none');
+      noteArea.value = noteText;
+    } else {
+      imageModal.querySelector('.notes-container').classList.add('d-none');
+    }
+    if (noteAreaDisabled) {
+      noteArea.disabled = true;
+    } else {
+      noteArea.disabled = false;
+    }
+    if (callback) {
+      imageModal.addEventListener('hidden.bs.modal', evt => {
+        callback(noteArea.value);
+      });
+    }
+    imModal.show(imageModal);
+
+  }
+</script>

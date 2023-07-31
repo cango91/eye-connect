@@ -36,7 +36,6 @@ const consultationSchema = new Schema({
     },
     notes: {
         type: String,
-        required: true,
     },
     examination: {
         type: Schema.Types.ObjectId,

@@ -10,7 +10,8 @@ const router = express.Router();
 // GET /consultations -> return all consultations. filter by query params
 router.get('/',authorize('GET_CONSULTATIONS'),crudLogger('Get all consultations',req=>({...req.query})),consApi.getAllFiltered);
 
-// GET /consultations/:id -> return single consultation with id
-// POST /examinations/:id/consultations -> create new consultation for exam with id
+// POST portal/api/consultations -> create new consultation
+router.post('/',authorize('CREATE_CONSULTATION'),crudLogger('Get all consultations',req=>({examId: req.body.examId})),consApi.createConsultationForExam);
+
 
 module.exports = router;

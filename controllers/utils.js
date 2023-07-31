@@ -34,7 +34,7 @@ module.exports = class Utils {
                 },
                 {
                     text: 'Completed Consultations',
-                    href: '/portal/consultations/explore'
+                    href: '/portal/exams'
                 }
                 ]
             }],
@@ -107,7 +107,7 @@ module.exports = class Utils {
                     const titles = ['start new consultation','view exam details'];
                     const svgs = ['${Utils.Icons.PaperIcon}', '${Utils.Icons.EyeIcon}'];
                     const classes = ['btn btn-primary collapse-btn-icon','btn btn-info collapse-btn-icon'];
-                    const hrefs = ['/portal/exams/' + data.examId + '/cons/new', '/portal/exams/' + data.examId]
+                    const hrefs = ['/portal/exams/' + data.examId + '/consultation/new', '/portal/exams/' + data.examId]
                     for(let i = 0; i<svgs.length; i++){
                         const a = document.createElement('a');
                         a.href = hrefs[i];

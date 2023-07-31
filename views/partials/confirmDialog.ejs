@@ -1,0 +1,52 @@
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn " data-bs-dismiss="modal" id="cancel-modal-btn"></button>
+        <button type="button" class="btn " id="confirm-modal-btn"></button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const showConfirmation = (title, body, cancelBtnClasses = ['btn-danger'], confirmBtnClasses = ['btn-success'], callback, autoDisposeOnConfirm = true, cancelBtnTxt = 'Cancel', confirmBtnTxt = 'Confirm') => {
+    const confirmModal = document.getElementById('confirmModal')
+    const confModal = new bootstrap.Modal(confirmModal);
+    const titleEl = document.getElementById('confirmModalLabel');
+    const bodyEl = confirmModal.querySelector('modal-body');
+    const confirmBtn = document.getElementById('confirm-modal-btn');
+    const cancelBtn = document.getElementById('cancel-modal-btn');
+
+    imageModal.querySelector('.image-container img').src = imageSrc;
+
+    title = title || 'Confirm Action';
+    body = body || 'Are you sure you want to proceed'
+
+    titleEl.innerHTML = title;
+    bodyEl.innerHTML = body;
+    confirmBtn.innerText = confirmBtnTxt;
+    cancelBtn.innerText = cancelBtnTxt;
+
+
+
+
+    confModal.show();
+    if (callback) {
+      confModal.addEventListener('hidden.bs.modal', evt => {
+        callback(false);
+      });
+      confirmBtn.addEventListener('click', e => {
+        if (autoDisposeOnConfirm) {
+          confModal.dispose();
+        }
+        callback(true);
+      })
+    }
+  }
+</script>

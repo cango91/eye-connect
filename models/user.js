@@ -11,6 +11,12 @@ const notificationSchema = new Schema({
         type: String,
         enum: ['ConsRemoved', 'ConsUpdated', 'ConsCreated','ImageAdded','ImageRemoved','ExamNotesUpdated','ExamRemoved'],
     },
+    status:{
+        type: String,
+        enum: ['New', 'Acknowledged'],
+        required: true,
+        default: 'New'
+    }
 },
     {
         timestamps: true,

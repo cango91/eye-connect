@@ -38,7 +38,17 @@ const getConsultationsFiltered = async (filterBefore, sort, collation, skip, lim
             }
         },
         { $unwind: { path: '$examiner' } },
-        { $unset: ['examiner.email', 'examiner.password', 'examiner.validationStatus', 'examiner.notifications', 'examiner.additionalInfo'] },
+        { $unset: ['examiner.email', 'examiner.password', 'examiner.validationStatus', 'examiner.notifications', 'examiner.additionalInfo', 'examiner.googleId'] },
+        { 
+            $lookup: {
+                from: 'users',
+                localField: 'consultant',
+                foreignField: '_id',
+                as: 'consultant'
+            },
+        },
+        {$unwind: {path: '$consultant'}},
+        { $unset: ['consultant.email', 'consultant.password', 'consultant.validationStatus', 'consultant.notifications', 'consultant.additionalInfo', 'consultant.googleId'] },
     ];
     if (Object.keys(filterAfter).length) {
         pipeline.push({ $match: filterAfter });
@@ -71,13 +81,17 @@ const getConsultationById = async consId => {
 }
 
 
-const createConsultationForExam = async (consData,examId) => {
+const createConsultationForExam = async (consData, examId) => {
     try {
-        if (!consData.consultant || !consData.examination) throw new Error('Missing required info');
+        if (!consData.consultant || !examId) throw new Error('Missing required info');
         if (!consData.notes) consData.notes = '';
+        consData.examination = await examsService.findById(examId);
+        if (consData.examination.images.length) {
+            consData.images = consData.examination.images.map(e => e);
+        } else {
+            consData.images = [];
+        }
         encryptConsNotes(consData);
-        const images = await examsService.findById(consData.examination).images;
-        consData.images = images.map(img => img instanceof ObjectId ? img : new ObjectId(img));
         const cons = await Cons.create(consData);
         eventService.emitEvent('consultationCreated', { consId: cons._id, examId: cons.examination });
         return cons._id;
@@ -87,7 +101,7 @@ const createConsultationForExam = async (consData,examId) => {
     }
 }
 
-const updateConsNotes = async notes =>{
+const updateConsNotes = async notes => {
 
 }
 

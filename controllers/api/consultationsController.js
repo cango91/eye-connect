@@ -17,6 +17,7 @@ const getAllFiltered = async (req, res, next) => {
         const collation = { locale: 'en', strength: 2 };
         let query = {}
         if (filter && filter.endsWith('_id') && filterValue) filterValue = new ObjectId(filterValue);
+        if (typeof filterValue === 'string' && filterValue.startsWith('_id')) filterValue = new ObjectId(filterValue.substring(3));
         if (filterValue === 'true') filterValue = true;
         if (filterValue === 'false') filterValue = false;
         if (filter && filterValue) query = { [filter]: filterValue };
@@ -47,18 +48,20 @@ const getOne = async (req, res, next) => {
 const createConsultationForExam = async (req, res, next) => {
     try {
         const cons = await consService.createConsultationForExam({
-            consultantId: req.user.id,
+            consultant: req.user.id,
             notes: req.body.notes || '',
-        }, req.params.id);
-        res.status(200).json({ data: cons._id });
+        }, req.body.examId);
+        res.status(200).json({ data: cons });
     } catch (error) {
         console.error(error);
         next(error);
     }
 }
 
+
 module.exports = {
     getAllFiltered,
     getOne,
     createConsultationForExam,
+
 }
