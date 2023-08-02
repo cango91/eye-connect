@@ -81,6 +81,7 @@ const details = (req, res, next) => {
             removeAllIcon: Utils.Icons.CrossIcon,
             eyeIcon: Utils.Icons.EyeIcon,
             pencilIcon: Utils.Icons.PencilIcon,
+            resultIcon: Utils.Icons.ImageIcon,
         });
     } else if (req.user.role === 'SpecialistHCP') {
         try {
@@ -101,6 +102,7 @@ const details = (req, res, next) => {
                 removeAllIcon: Utils.Icons.CrossIcon,
                 eyeIcon: Utils.Icons.EyeIcon,
                 pencilIcon: Utils.Icons.PencilIcon,
+                resultIcon: Utils.Icons.ImageIcon,
             });
         } catch (error) {
             res.redirect('genericError', {

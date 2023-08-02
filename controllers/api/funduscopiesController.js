@@ -18,20 +18,9 @@ const create = async (req,res,next) =>{
             buffer: req.file.buffer,
             contentType: req.file.mimetype,
         });
-        res.status(200).json({data: fundus._id});
+        res.status(200).json({data: {_id: fundus._id, classificationResult: fundus.classificationResult}});
     } catch (error) {
         console.error(error);;
-        next(error);
-    }
-}
-
-const getFuncuscopyAsThumbnail = async (req,res,next) =>{
-    try {
-        const dims = [req.query?.width || 256, req.query?.height || 256];
-        const response = await fundusService.getThumbnailById(req.params.id, dims);
-        res.status(200).json({data:response});
-    } catch (error) {
-        console.error(error);
         next(error);
     }
 }
@@ -39,5 +28,4 @@ const getFuncuscopyAsThumbnail = async (req,res,next) =>{
 module.exports = {
     getSingleFunduscopy,
     create,
-    getFuncuscopyAsThumbnail,
 }

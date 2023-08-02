@@ -1,6 +1,27 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="modal fade" id="classificationModal" tabindex="-1" aria-labelledby="classificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="classificationModalLabel">Automatic Image Classification Results</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <h5>Results:</h5>
+          <p>
+            <b>Result: </b><span id="result"></span><br>
+            <b>Value: </b><small><span id="val"></span></small>
+          </p>
+          <p>Please note that this results are automatically generated and may not be accurate. Please consult with an ophthalmologist for a definitive diagnosis.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -175,6 +196,9 @@
   const backBtn = document.getElementById('confirm-back-btn');
   const confirmBack = document.getElementById('confirmBackBtn');
   const consBtn = document.getElementById('go-to-consultation-btn');
+  const classVal = document.getElementById('val');
+  const classResult = document.getElementById('result');
+  const resultModal = document.getElementById('classificationModal')
 
   const magnifySvg = `<%- magnifyIcon %>`;
 
@@ -402,21 +426,42 @@
           img.src = src;
         });
       } else {
-        img.src = images[i];
+        img.src = images[i].src;
       }
-      img.className = 'img-thumbnail';
 
       const magnifyIcon = createAndStyleIcon(ICON_DIMS, `<%- magnifyIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-warning', 'm-1');
       magnifyIcon.role = "enlarge preview";
       magnifyIcon.addEventListener('click', e => {
         enlargeImage(img.src);
       });
+
+      const classificationResult = createAndStyleIcon(ICON_DIMS, `<%- resultIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-info', 'm-1');
+      classificationResult.role = "view automatic classification result"
+      classificationResult.dataset.resultVal = images[i].classificationResult.value;
+      classificationResult.dataset.resultStr = images[i].classificationResult.result;
+      classificationResult.addEventListener('click', e => {
+        const target = e.target.closest('span.btn');
+        const value = target.dataset.resultVal;
+        const string = target.dataset.resultStr;
+        const modal = new bootstrap.Modal(resultModal);
+        classVal.innerText = value;
+        classResult.innerHTML = string
+          .replace(/(POSITIVE)/g, '<b><span class="text-danger">$1</span></b>')
+          .replace(/(NEGATIVE)/g, '<b><span class="text-success">$1</span></b>')
+          .replace(/(high)/g, '<b><span class="text-success">$1</span></b>')
+          .replace(/(low)/g, '<b><span class="text-warning">$1</span></b>')
+          .replace(/(very low)/g, '<b><span class="text-danger">$1</span></b>');
+        modal.show();
+
+      });
+
       const thumbnailContainer = document.createElement('div');
       thumbnailContainer.className = 'position-relative d-flex';
 
       let container = document.createElement('div');
       container.className = 'position-absolute d-flex flex-column justify-content-start';
       container.appendChild(magnifyIcon);
+      container.appendChild(classificationResult);
 
       thumbnailContainer.appendChild(img);
       thumbnailContainer.appendChild(container);
@@ -528,7 +573,11 @@
         body: formData
       });
       if (response.ok) {
-        displayImages([target.src]);
+        data = await response.json();
+        displayImages([{
+          src: target.src,
+          classificationResult: data.data.classificationResult
+        }]);
         removePreview(target);
       } else {
         showAlert(`Couldn't upload imag<br>${await response.text()}`);

@@ -3,13 +3,6 @@ const aiService = require('./aiService.js');
 const cryptoService = require('./cryptoService');
 const eventService = require('./eventService');
 const consService = require('./consultationsService');
-const cvInit = require('../infra/opencvInit');
-let tf;
-try {
-    tf = require('@tensorflow/tfjs-node');
-} catch (error) {
-    tf = require('@tensorflow/tfjs');
-}
 const ObjectId = require('mongoose').Types.ObjectId;
 
 const getImageById = async id => {
@@ -49,71 +42,24 @@ const getImageById = async id => {
     };
 }
 
-const resizeImage = async (imageData, dims, mimetype) => {
-    await cvInit();
-    dims = dims || [512, 512];
-    const array = tf.node.decodeImage(new Uint8Array(imageData), 3);
-    const matOrg = cv.matFromArray(array.shape[0], array.shape[1], cv.CV_8UC3, array.flatten().arraySync());
-    const mat = new cv.Mat();
-    cv.resize(matOrg, mat, new cv.Size(dims[0], dims[1]), 0, 0, cv.INTER_AREA);
-    matOrg.delete();
-    const tensor = tf.tensor(mat.data, [mat.rows, mat.cols, 3]);
-    const result = tf.node.encodePng(tensor);
-    mat.delete();
-    tensor.dispose();
-    array.dispose();
-    return result;
-}
-
-const getThumbnailById = async (id, thumbnailDimensions = [256, 256]) => {
-    try {
-        const encryptedImage = await Funduscopy.findById(id);
-        if (!encryptedImage) throw new Error('Resource not found');
-        const image = encryptedImage.image;
-
-        image.data = cryptoService.decrypt(image.data);
-
-        const dims = thumbnailDimensions.map(dim => Number(parseInt(dim)));
-
-        const newData = Buffer.from(await resizeImage(image.data, dims))
-
-        const thumbnail = {
-            id: encryptedImage._id,
-            image: {
-                data: newData,
-                contentType: image.contentType,
-            },
-            examination: encryptedImage.examination,
-        };
-        return thumbnail;
-
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-}
-
 const create = async (data) => {
     try {
         const { buffer, contentType, examId } = data;
         if (!buffer || !contentType || !examId) throw new Error('Missing necessary information');
-        //await eventService.emitEventWithResponse('resourceLockRequest', { schema: 'Exam', id: examId });
+        
+        const classificationResult = await aiService.classifyImage(buffer, contentType);
         const image = { contentType, data: cryptoService.encrypt(buffer) };
 
         const funduscopy = new Funduscopy({
             image,
             examination: new ObjectId(examId),
         });
-        const result = await aiService.classifyFunduscopy(funduscopy);
-        funduscopy.$set('classificationResult.value', result.vaule);
-        funduscopy.$set('classificationResult.result', result.result);
-        // await funduscopy.save();
-        // eventService.emitEvent('resourceLockRelease',{
-        //     schema: 'Exam',
-        //     id: examId,
-        // });
+
+        funduscopy.$set('classificationResult.value', classificationResult.value);
+        funduscopy.$set('classificationResult.result', classificationResult.result);
+
         await funduscopy.save();
-        eventService.emitEvent('imageCreated', { imageId: funduscopy._id, examId: examId });
+        eventService.emitEvent('imageCreated', { imageId: funduscopy._id, examId: examId, classificationResult });
         return funduscopy;
     } catch (e) {
         throw e;
@@ -197,10 +143,10 @@ const onConsCreated = async ({ examId, consId }) => {
     }
 }
 
-const onConsUpdated = async ({examId, consId})=>{
+const onConsUpdated = async ({ examId, consId }) => {
     try {
         const funduscopies = await Funduscopy.find({ 'examination': new ObjectId(examId) });
-        if(funduscopies && funduscopies.length){
+        if (funduscopies && funduscopies.length) {
             for (let i = 0; i < funduscopies.length; i++) {
                 let funduscopy = funduscopies[i];
                 const cons = await consService.getConsultationById(consId);
@@ -244,14 +190,14 @@ const onConsUpdated = async ({examId, consId})=>{
     }
 }
 
-const onConsDeleted = async ({examId, consId}) =>{
+const onConsDeleted = async ({ examId, consId }) => {
     try {
-        const funduscopies = await Funduscopy.find({consultation: new ObjectId(consId)});
-        if(funduscopies && funduscopies.length ){
-            for(let i=0; i< funduscopies.length; i++){
-                if(checkOrphaned(funduscopies[i],{checkConsultaion:false})){
+        const funduscopies = await Funduscopy.find({ consultation: new ObjectId(consId) });
+        if (funduscopies && funduscopies.length) {
+            for (let i = 0; i < funduscopies.length; i++) {
+                if (checkOrphaned(funduscopies[i], { checkConsultaion: false })) {
                     await funduscopies[i].deleteOne();
-                }else{
+                } else {
                     funduscopies[i].consultation = null;
                     await funduscopies[i].save();
                 }
@@ -265,11 +211,10 @@ const onConsDeleted = async ({examId, consId}) =>{
 
 eventService.on('examDeleted', onExamDeleted);
 eventService.on('consultationCreated', onConsCreated);
-eventService.on('consultationDeleted',onConsDeleted);
-eventService.on('consultationUpdated',onConsUpdated);
+eventService.on('consultationDeleted', onConsDeleted);
+eventService.on('consultationUpdated', onConsUpdated);
 
 module.exports = {
     getImageById,
     create,
-    getThumbnailById,
 }

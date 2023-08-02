@@ -4,17 +4,13 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "jest",
-    "heroku-postbuild": "npm rebuild @tensorflow/tfjs-node --update-binary"
+    "test": "jest"
   },
   "dependencies": {
-    "@tensorflow/tfjs-node": "^4.9.0",
-    "@tensorflow/tfjs": "^4.9.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
-    "emscripten": "^0.0.2-beta",
     "express": "^4.18.2",
     "express-mongo-sanitize": "^2.2.0",
     "express-session": "^1.17.3",
@@ -27,9 +23,6 @@
     "passport-google-oauth": "^2.0.0",
     "passport-local": "^1.0.0",
     "uuid": "^9.0.0"
-  },
-  "optionalDependencies": {
-    
   },
   "devDependencies": {
     "jest": "^29.6.1"

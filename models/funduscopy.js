@@ -33,6 +33,10 @@ const funduscopySchema = new Schema({
     verifiedResult: {
         type: String
     },
+    patient: {
+        type: Schema.Types.ObjectId,
+        ref: 'Patient'
+    },
     examination: {
         type: Schema.Types.ObjectId,
         ref: 'Examination',

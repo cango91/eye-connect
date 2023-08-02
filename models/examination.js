@@ -24,6 +24,10 @@ const examinationSchema = new Schema({
         type: Boolean,
         default: false,
     },
+    consultation: {
+        type: Schema.Types.ObjectId,
+        ref: 'Consultation'
+    },
     images: [{
         type: Schema.Types.ObjectId,
         ref: 'Funduscopy'
