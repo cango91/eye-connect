@@ -160,42 +160,53 @@ a.dropdown-item.active {
   margin: .25rem !important;
 }
 
-#image-container{
+#image-container {
   height: 250px;
 }
 
-#new-patient-btn{
+#new-patient-btn {
   background-color: whitesmoke;
   border-width: 2px;
 }
 
-#new-patient-btn:hover{
+#new-patient-btn:hover {
   background-color: rgb(238, 238, 238);
 }
-#new-patient-btn:active{
+
+#new-patient-btn:active {
   background-color: rgb(216, 215, 215);
 }
-#new-patient-btn *{
+
+#new-patient-btn * {
   fill: #198754;
 }
 
-#examImageUpload{
+#examImageUpload {
   opacity: 0;
   height: 0;
 }
 
-#session-images{
-  text-wrap:nowrap;
+#session-images {
+  text-wrap: nowrap;
   align-self: center;
 }
-.btn-magnify{
+
+.btn-magnify {
   border-radius: 5%;
 }
 
-.btn-magnify:hover{
+.btn-magnify:hover {
   background-color: rgba(246, 193, 68, 0.929) !important;
 }
 
-.img-thumbnail{
+.img-thumbnail {
   max-width: 350px;
+}
+
+tr.clickable-row {
+  cursor: pointer;
+}
+
+tr.clickable-row:hover *{
+  font-weight: 800;
 }

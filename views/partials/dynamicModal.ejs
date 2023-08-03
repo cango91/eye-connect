@@ -1,0 +1,60 @@
+<!-- 
+    params: btns(array[HTMLElement], will be appended from index 0 to last), title, body, onDismissCallback, autoDisposeOnDismiss = true 
+    returns: bootstrap.Modal that .show() can be called on.
+-->
+<script>
+  const makeModal = (btns, title, body, onDismissCb, autoDispose = true, noCloseBtn = false, staticBackdrop = false) => {
+    const modalDiv = document.createElement('div');
+    modalDiv.classList.add('modal', 'fade');
+    modalDiv.tabIndex = '-1';
+    modalDiv.setAttribute('aria-hidden', 'true');
+    const modalDialog = document.createElement('div');
+    modalDialog.classList.add('modal-dialog');
+    const modalContent = document.createElement('div');
+    modalContent.classList.add('modal-content');
+    const modalHeader = document.createElement('div');
+    modalHeader.classList.add('modal-header');
+    const modalTitle = document.createElement('h5');
+    modalTitle.classList.add('modal-title');
+    modalTitle.innerHTML = title;
+    let closeButton;
+    if (!noCloseBtn) {
+      closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.classList.add('btn-close');
+      closeButton.setAttribute('data-bs-dismiss', 'modal');
+      closeButton.setAttribute('aria-label', 'Close');
+    }
+    const modalBody = document.createElement('div');
+    modalBody.classList.add('modal-body');
+    modalBody.innerHTML = body;
+    const modalFooter = document.createElement('div');
+    modalFooter.classList.add('modal-footer');
+    modalHeader.appendChild(modalTitle);
+    btns.forEach(btn => modalFooter.appendChild(btn));
+    if (closeButton) modalHeader.appendChild(closeButton);
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    modalContent.appendChild(modalFooter);
+    modalDialog.appendChild(modalContent);
+    modalDiv.appendChild(modalDialog);
+    document.body.appendChild(modalDiv);
+
+    const genericModal = staticBackdrop ? new bootstrap.Modal(modalDiv, {
+      backdrop: 'static'
+    }) : new bootstrap.Modal(modalDiv);
+
+
+    modalDiv.addEventListener('hidden.bs.modal', evt => {
+      if (onDismissCb) {
+        onDismissCb(evt);
+      }
+      if (autoDispose) {
+        genericModal.dispose();
+        modalDiv.remove();
+      }
+    });
+
+    return genericModal;
+  }
+</script>

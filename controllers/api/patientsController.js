@@ -14,12 +14,12 @@ const getAllFiltered = async (req, res, next) => {
         const sort = { [sortBy]: order === 'ascending' ? 1 : -1 };
         page = page ? parseInt(page) : 1;
         page = Math.max(page, 1);
-        const skip = (page - 1) * limit;
+        page = Math.min(page, MAX_LIMIT);
         let query = {};
         if (filter && filterValue) {
             query = { [filter]: filterValue };
         }
-
+        const skip = (page - 1) * limit;
         if (filter === 'sName') {
             query = { name: { $regex: filterValue, $options: 'i' } };
         }

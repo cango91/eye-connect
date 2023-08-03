@@ -1,0 +1,8 @@
+<div class="alert" id="alert-div"></div>
+<script>
+  const showAlert = (message, type) => {
+    const alertDiv = document.getElementById('alert-div');
+    alertDiv.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible fade show" role="alert">' + message +
+      '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+  }
+</script>

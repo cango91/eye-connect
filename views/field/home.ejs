@@ -1,27 +1,201 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
+<%- include('../partials/dismissableAlert') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
   <div class="text-center mb-3">
     <h2>Field HCP - Home</h2>
   </div>
   <div class="container-lg">
     <div class="row">
-        <div class="col-md-2">
-            <div class="d-flex flex-column">
-                <a class="btn btn-primary mb-2" href="/portal/patients">New Exam</a>
-                <a class="btn btn-primary mb-2" href="/portal/patients/new">New Patient</a>
-                <a class="btn btn-primary mb-2" href="/portal/exams">Explore Consultations</a>
-              </div>
+      <div class="col-md-2">
+        <div class="d-flex flex-column">
+          <a class="btn btn-primary mb-2" href="/portal/patients">New Exam</a>
+          <a class="btn btn-primary mb-2" href="/portal/patients/new">New Patient</a>
+          <a class="btn btn-primary mb-2" href="/portal/exams">Explore Consultations</a>
         </div>
+      </div>
       <div class="col-md-4">
-        <%- include('../partials/tableComponent', {...patientsTable}); %>
+        <div class="table-responsive" id="recentPatients-table"></div>
         <div class="float-end"><a href="/portal/patients">Go to patients</a></div>
       </div>
       <div class="col-md-6">
-        <%- include('../partials/tableComponent', {...examsTable}); %>
+        <div class="table-responsive" id="recentExams-table"></div>
         <div class="float-end"><a href="/portal/exams">Go to exams</a></div>
       </div>
     </div>
   </div>
 </main>
+<%- include('../partials/dynamicModal') %>
+<%- include('../partials/makeButton') %>
 <%- include('../partials/footer') %>
+<script>
+  const makeRowClickable = (row, href, title) => {
+    row.classList.add('clickable-row');
+    if (title) row.title = title
+    row.addEventListener('click', e => {
+      if (!e.target.tagName === 'TR' && !e.target.tagName === 'TD') return;
+      if (e.target.closest('td').firstElementChild?.hasAttribute('href')) return;
+      window.location.href = href || '#';
+    });
+  }
+
+  const tableClasses = ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'];
+  // Recent Patients Table
+  const fetchPatients = async (opts, fUrl) => {
+    response = await fetch(fUrl);
+    data = await response.json();
+    const rows = [];
+    data.data.forEach(item => {
+      rows.push([item.patient.name, {
+        age: calculateAge(item.patient.dateOfBirth),
+        patientId: item.patient._id
+      }]);
+    });
+    opts.limit = data.limit ? data.limit : opts.limit;
+    opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+    opts.page = data.page ? data.page : opts.page;
+    return rows;
+
+  }
+  const parsePatients = (data, td, row) => new Promise(resolve => {
+    makeRowClickable(row, `/portal/patients/${data.patientId}`, "go to patient details");
+    td.textContent = data.age;
+    row.appendChild(td);
+    resolve();
+  });
+  const patientsTableHeader = [{
+      text: 'Name',
+      sort: {
+        sortBy: 'patient.name'
+      },
+    },
+    {
+      text: 'Age',
+      sort: {
+        sortBy: 'patient.dateOfBirth',
+        reversed: true
+      },
+      parseFunction: parsePatients,
+    },
+  ];
+  // Recent Exams Table
+  const fetchMyExams = async (opts, fUrl) => {
+    response = await fetch(fUrl);
+    data = await response.json();
+    const rows = [];
+    data.data.forEach(item => {
+      rows.push([item.patient.name, getDate(item.date), item.hasConsultation ? 'yes' : 'no', {
+        id: item._id,
+        name: item.patient.name,
+        date: getDate(item.date)
+      }]);
+    });
+    opts.limit = data.limit ? data.limit : opts.limit;
+    opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+    opts.page = data.page ? data.page : opts.page;
+    return rows;
+  }
+
+  const confirmDeleteBtn = document.createElement('button');
+  confirmDeleteBtn.className = 'btn btn-danger';
+  confirmDeleteBtn.addEventListener('click', async e => {
+    const url = e.target.dataset.deleteLink;
+    try {
+      response = await fetch(url, {
+        method: 'post'
+      });
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        showAlert(`Couldn't delete exam: <br>${await response.json()}`, 'danger');
+      }
+    } catch (error) {
+      showAlert(error, 'danger');
+    }
+  });
+  confirmDeleteBtn.innerText = 'Delete';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-secondary';
+  cancelBtn.setAttribute('data-bs-dismiss', 'modal');
+  cancelBtn.innerText = 'Cancel';
+
+  const buttonsParser = (data, td, row) => new Promise(resolve => {
+    makeRowClickable(row, `/portal/exams/${data.id}`, "go to exam details");
+    const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete exam', title = 'delete exam');
+    deleteBtn.dataset.deleteLink = `/portal/api/examinations/${data.id}?_method=delete`;
+    deleteBtn.dataset.examDate = data.date;
+    deleteBtn.dataset.patientName = data.name;
+    deleteBtn.className = 'btn btn-danger';
+    deleteBtn.style.zIndex = 2;
+    deleteBtn.addEventListener('click', e => {
+      e.preventDefault();
+      confirmDeleteBtn.dataset.deleteLink = e.target.dataset.deleteLink;
+      const title = `You're about to delete the exam dated ${e.target.dataset.examDate}`;
+      const msg = `<p>You are about to permanently delete the exam of <strong>${e.target.dataset.patientName}</strong> dated <strong>${e.target.dataset.examDate}</strong>. This action is not reversible.</p><p>Are you sure you want to continue?</p>`;
+      const confirmModal = makeModal([cancelBtn, confirmDeleteBtn], title, msg);
+      confirmModal.show();
+    });
+    td.appendChild(deleteBtn);
+    row.appendChild(td);
+    resolve();
+  });
+  const examsTableHeaders = [{
+      text: 'Patient Name',
+      sort: {
+        sortBy: 'patient.name'
+      },
+    },
+    {
+      text: 'Exam Date',
+      sort: {
+        sortBy: 'date'
+      }
+    },
+    {
+      text: 'Consultation?'
+    },
+    {
+      text: '',
+      parseFunction: buttonsParser,
+    }
+
+  ]
+
+  let examsTableHandler;
+  let patientsTableHandler;
+  window.addEventListener('DOMContentLoaded', () => {
+    patientsTableHandler = tableHandler(
+      document.getElementById('recentPatients-table'),
+      'recentPatients',
+      'My Recent Patients', {
+        url: '/portal/api/examinations?filter=examiner._id&filterValue=<%- user.id %>',
+        page: 1,
+        limit: 5,
+        pageCount: 0,
+        sort: {
+          sortBy: 'updatedAt',
+          asc: false,
+        }
+      },
+      fetchPatients,
+      patientsTableHeader,
+      tableClasses
+    );
+    examsTableHandler = tableHandler(
+      document.getElementById('recentExams-table'),
+      'recentExams',
+      'My Recent Exams', {
+        url: '/portal/api/examinations?filter=examiner._id&filterValue=<%- user.id %>',
+        page: 1,
+        limit: 5,
+        sort: {
+          sortBy: 'updatedAt',
+          asc: false,
+        },
+      },
+      fetchMyExams,
+      examsTableHeaders,
+      tableClasses
+    );
+  });
+</script>

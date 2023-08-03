@@ -16,13 +16,12 @@ const getAllFiltered = async (req, res, next) => {
         const sort = { [sortBy]: order === 'ascending' ? 1 : -1 };
         page = page ? parseInt(page) : 1;
         page = Math.max(page, 1);
-        page = Math.min(page, 1);
+        page = Math.min(page, MAX_LIMIT);
         const skip = (page - 1) * limit;
         const collation = { locale: 'en', strength: 2 };
         let query = {}
         if (filter && filter.endsWith('_id') && filterValue) filterValue = new Types.ObjectId(filterValue);
         if (filter && filterValue) query = { [filter]: filterValue };
-        //if (filterValue === 'true') filterValue = true;
         if (filterValue === 'false') filterValue = false;
         if (hasImages) {
             if (Object.keys(query).length > 0) {

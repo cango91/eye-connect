@@ -26,11 +26,12 @@ const home = async (req, res, next) => {
             header: {
                 title: 'eyeConnect Portal - Home (Field HCP)',
                 scripts: [
-                    { file: '/js/tableHandler.js', },
+                    { file: '/js/tableComponent.js', },
                     { file: '/js/utils.js' }
                 ]
             },
             navigation: Utils.Field.AuthorizedNavigation('Portal', 'Home'),
+            trashIcon: Utils.Icons.TrashIcon,
             patientsTable: {
                 id: 'myPatients',
                 fetchOptions: {
@@ -115,24 +116,6 @@ const home = async (req, res, next) => {
     } else {
         res.send("Medical Director roles is not implemented for MVP");
     }
-}
-
-const _buildSpecialistNav = () => {
-    return {
-        items: [{
-            text: 'About',
-            href: '/about',
-            showInFooter: true,
-        },
-        {
-            text: 'Portal',
-            dropdown: [{
-                text: 'Home',
-                href: '/portal'
-            }]
-        }],
-        active: 'Home'
-    };
 }
 
 module.exports = {
