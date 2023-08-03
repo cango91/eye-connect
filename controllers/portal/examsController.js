@@ -4,26 +4,10 @@ const index = async (req, res, next) => {
         res.render('field/exams', {
             header: {
                 title: 'eyeConnect Portal - Examinations',
-                scripts: [{ file: '/js/utils.js' }, { file: '/js/tableHandler.js' }]
+                scripts: [{ file: '/js/utils.js' }, { file: '/js/tableComponent.js' }]
             },
             navigation: Utils.Field.AuthorizedNavigation('Portal', 'Exams'),
-            examsTable: {
-                id: 'exams',
-                caption: 'All Examinations',
-                fetchOptions: {
-                    url: Utils.Field.AllExams.URL(),
-                    page: 1,
-                    pageCount: 0,
-                    limit: 10,
-                    sort: {
-                        sortBy: 'updatedAt',
-                        asc: false,
-                    },
-                },
-                fetchFunction: Utils.Field.AllExams.FetchFunction,
-                headerData: Utils.Field.AllExams.TableHeaders,
-                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
-            }
+            trashIcon: Utils.Icons.TrashIcon,
         });
     } else if (req.user.role === 'SpecialistHCP') {
 

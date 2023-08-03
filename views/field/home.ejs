@@ -122,9 +122,10 @@
     deleteBtn.style.zIndex = 2;
     deleteBtn.addEventListener('click', e => {
       e.preventDefault();
-      confirmDeleteBtn.dataset.deleteLink = e.target.dataset.deleteLink;
-      const title = `You're about to delete the exam dated ${e.target.dataset.examDate}`;
-      const msg = `<p>You are about to permanently delete the exam of <strong>${e.target.dataset.patientName}</strong> dated <strong>${e.target.dataset.examDate}</strong>. This action is not reversible.</p><p>Are you sure you want to continue?</p>`;
+      const target = e.target.closest('[data-delete-link]')
+      confirmDeleteBtn.dataset.deleteLink = target.dataset.deleteLink;
+      const title = `You're about to delete the exam dated ${target.dataset.examDate}`;
+      const msg = `<p>You are about to permanently delete the exam of <strong>${target.dataset.patientName}</strong> dated <strong>${target.dataset.examDate}</strong>. This action is not reversible.</p><p>Are you sure you want to continue?</p>`;
       const confirmModal = makeModal([cancelBtn, confirmDeleteBtn], title, msg);
       confirmModal.show();
     });

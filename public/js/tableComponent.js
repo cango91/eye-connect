@@ -329,4 +329,6 @@ const tableHandler = (
         });
     });
 
+    return handler;
+
 }

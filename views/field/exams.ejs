@@ -1,8 +1,9 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
+<%- include('../partials/dismissableAlert') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
   <div class="container-lg">
-    <%- include('../partials/tableComponent',{...examsTable}) %>
+    <div class="table-responsive" id="allExams-table"></div>
   </div>
 </main>
 <div id="toggleContainer" class="float-end">
@@ -13,37 +14,168 @@
   </label>
   <span> mine</span>
 </div>
+<%- include('../partials/dynamicModal') %>
+<%- include('../partials/makeButton') %>
+<%- include('../partials/makeRowClickable') %>
 <script>
-  const myId = "<%= user.id %>";
+  const tableClasses = ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'];
+  const fetchExamData = async (opts, fUrl) => {
+    maxNotesLength = 20;
+    try {
+      const response = await fetch(fUrl);
+      let data;
+      if (response.ok) {
+        data = await response.json();
+      } else {
+        throw new Error(await response.text());
+      }
+      const rows = [];
+      data.data.forEach(item => {
+        rows.push([item.patient.name, item.notes && item.notes.length ? item.notes.substring(0, Math.min(maxNotesLength, item.notes.length)) + '...' : '<empty notes>', getDate(item.date), item.hasConsultation ? 'yes' : 'no', item.examiner.name, item.images ? item.images.length : 0, {
+          id: item._id,
+          examiner: item.examiner._id,
+          patient: item.patient.name,
+          date: getDate(item.date)
+        }]);
+      });
+      opts.limit = data.limit ? data.limit : opts.limit;
+      opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+      opts.page = data.page ? data.page : opts.page;
+      return rows;
+    } catch (e) {
+      showAlert(`Couldn't fetch exams<br>${e}`, 'danger');
+    }
+  }
+
+  const confirmDeleteBtn = document.createElement('button');
+  confirmDeleteBtn.className = 'btn btn-danger';
+  confirmDeleteBtn.addEventListener('click', async e => {
+    const url = e.target.dataset.deleteLink;
+    try {
+      response = await fetch(url, {
+        method: 'post'
+      });
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        showAlert(`Couldn't delete exam: <br>${await response.json()}`, 'danger');
+      }
+    } catch (error) {
+      showAlert(error, 'danger');
+    }
+  });
+  confirmDeleteBtn.innerText = 'Delete';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-secondary';
+  cancelBtn.setAttribute('data-bs-dismiss', 'modal');
+  cancelBtn.innerText = 'Cancel';
+
+  const parseButtons = (data, td, tr) => {
+    makeRowClickable(tr, `/portal/exams/${data.id}`, 'go to exam details', 'go to exam details');
+    if (`<%- user.id %>` === data.examiner) {
+      const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete exam', title = 'delete exam');
+      deleteBtn.dataset.deleteLink = `/portal/api/examinations/${data.id}?_method=delete`;
+      deleteBtn.dataset.examDate = data.date;
+      deleteBtn.dataset.patientName = data.patient;
+      deleteBtn.className = 'btn btn-danger';
+      deleteBtn.style.zIndex = 2;
+      deleteBtn.addEventListener('click', e => {
+        e.preventDefault();
+        const target = e.target.closest('[data-delete-link]');
+        confirmDeleteBtn.dataset.deleteLink = target.dataset.deleteLink;
+        const title = `You're about to delete the exam dated ${target.dataset.examDate}`;
+        const msg = `<p>You are about to permanently delete the exam of <strong>${target.dataset.patientName}</strong> dated <strong>${target.dataset.examDate}</strong>. This action is not reversible.</p><p>Are you sure you want to continue?</p>`;
+        const confirmModal = makeModal([cancelBtn, confirmDeleteBtn], title, msg);
+        confirmModal.show();
+      });
+      td.appendChild(deleteBtn);
+    }
+    tr.appendChild(td);
+    return new Promise(res => res());
+  }
+
+  const tableHeaders = [{
+      text: 'Patient',
+      sort: {
+        sortBy: 'patient.name'
+      },
+    },
+    {
+      text: 'Exam Notes',
+    },
+    {
+      text: 'Exam Date',
+      sort: {
+        sortBy: 'date'
+      },
+    },
+    {
+      text: 'Consultation?',
+      sort: {
+        sortBy: 'hasConsultation'
+      },
+    },
+    {
+      text: 'Examiner',
+      sort: {
+        sortBy: 'examiner.name'
+      },
+    },
+    {
+      text: 'Image Count',
+      sort: {
+        sortBy: 'numImages'
+      },
+    },
+    {
+      text: '',
+      parseFunction: parseButtons,
+    }
+  ];
   const toggleContainer = document.getElementById('toggleContainer');
   const toggler = document.getElementById('toggleSwitch');
-  window.addEventListener('tableLoaded', e => {
-    const handler = e.detail.handler;
-    const cp = handler.table.querySelector('caption');
-    // unchecked -> showing all, checked -> showing mine
-    toggler.checked = handler.getOpts().url.match(/(?<=\?filter=)[^&]+|(?<=&filter=)[^&]+/) && handler.getOpts().url.match(/(?<=\?filterValue=)[^&]+|(?<=&filterValue=)[^&]+/) ? true : false;
+  window.addEventListener('DOMContentLoaded', e => {
+    const examsTable = tableHandler(
+      document.getElementById('allExams-table'),
+      'allExams',
+      'All Examinations', {
+        url: `/portal/api/examinations?`,
+        page: 1,
+        pageCount: 0,
+        limit: 10,
+        sort: {
+          sortBy: 'updatedAt',
+          asc: false,
+        },
+      },
+      fetchExamData,
+      tableHeaders,
+      tableClasses
+    );
+    const cp = examsTable.table.querySelector('caption');
+    toggler.checked = examsTable.getOpts().url.match(/(?<=\?filter=)[^&]+|(?<=&filter=)[^&]+/) && examsTable.getOpts().url.match(/(?<=\?filterValue=)[^&]+|(?<=&filterValue=)[^&]+/) ? true : false;
     cp.appendChild(toggleContainer);
     toggler.addEventListener('click', evt => {
-      // do not prevent default, current .checked state is what we want to upload table data with
-      handler.table.dataset.page = '1';
+      // do not prevent default, current .checked state is what we want to update table data with
+      examsTable.table.dataset.page = '1';
       let updatedUrl;
       // Remove existing ?filter= or &filter= and ?filterValue or &filterValue string from the URL
-      updatedUrl = handler.getOpts().url.replace(/(\?|&)(filter=)[^&]+/, '');
+      updatedUrl = examsTable.getOpts().url.replace(/(\?|&)(filter=)[^&]+/, '');
       updatedUrl = updatedUrl.replace(/(\?|&)(filterValue=)[^&]+/, '');
       if (toggler.checked) {
         // Add ?filterValue=myId&filter=examiner to the URL
         const separator = updatedUrl.includes('?') ? '&' : '?';
-        updatedUrl += separator + 'filterValue=' + myId;
+        updatedUrl += separator + 'filterValue=' + '<%- user.id %>';
         updatedUrl += '&filter=examiner._id';
-        handler.setCaption('My Examinations');
-      }else{
-        handler.setCaption('All Examinations');
+        examsTable.setCaption('My Examinations');
+      } else {
+        examsTable.setCaption('All Examinations');
       }
-      handler.setOpts({
+      examsTable.setOpts({
         url: updatedUrl,
         page: 1
       });
-      handler.populateTable();
+      examsTable.populateTable();
     });
   });
 </script>
