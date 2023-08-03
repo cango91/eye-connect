@@ -32,41 +32,6 @@ const home = async (req, res, next) => {
             },
             navigation: Utils.Field.AuthorizedNavigation('Portal', 'Home'),
             trashIcon: Utils.Icons.TrashIcon,
-            patientsTable: {
-                id: 'myPatients',
-                fetchOptions: {
-                    url: Utils.Field.RecentExams.URL(req.user.id),
-                    page: 1,
-                    pageCount: 1,
-                    limit: 0,
-                    sort: {
-                        sortBy: 'updatedAt',
-                        asc: false,
-                    },
-                },
-                fetchFunction: Utils.Field.RecentPatients.FetchFunction,
-                headerData: Utils.Field.RecentPatients.TableHeaders,
-                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
-                caption: 'My Recent Patients',
-            },
-            examsTable: {
-                id: 'myExams',
-                fetchOptions: {
-                    url: Utils.Field.RecentExams.URL(req.user.id),
-                    page: 1,
-                    pageCount: 1,
-                    limit: 0,
-                    sort: {
-                        sortBy: 'updatedAt',
-                        asc: false,
-                    },
-                },
-                fetchFunction: Utils.Field.RecentExams.FetchFunction,
-                headerData: Utils.Field.RecentExams.TableHeaders,
-                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
-                caption: 'My Recent Exams',
-            },
-
         });
     } else if (req.user.role === 'SpecialistHCP') {
         // Render SpecialistHCP's homepage

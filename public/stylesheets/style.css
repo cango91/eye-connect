@@ -207,6 +207,6 @@ tr.clickable-row {
   cursor: pointer;
 }
 
-tr.clickable-row:hover *{
-  font-weight: 800;
+tr.clickable-row:hover td{
+  background-color: var(--password-hints-bg-color) !important;
 }

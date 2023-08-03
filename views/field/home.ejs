@@ -27,17 +27,10 @@
 </main>
 <%- include('../partials/dynamicModal') %>
 <%- include('../partials/makeButton') %>
+<%- include('../partials/makeRowClickable') %>
 <%- include('../partials/footer') %>
 <script>
-  const makeRowClickable = (row, href, title) => {
-    row.classList.add('clickable-row');
-    if (title) row.title = title
-    row.addEventListener('click', e => {
-      if (!e.target.tagName === 'TR' && !e.target.tagName === 'TD') return;
-      if (e.target.closest('td').firstElementChild?.hasAttribute('href')) return;
-      window.location.href = href || '#';
-    });
-  }
+
 
   const tableClasses = ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'];
   // Recent Patients Table
