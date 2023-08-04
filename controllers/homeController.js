@@ -39,45 +39,11 @@ const home = async (req, res, next) => {
         return res.render('specialist/home', {
             header: {
                 title: 'eyeConnect Portal - Home (Specialist HCP)'
-                , scripts: [{ file: '/js/utils.js' }, { file: '/js/tableHandler.js' }]
+                , scripts: [{ file: '/js/utils.js' }, { file: '/js/tableComponent.js' }]
             },
             navigation: Utils.Specialist.AuthorizedNavigation('Portal', 'Home'),
-            awaitingConsultationsTable: {
-                id:'awaitingCons',
-                fetchOptions: {
-                    url: Utils.Specialist.AwaitingConsultations.URL,
-                    page: 1,
-                    pageCount: 1,
-                    limit: 5,
-                    sort:{
-                        sortBy: 'date',
-                        asc: true,
-                    },
-                },
-                fetchFunction: Utils.Specialist.AwaitingConsultations.FetchFunction,
-                headerData: Utils.Specialist.AwaitingConsultations.TableHeaders,
-                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
-                caption: 'Exams awaiting consultations',
-            },
-            recentConsultationsTable:{
-                id: 'recentCons',
-                fetchOptions:{
-                    url: Utils.Specialist.RecentConsultations.URL(req.user.id),
-                    page: 1,
-                    pageCount: 1,
-                    limit: 5,
-                    sort:{
-                        sortBy: 'date',
-                        asc: true,
-                    }
-                },
-                fetchFunction: Utils.Specialist.RecentConsultations.FetchFunction,
-                headerData: Utils.Specialist.RecentConsultations.TableHeaders,
-                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
-                caption: 'My recent consultations'
-
-            }
-
+            paperIcon: Utils.Icons.PaperIcon,
+            trashIcon: Utils.Icons.TrashIcon,
         });
     } else {
         res.send("Medical Director roles is not implemented for MVP");

@@ -117,12 +117,6 @@ a.dropdown-item.active {
   }
 }
 
-#back-btn {
-  font-size: larger !important;
-  font-weight: 1000 !important;
-  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-}
-
 .i-add-patient svg {
   transform: scale(1.2);
 }

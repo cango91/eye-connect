@@ -1,5 +1,9 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
+<%- include('../partials/makeButton') %>
+<%- include('../partials/makeRowClickable') %>
+<%- include('../partials/dismissableAlert') %>
+<%- include('../partials/dynamicModal') %>
 <main class="container-xxl mt-5 py-4 bg-light shadow-lg rounded">
   <div class="modal fade" id="genericModal" tabindex="-1" aria-labelledby="genericModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -49,7 +53,7 @@
         }
       </script>
       <div class="col-md-7">
-        <%- include('../partials/tableComponent', {...awaitingConsultationsTable}); %>
+        <div class="table-responsive" id="awaitingCons-table"></div>
         <div id="toggleContainer" class="float-end">
           <span></span>
           <label class="form-switch">
@@ -61,17 +65,268 @@
         <div class="float-end"><a href="/portal/exams">Go to awaiting consultations</a></div>
       </div>
       <div class="col-md-5">
-        <%- include('../partials/tableComponent', {...recentConsultationsTable}); %>
+        <div class="table-responsive" id="recentCons-table"></div>
         <div class="float-end"><a href="/portal/consultations">Go to your consultations</a></div>
       </div>
     </div>
   </div>
 </main>
 <script>
-  const toggler = document.getElementById('toggleSwitch');
-  window.addEventListener('tableLoaded', e => {
-    if(e.detail.handler.getOpts().url.match(/consultations/)) return;
-    const handler = e.detail.handler;
+  // Awaiting Consultations table data
+  const tableClasses = ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'];
+  const fetchAwaitingCons = async (opts, fUrl) => {
+    try {
+      const response = await fetch(fUrl);
+      const data = await response.json();
+      const rows = [];
+      data.data.forEach(item => {
+        rows.push([item.images ? {
+          image: item.images[0]
+        } : {
+          image: null
+        }, getDate(item.date), item.patient.name, calculateAge(item.patient.dateOfBirth), item.images ? item.images.length : 0, {
+          examId: item._id
+        }]);
+      });
+      opts.limit = data.limit ? data.limit : opts.limit;
+      opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+      opts.page = data.page ? data.page : opts.page;
+      return rows;
+    } catch (e) {
+      showAlert(`Couldn't fetch awaiting consultations<br>${e}`, 'danger');
+    }
+  }
+  const parseAwaitingBtn = (data, td, row) => {
+    makeRowClickable(row, `/portal/exams/${data.examId}?referrer=${window.location.pathname}`, 'go to exam details', 'go to exam details');
+    const newCons = makeButton(`<%- paperIcon %>`, 'add a new consultation for this exam', 'add a new consultation for this exam', `/portal/exams/${data.examId}/consultation/new?referrer=${window.location.pathname}`);
+    newCons.className = 'btn btn-primary';
+    td.appendChild(newCons);
+    row.appendChild(td);
+    return new Promise(res => res());
+  }
+
+  const parseAwaitingImages = ({
+    image
+  }, td, _) => {
+    new Promise((resolve, reject) => {
+      if (!image) resolve();
+      if (typeof(image) === 'undefined') {
+        td.textContent = '<no images>';
+        resolve();
+        return;
+      }
+      const spinner = document.createElement('div');
+      spinner.className = 'spinner-border text-warning';
+      spinner.style.zIndex = 2;
+      td.appendChild(spinner);
+
+      fetch('/portal/api/funduscopies/' + image)
+        .then(response => {
+          td.removeChild(spinner);
+          if (response.ok) {
+            const container = createThumbnailContainer();
+            response.json().then((data) => {
+              const imageData = data.data.image;
+              bufferToB64(imageData.data.data, imageData.contentType).then((decoded) => {
+                const img = document.createElement('img');
+                img.className = 'img-thumbnail';
+                img.style.maxWidth = '150px'
+                img.style.maxHeight = '75px'
+                img.src = decoded;
+                td.appendChild(img);
+              });
+
+            })
+          } else {
+            error = document.createElement('div');
+            error.className = 'alert alert-danger';
+            td.appendChild(error);
+            reject();
+          }
+        }).catch(reject);
+    });
+  }
+
+  const awaitingConsTableHeaders = [{
+      text: '',
+      parseFunction: parseAwaitingImages,
+    },
+    {
+      text: 'Exam Date',
+      sort: {
+        sortBy: 'date'
+      }
+    },
+    {
+      text: 'Patient',
+      sort: {
+        sortBy: 'patient.name'
+      },
+    },
+    {
+      text: 'Age',
+      sort: {
+        sortBy: 'patient.dateOfBirth',
+        reversed: true
+      }
+    },
+    {
+      text: '# Images',
+      sort: {
+        sortBy: 'numImages'
+      }
+    },
+    {
+      text: '',
+      parseFunction: parseAwaitingBtn,
+    }
+  ];
+
+  // Recent consultations table data
+
+  const fetchRecentConsultations = async (opts, fUrl) => {
+    try {
+      const response = await fetch(fUrl);
+      const data = await response.json();
+      const rows = [];
+      data.data.forEach(item => {
+        rows.push([getDate(item.date), item.patient.name, item.retinopathyDiagnosis, {
+          examId: item.examination,
+          consId: item._id,
+          date: getDate(item.date),
+          name: item.patient.name
+        }]);
+      });
+      opts.limit = data.limit ? data.limit : opts.limit;
+      opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+      opts.page = data.page ? data.page : opts.page;
+      return rows;
+    } catch (e) {
+      showAlert(`Couldn't fetch recent consultations<br>${e}`, 'danger');
+    }
+  }
+
+  const parseDiagnosis = (val, td) => new Promise((resolve, reject) => {
+    if (!val) {
+      td.textContent = "<no diagnosis>";
+      resolve("<no diagnosis>");
+    }
+    switch (val) {
+      case 'NoApparentDR':
+        td.textContent = 'No DR';
+        resolve('No DR');
+        break;
+      case 'MildNPDR':
+        td.textContent = "Mild NPDR";
+        resolve('Mild NDPR');
+        break;
+      case 'ModerateNPDR':
+        td.textContent = "Moderate NDPR";
+        resolve('Moderate NPDR');
+        break;
+      case 'SevereNPDR':
+        td.textContent = "Severe NPDR";
+        resolve("Severe NPDR");
+        break;
+      case 'PDR':
+        td.textContent = "Proliferative DR";
+        resolve("Proliferative DR");
+        break;
+      default:
+        reject();
+    }
+  });
+
+  const confirmDeleteBtn = document.createElement('button');
+  confirmDeleteBtn.className = 'btn btn-danger';
+  confirmDeleteBtn.addEventListener('click', async e => {
+    const url = e.target.dataset.deleteLink;
+    try {
+      response = await fetch(url, {
+        method: 'post'
+      });
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        showAlert(`Couldn't delete exam: <br>${(await response.json()).error}`, 'danger');
+      }
+    } catch (error) {
+      showAlert(error, 'danger');
+    }
+  });
+  confirmDeleteBtn.innerText = 'Delete';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-secondary';
+  cancelBtn.setAttribute('data-bs-dismiss', 'modal');
+  cancelBtn.innerText = 'Cancel';
+
+  const parseRecentButtons = (data, td, row) => new Promise(resolve=>{
+    makeRowClickable(row, `/portal/exams/${data.examId}/consultation?referrer=${document.location.pathname}`, 'go to consultation details', 'go to consultation details');
+    console.log(data);
+    const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete exam', title = 'delete exam');
+    deleteBtn.dataset.deleteLink = `/portal/api/consultations/${data.consId}?_method=delete`;
+    deleteBtn.dataset.examDate = data.date;
+    deleteBtn.dataset.patientName = data.name;
+    deleteBtn.className = 'btn btn-danger';
+    deleteBtn.style.zIndex = 2;
+    deleteBtn.addEventListener('click', e => {
+      e.preventDefault();
+      const target = e.target.closest('[data-delete-link]')
+      confirmDeleteBtn.dataset.deleteLink = target.dataset.deleteLink;
+      const title = `You're about to delete the consultation dated ${target.dataset.examDate}`;
+      const msg = `<p>You are about to permanently delete the consultation of <strong>${target.dataset.patientName}</strong> dated <strong>${target.dataset.examDate}</strong>. This action is not reversible.</p><p>Are you sure you want to continue?</p>`;
+      const confirmModal = makeModal([cancelBtn, confirmDeleteBtn], title, msg);
+      confirmModal.show();
+    });
+    td.appendChild(deleteBtn);
+    row.appendChild(td);
+    resolve();
+  });
+
+  const recentConsTableHeaders = [{
+      text: 'Cons. Date',
+      sort: {
+        sortBy: 'data'
+      }
+    },
+    {
+      text: 'Patient',
+      sort: {
+        sortBy: 'exam.patient.name'
+      }
+    },
+    {
+      text: 'DR diagnosis',
+      sort: {
+        sortBy: 'retinopathyDiagnosis'
+      },
+      parseFunction: parseDiagnosis,
+    },
+    {
+      text: '',
+      parseFunction: parseRecentButtons,
+    }
+  ];
+
+  window.addEventListener('DOMContentLoaded', e => {
+    const toggler = document.getElementById('toggleSwitch');
+    const handler = tableHandler(
+      document.getElementById('awaitingCons-table'),
+      'awaitingCons',
+      'Exams Awaiting Consultations', {
+        url: `/portal/api/examinations?filter=hasConsultation&filterValue=false&hasImages=true`,
+        page: 1,
+        pageCount: 1,
+        limit: 5,
+        sort: {
+          sortBy: 'date',
+          asc: true,
+        },
+      },
+      fetchAwaitingCons,
+      awaitingConsTableHeaders,
+      tableClasses
+    );
     const cp = handler.table.querySelector('caption');
     toggler.checked = handler.getOpts().url.match(/(?<=\?hasImages=true)|(?<=&hasImages=true)/) ? true : false;
     cp.appendChild(toggleContainer);
@@ -92,6 +347,23 @@
       });
       handler.populateTable();
     });
+    const recentHandle = tableHandler(
+      document.getElementById('recentCons-table'),
+      'recentCons',
+      'My recent consultations', {
+        url: `/portal/api/consultations?filter=consultant&filterValue=_id<%- user.id %>`,
+        page: 1,
+        pageCount: 1,
+        limit: 5,
+        sort: {
+          sortBy: 'date',
+          asc: true,
+        }
+      },
+      fetchRecentConsultations,
+      recentConsTableHeaders,
+      tableClasses
+    )
   });
 </script>
 <%- include('../partials/footer') %>

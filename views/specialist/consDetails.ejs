@@ -4,7 +4,7 @@
 <%- include('../partials/confirmDialog') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
   <div class="text-center">
-    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; All Exams</a></span>Consultation Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn"><%- deleteIcon %></a></span></h3>
+    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; Back</a></span>Consultation Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn"><%- deleteIcon %></a></span></h3>
     <hr>
   </div>
   <div class="d-flex flex-column justify-content-center align-items-center" id="loading-div">
@@ -85,6 +85,9 @@
   const imageContainer = document.getElementById('image-container');
   const saveBtn = document.getElementById('save-btn');
   const diagEl = document.getElementById('diagnosis');
+  const backBtn = document.getElementById('confirm-back-btn');
+  const referrer = new URLSearchParams(window.location.search).get('referrer');
+  backBtn.href = referrer ? referrer : backBtn.href;
 
   let imagesArray = [],
     patientData = {},
@@ -210,11 +213,25 @@
         await deleteConsultation();
       }
     }
-    showConfirmation(title,body,cancelClass,confirmClass,callback);
+    showConfirmation(title, body, cancelClass, confirmClass, callback);
   }
 
-  const showUnsavedChangesConfirmation = () => {
-
+  const showUnsavedChangesConfirmation = (e) => {
+    e.preventDefault();
+    if (notesCache !== consNotesEl.value || diagnosis !== diagEl.value) {
+      const title = 'Your changes will be lost?';
+      const body = 'You have unsaved changes. Navigating away will lose your changes permanently. Are you sure you wish to proceed';
+      const cancelClass = ['btn', 'btn-secondary'];
+      const confirmClass = ['btn', 'btn-danger'];
+      const callback = decision => {
+        if (decision) {
+          window.location.href = backBtn.href;
+        }
+      }
+      showConfirmation(title, body, cancelClass, confirmClass, callback);
+    }else{
+      window.location.href = backBtn.href;
+    }
   }
 
   const fetchData = async () => {
@@ -335,11 +352,12 @@
 
 
   window.addEventListener('DOMContentLoaded', async e => {
+    backBtn.addEventListener('click',showUnsavedChangesConfirmation);
 
     consNotesEl.addEventListener('input', saveEnabler);
     diagEl.addEventListener('change', saveEnabler);
     saveBtn.addEventListener('click', saveConsultation);
-    document.getElementById('delete-btn').addEventListener('click',showDeleteConfirmation);
+    document.getElementById('delete-btn').addEventListener('click', showDeleteConfirmation);
 
     showLoading();
     await fetchData();

@@ -170,7 +170,7 @@
         url: '/portal/api/examinations?filter=examiner._id&filterValue=<%- user.id %>',
         page: 1,
         limit: 5,
-        pageCount: 0,
+        pageCount: 1,
         sort: {
           sortBy: 'updatedAt',
           asc: false,
@@ -186,6 +186,7 @@
       'My Recent Exams', {
         url: '/portal/api/examinations?filter=examiner._id&filterValue=<%- user.id %>',
         page: 1,
+        pageCount: 1,
         limit: 5,
         sort: {
           sortBy: 'updatedAt',

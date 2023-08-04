@@ -2,7 +2,7 @@
 <%- include('../partials/navigation') %>
 <main class="container-lg mt-5 py-4 bg-light shadow-lg rounded">
   <div class="text-center">
-    <h3><span class="float-start d-none" id="back-btn"><a class="btn btn-secondary" href="/portal/exams">&larr; Back</a></span>New Consultation</h3>
+    <h3><span class="float-start d-none"><a class="btn btn-secondary" href="/portal/exams">&larr; Back</a></span>New Consultation</h3>
     <hr>
   </div>
   <div class="alert alert-danger d-none" id="alert-div"></div>
@@ -43,7 +43,8 @@
       hideStatus();
       showError(response.error);
     } else {
-      window.location.href = `/portal/exams/<%- examId %>/consultation`;
+      const referrer = new URLSearchParams(window.location.search).get('referrer');
+      window.location.href = `/portal/exams/<%- examId %>/consultation?referrer=${referrer}`;
     }
   }
   window.addEventListener('load', redirectOrError);
