@@ -71,7 +71,8 @@
   cancelBtn.innerText = 'Cancel';
 
   const parseButtons = (data, td, tr) => {
-    makeRowClickable(tr, `/portal/exams/${data.id}`, 'go to exam details', 'go to exam details');
+    const referrer = window.location.pathname;
+    makeRowClickable(tr, `/portal/exams/${data.id}?referrer=${referrer}`, 'go to exam details', 'go to exam details');
     if (`<%- user.id %>` === data.examiner) {
       const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete exam', title = 'delete exam');
       deleteBtn.dataset.deleteLink = `/portal/api/examinations/${data.id}?_method=delete`;

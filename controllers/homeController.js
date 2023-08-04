@@ -32,6 +32,7 @@ const home = async (req, res, next) => {
             },
             navigation: Utils.Field.AuthorizedNavigation('Portal', 'Home'),
             trashIcon: Utils.Icons.TrashIcon,
+            paperIcon: Utils.Icons.PaperIcon,
         });
     } else if (req.user.role === 'SpecialistHCP') {
         // Render SpecialistHCP's homepage

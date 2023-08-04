@@ -37,7 +37,9 @@
       hideStatus();
       showError(response.error);
     } else {
-      window.location.href = `/portal/exams/${response.data._id}`;
+      const params = new URLSearchParams(window.location.search);
+      const referrer = params.get('referrer');
+      window.location.href = `/portal/exams/${response.data._id}?referrer=${referrer}`;
     }
   }
   window.addEventListener('load', redirectOrError);

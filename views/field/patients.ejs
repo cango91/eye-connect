@@ -1,5 +1,9 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
+<%- include('../partials/dismissableAlert') %>
+<%- include('../partials/dynamicModal') %>
+<%- include('../partials/makeButton') %>
+<%- include('../partials/makeRowClickable') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
   <div class="container-lg">
     <div class="d-flex">
@@ -8,61 +12,230 @@
         <input id="search-bar" placeholder="filter patients by name" class="form-control form-check ms-3" type="text" title="filter patients by name" autocomplete="off" name="name">
       </form>
     </div>
-    <%- include('../partials/tableComponent',{...patientsTable}) %>
+    <div class="table-responsive" id="allPatients-table"></div>
   </div>
 </main>
 <script>
-  const newBtn = document.getElementById('new-patient-btn');
-  const form = document.getElementById('new-patient-form');
-  const DEBOUNCE_TIME = 500;
-  const search = document.getElementById('search-bar');
-  const filterRegex = /(?<=(\?|&)filter=)[^&]+/;
-  const filterValueRegex = /(?<=(\?|&)filterValue=)[^&]+/;
-  let handler, originalUrl;
-  window.addEventListener('tableLoaded', (evt) => {
-    handler = evt.detail.handler;
-    originalUrl = handler.getOpts().url;
-  });
-  let timerId = null;
-  let minTextLength = 3;
-  const updateUrl = (url, searchTerm) => {
+  const tableClasses = ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'];
 
-    const filterMatch = url.match(filterRegex);
-
-    const filterValueMatch = url.match(filterValueRegex);
-
-    // Update "filter" and "filterValue" query parameters with the new searchTerm
-    if (filterMatch) {
-      url = url.replace(filterRegex, `sName`);
-    } else {
-      url += (url.includes('?') ? '&' : '?') + `filter=sName`;
+  const fetchPatients = async (opts, fUrl) => {
+    try {
+      const response = await fetch(fUrl);
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      const data = await response.json();
+      console.log(data.data);
+      const rows = [];
+      data.data.forEach(item => {
+        rows.push([item.name, calculateAge(item.dateOfBirth), item.gender, item.latestExamDate ? getDate(item.latestExamDate) : 'N/A', item.numExams, {
+          id: item._id,
+          name: item.name
+        }]);
+      });
+      opts.limit = data.limit ? data.limit : opts.limit;
+      opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+      opts.page = data.page ? data.page : opts.page;
+      return rows;
+    } catch (e) {
+      showAlert(`Couldn't fetch patients<br>${e}`, 'danger');
     }
-
-    if (filterValueMatch) {
-      url = url.replace(filterValueRegex, encodeURIComponent(searchTerm));
-    } else {
-      url += (url.includes('?') ? '&' : '') + `filterValue=${encodeURIComponent(searchTerm)}`;
-    }
-    return url;
   }
 
-  search.addEventListener('input', (evt) => {
-    if (!handler) return;
-    clearTimeout(timerId);
-    timerId = setTimeout(() => {
-      let term = evt.target.value;
-      if (term.length >= minTextLength) {
-        handler.setOpts({
-          url: updateUrl(originalUrl, term)
-        });
-        handler.populateTable();
+  const confirmDeleteBtn = document.createElement('button');
+  confirmDeleteBtn.className = 'btn btn-danger';
+  confirmDeleteBtn.addEventListener('click', async e => {
+    const url = e.target.dataset.deleteLink;
+    try {
+      response = await fetch(url, {
+        method: 'post'
+      });
+      if (response.ok) {
+        window.location.reload();
       } else {
-        handler.setOpts({
-          url: originalUrl
-        });
-        handler.populateTable();
+        showAlert(`Couldn't delete exam: <br>${(await response.json()).error}`, 'danger');
       }
-    }, DEBOUNCE_TIME);
+    } catch (error) {
+      showAlert(error, 'danger');
+    }
+  });
+  confirmDeleteBtn.innerText = 'Delete';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-secondary';
+  cancelBtn.setAttribute('data-bs-dismiss', 'modal');
+  cancelBtn.innerText = 'Cancel';
+
+  const parseButtons = (data, td, tr) => {
+    makeRowClickable(tr, `/portal/patients/${data.id}`, 'go to patient details', 'go to patient details');
+    const btns = [];
+    const newExam = makeButton(`<%- paperIcon %>`, ariaRole = 'start exam', title = 'start a new exam for patient', `/portal/patients/${data.id}/exams/new?referrer=/portal/patients`);
+    newExam.className = 'btn btn-primary collapse-btn-icon';
+    btns.push(newExam);
+    const editPatient = makeButton(`<%- pencilIcon %>`, ariaRole = 'modify patient details', title = 'modify this patients details', `/portal/patients/${data.id}?edit=true`);
+    editPatient.className = 'btn btn-warning collapse-btn-icon';
+    btns.push(editPatient);
+
+    <% if(user.role === 'MedicalDirector'){ %>
+    const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete exam', title = 'delete exam');
+    deleteBtn.dataset.deleteLink = `/portal/api/patients/${data.id}?_method=delete`;
+    deleteBtn.dataset.patientName = data.name;
+    deleteBtn.className = 'btn btn-danger collapse-btn-icon';
+    deleteBtn.style.zIndex = 2;
+    deleteBtn.addEventListener('click', e => {
+      e.preventDefault();
+      const target = e.target.closest('[data-delete-link]');
+      confirmDeleteBtn.dataset.deleteLink = target.dataset.deleteLink;
+      const title = `You're about to delete patient: ${target.dataset.patientName}`;
+      const msg = `<p>You are about the permanently delete a patient record and all associated medical records. This will permanently remove <strong>${target.dataset.patientName}</strong> from our systems. This action is not reversible.</p><p>Are you sure you want to proceed?</p>`;
+      const confirmModal = makeModal([cancelBtn, confirmDeleteBtn], title, msg);
+      confirmModal.show();
+    });
+    btns.push(deleteBtn);
+    <% } %>
+
+    btns.forEach(btn => {
+      const li = document.createElement('li');
+      li.className = 'nav-item';
+      li.appendChild(btn);
+      td.appendChild(li);
+    });
+
+    const nav = document.createElement('nav');
+    nav.className = 'navbar navbar-expand-lg navbar-light bg-light-striped centered-collapse-menu';
+
+    const button = document.createElement('button');
+    button.className = 'navbar-toggler';
+    button.type = 'button';
+    button.dataset.bsToggle = 'collapse';
+    button.dataset.bsTarget = '#navbarSupportedContent' + data.id;
+    button.ariaControls = 'navbarSupportedContent';
+    button.ariaExpanded = 'false';
+    button.ariaLabel = 'Toggle navigation';
+
+    const span = document.createElement('span');
+    span.className = 'navbar-toggler-icon';
+    button.appendChild(span);
+    const div = document.createElement('div');
+    div.className = 'collapse navbar-collapse';
+    div.id = 'navbarSupportedContent' + data.id;
+    const ul = document.createElement('ul');
+    ul.className = 'navbar-nav mr-auto navbar-ul-centered mb-2';
+    while (td.firstChild) {
+      ul.appendChild(td.firstChild);
+    }
+
+    div.appendChild(ul);
+    nav.appendChild(button);
+    nav.appendChild(div);
+    td.appendChild(nav);
+    tr.appendChild(td);
+    return new Promise(res => res());
+  }
+
+  const tableHeaders = [{
+      text: 'Name',
+      sort: {
+        sortBy: 'name'
+      },
+    },
+    {
+      text: 'Age',
+      sort: {
+        sortBy: 'dateOfBirth',
+        reversed: true
+      },
+    },
+    {
+      text: 'Gender',
+      sort: {
+        sortBy: 'gender'
+      },
+    },
+    {
+      text: 'Last Exam Date',
+      sort: {
+        sortBy: 'latestExamDate'
+      }
+    },
+    {
+      text: '# Exams',
+      sort: {
+        sortBy: 'numExams'
+      }
+    },
+    {
+      text: '',
+      parseFunction: parseButtons,
+    }
+  ];
+
+
+
+  window.addEventListener('DOMContentLoaded', evt => {
+    const newBtn = document.getElementById('new-patient-btn');
+    const form = document.getElementById('new-patient-form');
+    const DEBOUNCE_TIME = 500;
+    const search = document.getElementById('search-bar');
+    const filterRegex = /(?<=(\?|&)filter=)[^&]+/;
+    const filterValueRegex = /(?<=(\?|&)filterValue=)[^&]+/;
+    const originalUrl = '/portal/api/patients?includeLatestExamDate=true'
+    const handler = tableHandler(
+      document.getElementById('allPatients-table'),
+      'allPatients',
+      'All Patients', {
+        url: originalUrl,
+        page: 1,
+        limit: 10,
+        sort: {
+          sortBy: 'latestExamDate',
+          asc: false,
+        },
+      },
+      fetchPatients,
+      tableHeaders,
+      tableClasses,
+    );
+    let timerId = null;
+    let minTextLength = 3;
+    const updateUrl = (url, searchTerm) => {
+
+      const filterMatch = url.match(filterRegex);
+
+      const filterValueMatch = url.match(filterValueRegex);
+
+      // Update "filter" and "filterValue" query parameters with the new searchTerm
+      if (filterMatch) {
+        url = url.replace(filterRegex, `sName`);
+      } else {
+        url += (url.includes('?') ? '&' : '?') + `filter=sName`;
+      }
+
+      if (filterValueMatch) {
+        url = url.replace(filterValueRegex, encodeURIComponent(searchTerm));
+      } else {
+        url += (url.includes('?') ? '&' : '') + `filterValue=${encodeURIComponent(searchTerm)}`;
+      }
+      return url;
+    }
+
+    search.addEventListener('input', (evt) => {
+      if (!handler) return;
+      clearTimeout(timerId);
+      timerId = setTimeout(() => {
+        let term = evt.target.value;
+        if (term.length >= minTextLength) {
+          handler.setOpts({
+            url: updateUrl(originalUrl, term)
+          });
+          handler.populateTable();
+        } else {
+          handler.setOpts({
+            url: originalUrl
+          });
+          handler.populateTable();
+        }
+      }, DEBOUNCE_TIME);
+    });
   });
 </script>
 

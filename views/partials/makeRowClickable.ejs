@@ -5,6 +5,7 @@
     row.addEventListener('click', e => {
       if (!e.target.tagName === 'TR' && !e.target.tagName === 'TD') return;
       if (e.target.closest('td').firstElementChild?.hasAttribute('href')) return;
+      if (e.target.closest('td').firstElementChild?.tagName === 'NAV') return;
       window.location.href = href || '#';
     });
   }

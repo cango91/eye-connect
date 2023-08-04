@@ -9,9 +9,9 @@
     <div class="row">
       <div class="col-md-2">
         <div class="d-flex flex-column">
-          <a class="btn btn-primary mb-2" href="/portal/patients">New Exam</a>
-          <a class="btn btn-primary mb-2" href="/portal/patients/new">New Patient</a>
-          <a class="btn btn-primary mb-2" href="/portal/exams">Explore Consultations</a>
+          <a class="btn btn-primary mb-2" href="/portal/patients?referrer=/portal">New Exam</a>
+          <a class="btn btn-primary mb-2" href="/portal/patients/new?referrer=/portal">New Patient</a>
+          <a class="btn btn-primary mb-2" href="/portal/exams?referrer=/portal">Explore Consultations</a>
         </div>
       </div>
       <div class="col-md-4">
@@ -39,9 +39,9 @@
     data = await response.json();
     const rows = [];
     data.data.forEach(item => {
-      rows.push([item.patient.name, {
-        age: calculateAge(item.patient.dateOfBirth),
-        patientId: item.patient._id
+      rows.push([item.patient.name, 
+        calculateAge(item.patient.dateOfBirth),
+        {patientId: item.patient._id
       }]);
     });
     opts.limit = data.limit ? data.limit : opts.limit;
@@ -51,8 +51,10 @@
 
   }
   const parsePatients = (data, td, row) => new Promise(resolve => {
-    makeRowClickable(row, `/portal/patients/${data.patientId}`, "go to patient details");
-    td.textContent = data.age;
+    makeRowClickable(row, `/portal/patients/${data.patientId}?referrer=${window.location.pathname}`, "go to patient details");
+    const newExam = makeButton(`<%- paperIcon %>` , 'begin a new exam for patient', 'begin a new exam patient',`/portal/patients/${data.patientId}/exams/new?referrer=/portal`);
+    newExam.className = 'btn btn-primary';
+    td.appendChild(newExam);  
     row.appendChild(td);
     resolve();
   });
@@ -68,8 +70,11 @@
         sortBy: 'patient.dateOfBirth',
         reversed: true
       },
-      parseFunction: parsePatients,
     },
+    {
+      text: '',
+      parseFunction: parsePatients,
+    }
   ];
   // Recent Exams Table
   const fetchMyExams = async (opts, fUrl) => {
@@ -100,7 +105,7 @@
       if (response.ok) {
         window.location.reload();
       } else {
-        showAlert(`Couldn't delete exam: <br>${await response.json()}`, 'danger');
+        showAlert(`Couldn't delete exam: <br>${(await response.json()).error}`, 'danger');
       }
     } catch (error) {
       showAlert(error, 'danger');
@@ -113,7 +118,7 @@
   cancelBtn.innerText = 'Cancel';
 
   const buttonsParser = (data, td, row) => new Promise(resolve => {
-    makeRowClickable(row, `/portal/exams/${data.id}`, "go to exam details");
+    makeRowClickable(row, `/portal/exams/${data.id}?referrer=${window.location.pathname}`, "go to exam details");
     const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete exam', title = 'delete exam');
     deleteBtn.dataset.deleteLink = `/portal/api/examinations/${data.id}?_method=delete`;
     deleteBtn.dataset.examDate = data.date;

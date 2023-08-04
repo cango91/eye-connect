@@ -4,26 +4,12 @@ const index = (req, res, next) => {
         res.render('field/patients', {
             header: {
                 title: 'eyeConnect Portal - Patients',
-                scripts: [{ file: '/js/tableHandler.js' }, { file: '/js/utils.js' }]
+                scripts: [{ file: '/js/tableComponent.js' }, { file: '/js/utils.js' }]
             },
             navigation: Utils.Field.AuthorizedNavigation('Portal', 'Patients'),
-            patientsTable: {
-                id: 'allPatients',
-                fetchOptions: {
-                    url: Utils.Field.AllPatients.URL(),
-                    page: 1,
-                    limit: 10,
-                    sort: {
-                        sortBy: 'latestExamDate',
-                        asc: false,
-                    },
-                },
-                fetchFunction: Utils.Field.AllPatients.FetchFunction,
-                headerData: Utils.Field.AllPatients.TableHeaders(req.user.role==='FieldHCP'),
-                tableClasses: ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'],
-                caption: 'All Patients',
-
-            },
+            trashIcon: Utils.Icons.TrashIcon,
+            paperIcon: Utils.Icons.PaperIcon,
+            pencilIcon: Utils.Icons.PencilIcon,
             plusIcon: Utils.Icons.PlusIcon2,
         });
     } else if (req.user.role === 'SpecialistHCP') {
@@ -40,30 +26,15 @@ const details = (req, res, next) => {
         res.render('field/patientDetails', {
             header: {
                 title: 'eyeConnect Portal - Patient Details',
-                scripts: [{ file: '/js/utils.js' }, { file: '/js/tableHandler.js' }],
+                scripts: [{ file: '/js/utils.js' }, { file: '/js/tableComponent.js' }],
             },
             navigation,
-            examsTable: {
-                id: 'patientExams',
-                fetchOptions: {
-                    url: Utils.Field.AllExamsOfPatient.URL(req.params.id),
-                    page: 1,
-                    pageCount: 0,
-                    limit: 5,
-                    sort: {
-                        sortBy: 'date',
-                        asc: false,
-                    },
-                },
-                fetchFunction: Utils.Field.AllExamsOfPatient.FetchFunction,
-                headerData: Utils.Field.AllExamsOfPatient.TableHeaders,
-                tableClasses: ['table', 'table-striped', 'border', 'border-2', 'border-info'],
-            },
             patientId: req.params.id,
             pencilIcon: Utils.Icons.PencilIcon,
             paperIcon: Utils.Icons.PaperIcon,
             eyeIcon: Utils.Icons.EyeIcon,
             saveIcon: Utils.Icons.CheckIcon,
+            trashIcon: Utils.Icons.TrashIcon,
             editMode: req.query?.edit==='true',
 
         });

@@ -2,7 +2,7 @@
 <%- include('../partials/navigation') %>
 <main class="container-lg mt-5 py-4 bg-light shadow-lg rounded">
   <div class="text-center">
-    <h3><span class="float-start"><a class="btn btn-secondary" href="/portal/patients">&larr; Back</a></span>New Patient</h3>
+    <h3><span class="float-start"><a class="btn btn-secondary" id="back-btn-" href="/portal/patients">&larr; Back</a></span>New Patient</h3>
     <hr>
   </div>
   <form class="form-control" role="form">
@@ -40,6 +40,10 @@
   const nameEl = document.getElementById('name');
   const dobEl = document.getElementById('dob');
   const genderEl = document.getElementById('gender');
+  const backBtn = document.getElementById('back-btn-');
+
+  const referrer = new URLSearchParams(window.location.search).get('referrer');
+  backBtn.href = referrer ? referrer : backBtn.href;
 
   const disableButtons = () => {
     saveBtn.classList.add('disabled');

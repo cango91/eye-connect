@@ -1,8 +1,12 @@
 <%- include('../partials/header') %>
 <%- include('../partials/navigation') %>
+<%- include('../partials/dismissableAlert') %>
+<%- include('../partials/dynamicModal') %>
+<%- include('../partials/makeButton') %>
+<%- include('../partials/makeRowClickable') %>
 <main class="container-lg mt-5 py-4 bg-light shadow-lg rounded">
   <div class="text-center">
-    <h3><span class="float-start"><a class="btn btn-secondary" href="/portal/patients">&larr; Back</a></span>Patient Details</h3>
+    <h3><span class="float-start"><a id="history-back-btn" class="btn btn-secondary" href="/portal/patients">&larr; Back</a></span>Patient Details</h3>
     <hr>
   </div>
   <h2>
@@ -11,7 +15,7 @@
         <span id="placeholder"><small>loading...</small></span><span id="patient-name"></span>&nbsp;<span id="patient-gender"></span> <span id="patient-age"></span>
       </div>
       <div class="col">
-        <span class="float-end mx-1"><a href="#" id="edit-btn" class="btn btn-warning"><%- pencilIcon %></a></span><span class="float-end"><a href="/portal/patients/<%= patientId %>/exams/new" class="btn btn-primary" id="new-exam-btn"><%- paperIcon %></a></span>
+        <span class="float-end mx-1"><a href="#" id="edit-btn" class="btn btn-warning"><%- pencilIcon %></a></span><span class="float-end"><a href="/portal/patients/<%= patientId %>/exams/new?referrer=/portal/patients/<%= patientId %>" class="btn btn-primary" id="new-exam-btn"><%- paperIcon %></a></span>
       </div>
     </div>
   </h2>
@@ -27,13 +31,112 @@
       <div class="col">
         <h4>Previous Exams</h4>
         <div id="dy-table" class="border p-3">
-          <%- include('../partials/tableComponent', examsTable) %>
+          <div class="table-responsive" id="patientExams-table"></div>
         </div>
       </div>
     </div>
   </div>
 </main>
 <script>
+  const confirmDeleteBtn = document.createElement('button');
+  confirmDeleteBtn.className = 'btn btn-danger';
+  confirmDeleteBtn.addEventListener('click', async e => {
+    const url = e.target.dataset.deleteLink;
+    try {
+      response = await fetch(url, {
+        method: 'post'
+      });
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        showAlert(`Couldn't delete exam: <br>${(await response.json()).error}`, 'danger');
+      }
+    } catch (error) {
+      showAlert(error, 'danger');
+    }
+  });
+
+  confirmDeleteBtn.innerText = 'Delete';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-secondary';
+  cancelBtn.setAttribute('data-bs-dismiss', 'modal');
+  cancelBtn.innerText = 'Cancel';
+
+  const parseButtons = (data, td, row) => {
+    makeRowClickable(row, `/portal/exams/${data.id}?referrer=${window.location.pathname}`, 'go to exam details', 'go to exam details');
+    if (`<%- user.id %>` === data.examinerId) {
+      const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete exam', title = 'delete exam');
+      deleteBtn.dataset.deleteLink = `/portal/api/examinations/${data.id}?_method=delete`;
+      deleteBtn.dataset.examDate = data.date;
+      deleteBtn.dataset.patientName = data.name;
+      deleteBtn.className = 'btn btn-danger';
+      deleteBtn.style.zIndex = 2;
+      deleteBtn.addEventListener('click', e => {
+        e.preventDefault();
+        const target = e.target.closest('[data-delete-link]')
+        confirmDeleteBtn.dataset.deleteLink = target.dataset.deleteLink;
+        const title = `You're about to delete the exam dated ${target.dataset.examDate}`;
+        const msg = `<p>You are about to permanently delete the exam of <strong>${target.dataset.patientName}</strong> dated <strong>${target.dataset.examDate}</strong>. This action is not reversible.</p><p>Are you sure you want to continue?</p>`;
+        const confirmModal = makeModal([cancelBtn, confirmDeleteBtn], title, msg);
+        confirmModal.show();
+      });
+      td.appendChild(deleteBtn);
+    }
+    row.appendChild(td);
+    return new Promise(res => res());
+  }
+  const tableHeaders = [{
+      text: 'Exam Date',
+      sort: {
+        sortBy: 'date'
+      },
+    },
+    {
+      text: 'Examiner',
+      sort: {
+        sortBy: 'examiner.name'
+      },
+    },
+    {
+      text: 'Exam Notes',
+    },
+    {
+      text: 'Consultation?',
+      sort: {
+        sortBy: 'hasConsultation'
+      },
+    },
+    {
+      text: 'Image Count',
+      sort: {
+        sortBy: 'numImages'
+      },
+    },
+    {
+      text: '',
+      parseFunction: parseButtons,
+    }
+  ];
+  const tableClasses = ['table', 'table-striped', 'border', 'border-2', 'border-info'];
+  const fetchPatientExams = async (opts, fUrl) => {
+    maxNotesLength = 20;
+    const response = await fetch(fUrl);
+    const data = await response.json();
+    const rows = [];
+    data.data.forEach(item => {
+      rows.push([getDate(item.date), item.examiner.name, item.notes && item.notes.length ? item.notes.substring(0, Math.min(maxNotesLength, item.notes.length)) + '...' : '<empty notes>', item.hasConsultation ? 'yes' : 'no', item.images ? item.images.length : 0, {
+        id: item._id,
+        name: item.patient.name,
+        examinerId: item.examiner._id,
+        date: getDate(item.date)
+      }]);
+    });
+    opts.limit = data.limit ? data.limit : opts.limit;
+    opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+    opts.page = data.page ? data.page : opts.page;
+    return rows;
+  }
+  const tableArea = document.getElementById('dy-table');
   const patientId = '<%= patientId  %>';
   const eyeIcon = '<%- eyeIcon %>';
   const pencilIcon = '<%- pencilIcon %>';
@@ -65,14 +168,14 @@
         dobElem.textContent = getDate(data.data.dateOfBirth);
         tableArea.appendChild(placeholder);
         <% if(editMode){ %>
-            toggleEditState();
+        toggleEditState();
         <% } %>
       });
   }
 
 
   const saveChanges = (e) => {
-    if(e) e.preventDefault();
+    if (e) e.preventDefault();
     const nameInput = nameElem.querySelector('input');
     const genderSelect = genderElm.querySelector('select');
     const dobInput = dobElem.querySelector('input');
@@ -131,16 +234,37 @@
   }
 
   editButton.addEventListener('click', toggleEditState);
-
-  const tableArea = document.getElementById('dy-table');
-  window.addEventListener('tableLoaded', e => {
-    handler = e.detail.handler;
-    if (!handler.dataCount()) {
-      placeholder.textContent = 'Patient has no previous exams';
-    } else {
-      placeholder.textContent = '';
-    }
-  });
   window.addEventListener('load', getPatientData);
+  window.addEventListener('DOMContentLoaded', e => {
+    document.getElementById('history-back-btn').addEventListener('click', e => {
+      e.preventDefault();
+      window.history.back()
+    });
+    const handler = tableHandler(
+      document.getElementById('patientExams-table'),
+      'patientExams',
+      null, {
+        url: `/portal/api/patients/<%- patientId %>/examinations?`,
+        page: 1,
+        pageCount: 1,
+        limit: 5,
+        sort: {
+          sortBy: 'date',
+          asc: false,
+        },
+      },
+      fetchPatientExams,
+      tableHeaders,
+      tableClasses
+    );
+    window.addEventListener('tableLoaded', e => {
+      if (!handler.dataCount()) {
+        placeholder.textContent = 'Patient has no previous exams';
+      } else {
+        placeholder.textContent = '';
+      }
+    });
+
+  });
 </script>
 <%- include('../partials/footer') %>

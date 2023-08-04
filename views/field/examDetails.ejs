@@ -98,7 +98,7 @@
     }
   </script>
   <div class="text-center">
-    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; All Exams</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a></span><span class="float-end" id="specialist-icons-area"><a id="go-to-consultation-btn" class="btn btn-primary ms-1 d-none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="i i-add-exam" viewBox="0 0 16 16">
+    <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams?referrer=/portal/exams/<%- examId %>">&larr; Back</a></span>Exam Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn" data-bs-toggle="modal" data-bs-target="#deleteModal"><%- deleteIcon %></a></span><span class="float-end" id="specialist-icons-area"><a id="go-to-consultation-btn" class="btn btn-primary ms-1 d-none"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="i i-add-exam" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M8 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V10a.5.5 0 0 1-1 0V8.5H6a.5.5 0 0 1 0-1h1.5V6a.5.5 0 0 1 .5-.5z" />
             <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z" />
             <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z" />
@@ -199,6 +199,8 @@
   const classVal = document.getElementById('val');
   const classResult = document.getElementById('result');
   const resultModal = document.getElementById('classificationModal')
+  const referrer = new URLSearchParams(window.location.search).get('referrer');
+  confirmBack.href = `${referrer}?referrer=${window.location.pathname}`;
 
   const magnifySvg = `<%- magnifyIcon %>`;
 
@@ -350,7 +352,7 @@
       .then(data => {
         if (data.error) throw new Error(data.error);
         if (data.data.hasConsultation) {
-          consBtn.href = `/portal/exams/<%= examId %>/consultation/`
+          consBtn.href = `/portal/exams/<%= examId %>/consultation/?referrer=${window.location.pathname}`
           const consData = fetch('/portal/api/consultations?filter=examination&filterValue=_id<%= examId %>')
             .then(consResponse => consResponse.json())
             .then(consData => {
@@ -372,7 +374,7 @@
             });
 
         } else if (isSpecialist) {
-          consBtn.href = `/portal/exams/<%= examId %>/consultation/new`;
+          consBtn.href = `/portal/exams/<%= examId %>/consultation/new?referrer=${window.location.pathname}`;
           consBtn.classList.remove('d-none');
           consBtn.classList.add('btn-primary');
           consBtn.title = 'begin new consultation'
@@ -689,7 +691,11 @@
     document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
       await deleteExam();
     });
-    confirmBack.addEventListener('click', (e) => window.location.href = backBtn.href);
+    confirmBack.addEventListener('click', (e) => {
+      const params = new URLSearchParams(window.location.search);
+      const referrer = params.get('referrer');
+      window.location.href = referrer + `?referrer=${window.location.pathname}`;
+    });
     chooseFilesBtn.addEventListener('click', e => {
       e.preventDefault();
       simulateClick(examImageUpload);

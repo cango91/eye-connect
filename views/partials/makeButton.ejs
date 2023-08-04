@@ -1,13 +1,13 @@
 <script>
-    const makeButton = (innerHTML, href, ariaRole, title, dataset = []) =>{
-        const a = document.createElement('a');
-        a.href = href || '#';
-        if(ariaRole) a.ariaRoleDescription = ariaRole;
-        if(dataset.length){
-            dataset.forEach(item => a.dataset[item[0]]=item[1]);
-        }
-        if(title) a.title = title;
-        a.innerHTML = innerHTML;
-        return a;
+  const makeButton = (innerHTML, ariaRole, title, href, dataset = []) => {
+    const a = document.createElement('a');
+    a.href = href || '#';
+    if (ariaRole) a.ariaRoleDescription = ariaRole;
+    if (dataset.length) {
+      dataset.forEach(item => a.dataset[item[0]] = item[1]);
     }
+    if (title) a.title = title;
+    a.innerHTML = innerHTML;
+    return a;
+  }
 </script>
