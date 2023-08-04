@@ -38,7 +38,6 @@ const getAllFiltered = async (req, res, next) => {
             if (Object.keys(query).length > 0)
                 query = { [filter]: filterValue };
         }
-        console.log(query);
         const results = await examsService.getExamsFiltered(query, sort, collation, skip, limit);
         const pageCount = Math.ceil(results.totalCount / limit);
         res.status(200).json({

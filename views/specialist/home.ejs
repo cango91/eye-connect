@@ -261,8 +261,7 @@
   cancelBtn.innerText = 'Cancel';
 
   const parseRecentButtons = (data, td, row) => new Promise(resolve=>{
-    makeRowClickable(row, `/portal/exams/${data.examId}/consultation?referrer=${document.location.pathname}`, 'go to consultation details', 'go to consultation details');
-    console.log(data);
+    makeRowClickable(row, `/portal/consultations/${data.consId}?referrer=${document.location.pathname}`, 'go to consultation details', 'go to consultation details');
     const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete exam', title = 'delete exam');
     deleteBtn.dataset.deleteLink = `/portal/api/consultations/${data.consId}?_method=delete`;
     deleteBtn.dataset.examDate = data.date;

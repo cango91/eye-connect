@@ -70,6 +70,10 @@ router.get('/exams', authenticate.authenticate, ensureProfileComplete, authorize
 // GET /portal/exams/:id/consultation/new -> create new consultation for exam with id
 router.get('/exams/:id/consultation/new',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_NEW_CONS_PAGE'),crudLogger('View create new cons page',req=>({examId: req.params.id})),consPortallCtrl.new);
 
+// GET /portal/exams/:id/consultation -> get consultation for exam with :id
 router.get('/exams/:id/consultation',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_CONSULTATION'),crudLogger('View consultation',req=>({examId: req.params.id})),consPortallCtrl.details)
+
+// GET /portal/consultations/:id -> get single consultation with :id
+router.get('/consultations/:id',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_CONSULTATION'),crudLogger('View consultation',req=>({consId: req.params.id})),consPortallCtrl.getOne)
 
 module.exports = router;

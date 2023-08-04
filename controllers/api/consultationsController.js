@@ -74,7 +74,7 @@ const deleteOne = async (req, res, next) => {
         await consService.delete(req.params.id, req.user.id);
         res.status(200).json({ status: 204 });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         next(error);
     }
 }

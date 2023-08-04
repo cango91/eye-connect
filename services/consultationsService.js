@@ -1,11 +1,10 @@
 const Cons = require('../models/consultation');
 const eventService = require('./eventService');
 const examsService = require('./examsService');
-const imageService = require('./funduscopiesService');
+const crudLogger = require('../middlewares/crudLogger');
 const cryptoService = require('./cryptoService');
 const userService = require('./usersService');
 const ObjectId = require('mongoose').Types.ObjectId;
-
 
 const getConsultationsFiltered = async (filterBefore, sort, collation, skip, limit, filterAfter = {}) => {
     const pipeline = [
@@ -18,26 +17,26 @@ const getConsultationsFiltered = async (filterBefore, sort, collation, skip, lim
                 as: 'exam'
             },
         },
-        { $unwind: { path: '$exam' } },
-        { $unset: ['exam.images', 'exam.hasConsultation'] },
+        { $unwind: { path: '$exam', preserveNullAndEmptyArrays: true } },
+        { $unset: ['exam.images', 'exam.hasConsultation', 'exam.examiner', 'exam.patient', 'exam.consultation'] },
         {
             $lookup: {
                 from: 'patients',
-                localField: 'exam.patient',
+                localField: 'patient',
                 foreignField: '_id',
                 as: 'patient'
             }
         },
-        { $unwind: { path: '$patient' } },
+        { $unwind: { path: '$patient', preserveNullAndEmptyArrays: true } },
         {
             $lookup: {
                 from: 'users',
-                localField: 'exam.examiner',
+                localField: 'examiner',
                 foreignField: '_id',
                 as: 'examiner',
             }
         },
-        { $unwind: { path: '$examiner' } },
+        { $unwind: { path: '$examiner', preserveNullAndEmptyArrays: true } },
         { $unset: ['examiner.email', 'examiner.password', 'examiner.validationStatus', 'examiner.notifications', 'examiner.additionalInfo', 'examiner.googleId'] },
         {
             $lookup: {
@@ -59,7 +58,8 @@ const getConsultationsFiltered = async (filterBefore, sort, collation, skip, lim
     const paginatedQuery = totalQuery.slice(skip, skip + limit);
     paginatedQuery.forEach(q => {
         decryptConsNotes(q);
-        decryptConsNotes(q.exam);
+        if (q.exam) decryptConsNotes(q.exam);
+
     });
 
     return {
@@ -88,6 +88,8 @@ const createConsultationForExam = async (consData, examId) => {
         const existingCons = await Cons.findOne({ examination: new ObjectId(examId) });
         if (existingCons) throw new Error('Exam already has consultation');
         consData.examination = await examsService.findById(examId);
+        consData.patient = consData.examination.patient;
+        consData.examiner = consData.examination.examiner;
         if (consData.examination.images.length) {
             consData.images = consData.examination.images.map(e => e);
         } else {
@@ -118,7 +120,6 @@ const updateConsultation = async consultationData => {
         await cons.save();
         decryptConsNotes(cons);
         eventService.emitEvent('consultationUpdated', { consId: cons._id, examId: cons.examination, consNotes: cons.notes, retinopathyDiagnosis: cons.retinopathyDiagnosis });
-        console.log(await cons.populate('examination'));
         await userService.notifyUser((await cons.populate('examination')).examination.examiner, {
             consultation: cons._id,
             action: 'ConsUpdated',
@@ -193,8 +194,23 @@ const onExamDeleted = async eventData => {
     }
 }
 
+const onPatientDeleted = async eventData => {
+    try {
+        const cons = await Cons.find({ patient: new ObjectId(eventData.patientId) });
+        while(cons.length){
+            const c = cons.pop();
+            crudLogger('Consultation deleted', req => ({ consId: c._id, reason: 'automatic removal: patient deleted' }))({ user: {} }, {}, () => ({}));
+            await c.deleteOne();
+        }
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+}
+
 eventService.on('examDeleted', onExamDeleted);
 eventService.on('imageCreated', onImageCreated);
+eventService.on('patientDeleted', onPatientDeleted);
 
 module.exports = {
     createConsultationForExam,

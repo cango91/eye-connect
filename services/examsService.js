@@ -149,7 +149,6 @@ const onPatientDeleted = async ({ patientId }) => {
         const patientExams = await Exam.find({ patient: new ObjectId(patientId) });
         if (patientExams && patientExams.length) {
             for (let i = 0; i < patientExams.length; i++) {
-                await eventService.emitEvent('examDeleted', { examId: patientExams[i]._id, patientId: patientId });
                 crudLogger('Exam deleted', req => ({ examId: patientExams[i]._id, reason: 'automatic removal: patient deleted' }))({ user: {} }, {}, () => ({}));
             }
             await Exam.deleteMany({ patient: new ObjectId(patientId) });
@@ -190,6 +189,7 @@ const onConsultationActionFactory = (action) => {
                     const exam = await Exam.findById(examId);
                     if(!exam) throw new ExamNotFound();
                     exam.hasConsultation = true;
+                    exam.consultation = new ObjectId(consId);
                     await exam.save();
                     return;
                 } catch (error) {
@@ -202,7 +202,7 @@ const onConsultationActionFactory = (action) => {
             fn = async ({ consId, examId }) => {
                 try {
                     const exam = await Exam.findById(examId);
-                    if(!exam) throw new ExamNotFound();
+                    if(!exam) return;
                     exam.hasConsultation = false;
                     await exam.save();
                     return;
@@ -297,7 +297,7 @@ const onImageCreated = async (eventData) => {
 //             throw new ExamNotFound();
 //         return eventData.id;
 //     } catch (error) {
-//         console.log(error);
+//         console.error(error);
 //         throw error;
 //     }
 // }

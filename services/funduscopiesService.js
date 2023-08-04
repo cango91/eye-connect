@@ -3,6 +3,8 @@ const aiService = require('./aiService.js');
 const cryptoService = require('./cryptoService');
 const eventService = require('./eventService');
 const consService = require('./consultationsService');
+const examsService = require('./examsService');
+const crudLogger = require('../middlewares/crudLogger');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 const getImageById = async id => {
@@ -46,13 +48,16 @@ const create = async (data) => {
     try {
         const { buffer, contentType, examId } = data;
         if (!buffer || !contentType || !examId) throw new Error('Missing necessary information');
-        
+
         const classificationResult = await aiService.classifyImage(buffer, contentType);
         const image = { contentType, data: cryptoService.encrypt(buffer) };
 
+        const exam = await examsService.findById(examId);
+
         const funduscopy = new Funduscopy({
             image,
-            examination: new ObjectId(examId),
+            examination: exam._id,
+            patient: exam.patient
         });
 
         funduscopy.$set('classificationResult.value', classificationResult.value);
@@ -80,6 +85,7 @@ const onExamDeleted = async (eventData) => {
             for (let i = 0; i < images.length; i++) {
                 if (checkOrphaned(images[i], { checkExamination: false })) {
                     // no eventEmit since orphaned... Who'd listen to it :'(
+                    crudLogger('Funduscopy deleted', req => ({ funduscopyId: images[i]._id, reason: 'automatic removal: funduscopy orphaned' }))({ user: {} }, {}, () => ({}));
                     await images[i].deleteOne();
                 } else {
                     images[i].examination = null;
@@ -196,6 +202,7 @@ const onConsDeleted = async ({ examId, consId }) => {
         if (funduscopies && funduscopies.length) {
             for (let i = 0; i < funduscopies.length; i++) {
                 if (checkOrphaned(funduscopies[i], { checkConsultaion: false })) {
+                    crudLogger('Funduscopy deleted', req => ({ funduscopyId: funduscopies[i]._id, reason: 'automatic removal: funduscopy orphaned' }))({ user: {} }, {}, () => ({}));
                     await funduscopies[i].deleteOne();
                 } else {
                     funduscopies[i].consultation = null;
@@ -209,10 +216,25 @@ const onConsDeleted = async ({ examId, consId }) => {
     }
 }
 
+const onPatientDeleted = async ({ patientId }) => {
+    try {
+        const images = await Funduscopy.find({ patient: new ObjectId(patientId) });
+        while (images.length) {
+            const image = images.pop();
+            crudLogger('Funduscopy deleted', req => ({ funduscopyId: image._id, reason: 'automatic removal: patient deleted' }))({ user: {} }, {}, () => ({}));
+            await image.deleteOne();
+        }
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
 eventService.on('examDeleted', onExamDeleted);
 eventService.on('consultationCreated', onConsCreated);
 eventService.on('consultationDeleted', onConsDeleted);
 eventService.on('consultationUpdated', onConsUpdated);
+eventService.on('patientDeleted', onPatientDeleted);
 
 module.exports = {
     getImageById,

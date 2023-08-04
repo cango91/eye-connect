@@ -356,7 +356,6 @@
           const consData = fetch('/portal/api/consultations?filter=examination&filterValue=_id<%= examId %>')
             .then(consResponse => consResponse.json())
             .then(consData => {
-              console.log(consData.data[0])
               if (consData.error) throw new Error(consData.error);
               if (consData.data[0].consultant._id === `<%- user.id %>`) {
                 // show edit cons button
@@ -445,11 +444,12 @@
         const modal = new bootstrap.Modal(resultModal);
         classVal.innerText = value;
         classResult.innerHTML = string
-          .replace(/(POSITIVE)/g, '<b><span class="text-danger">$1</span></b>')
-          .replace(/(NEGATIVE)/g, '<b><span class="text-success">$1</span></b>')
-          .replace(/(high)/g, '<b><span class="text-success">$1</span></b>')
-          .replace(/(low)/g, '<b><span class="text-warning">$1</span></b>')
-          .replace(/(very low)/g, '<b><span class="text-danger">$1</span></b>');
+          .replace(/(POSITIVE)/gi, '<b><span class="text-danger">$1</span></b>')
+          .replace(/(NEGATIVE)/gi, '<b><span class="text-success">$1</span></b>')
+          .replace(/(very low)/gi, '<b><span class="text-danger">$1</span></b>')
+          .replace(/(high)/gi, '<b><span class="text-success">$1</span></b>')
+          .replace(/((?<!very\s)low)/gi, '<b><span class="text-warning">$1</span></b>');
+
         modal.show();
       });
 

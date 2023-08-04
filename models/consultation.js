@@ -41,6 +41,14 @@ const consultationSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Examination'
     },
+    patient: {
+        type: Schema.Types.ObjectId,
+        ref: 'Patient',
+    },
+    examiner: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+    },
     images: [{
         type: Schema.Types.ObjectId,
         ref: 'Funduscopy',

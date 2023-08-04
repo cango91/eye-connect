@@ -21,7 +21,7 @@ const crudLogger = (action, paramsFn = () => ({})) => {
                 await log.save({ validateBeforeSave: false });
                 next();
             } catch (error) {
-                console.log(error);
+                console.error(error);
                 res.redirect('/portal/home');
             }
         } catch (err) {

@@ -25,7 +25,6 @@
         throw new Error(await response.text());
       }
       const data = await response.json();
-      console.log(data.data);
       const rows = [];
       data.data.forEach(item => {
         rows.push([item.name, calculateAge(item.dateOfBirth), item.gender, item.latestExamDate ? getDate(item.latestExamDate) : 'N/A', item.numExams, {
@@ -75,7 +74,7 @@
     editPatient.className = 'btn btn-warning collapse-btn-icon';
     btns.push(editPatient);
 
-    <% if(user.role === 'MedicalDirector'){ %>
+    <% if(user.role === 'FieldHCP'){ %>
     const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete exam', title = 'delete exam');
     deleteBtn.dataset.deleteLink = `/portal/api/patients/${data.id}?_method=delete`;
     deleteBtn.dataset.patientName = data.name;

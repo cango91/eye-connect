@@ -13,7 +13,7 @@ const classifyImage = async (buffer, contentType) => {
         if (response.ok) {
             const predictionData = await response.json();
             predictionValue = predictionData.prediction[0][0];
-            console.log(`remote model predicted: ${predictionValue}`);
+            console.info(`remote model predicted: ${predictionValue}`);
         } else {
             throw new Error(`${response.status}: ` + await response.text())
         }
@@ -21,7 +21,6 @@ const classifyImage = async (buffer, contentType) => {
     } catch (error) {
         console.error(`Couldn't get prediction\n${error}`);
     }
-    console.log(predictionValue);
     return describeResult(predictionValue);
 }
 

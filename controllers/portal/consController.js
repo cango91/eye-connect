@@ -53,7 +53,38 @@ const details = (req, res, next) => {
     });
 }
 
+const getOne = (req,res,next) =>{
+    if(req.user.role === 'FieldHCP'){
+        const navigation = Utils.Field.AuthorizedNavigation('Error');
+        navigation.items.push({ text: 'Error', href: '#' });
+        res.status(403);
+        res.render('genericError',{
+            error: {
+                title: 'Unauthorized',
+                message: 'You are not authorized to view consultations by id'
+            },
+            navigation,
+        });
+    }else{
+        const navigation = Utils.Specialist.AuthorizedNavigation('Consultation Details');
+        navigation.items.push({ text: 'Consultation Details', href: '#' });
+        res.render('specialist/showCons', {
+            header: {
+                title: 'eyeConnect Portal - Consultation Details',
+                scripts: [{ file: '/js/utils.js' }]
+            },
+            navigation,
+            consId: req.params.id,
+            saveIcon: Utils.Icons.SaveIcon,
+            deleteIcon: Utils.Icons.TrashIcon,
+            magnifyIcon: Utils.Icons.MagnifyIcon,
+            resultIcon: Utils.Icons.ImageIcon,
+        });
+    }
+}
+
 module.exports = {
     new: newCons,
-    details
+    details,
+    getOne,
 }
