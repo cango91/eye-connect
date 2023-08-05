@@ -578,11 +578,11 @@
         }]);
         removePreview(target);
       } else {
-        showAlert(`Couldn't upload imag<br>${await response.text()}`);
+        showAlert(`Couldn't upload imag<br>${await response.text()}`,'danger');
       }
     } catch (error) {
       console.error(error);
-      showAlert(`Couldn't upload imag<br>${error}`);
+      showAlert(`Couldn't upload imag<br>${error}`,'danger');
     }
   }
 
