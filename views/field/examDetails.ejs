@@ -111,9 +111,9 @@
     <div class="spinner-border mt-2 text-warning" role="status">
     </div>
   </div>
+  <div class="alert alert-danger d-none"></div>
   <div id="main-div">
     <div class="container-lg">
-      <div class="alert alert-danger d-none"></div>
       <div class="alert" id="alert-div"></div>
       <div class="text-start">
         <h5><span id="examiner-name"></span></h5>
@@ -230,7 +230,8 @@
 
   const reportError = err => {
     alertDiv.classList.remove('d-none');
-    alertDiv.innerHTML = `Could not create exam<br>Reason: ${err}`;
+    loadingEl.classList.add('d-none');
+    alertDiv.innerHTML = err;
   }
 
   const fetchImages = async imageIds => {
@@ -380,7 +381,10 @@
         }
         handleExamData(data.data);
       })
-      .catch(error => reportError(error));
+      .catch(error => {
+        reportError(error);
+
+      });
   }
 
 
@@ -578,11 +582,11 @@
         }]);
         removePreview(target);
       } else {
-        showAlert(`Couldn't upload imag<br>${await response.text()}`,'danger');
+        showAlert(`Couldn't upload imag<br>${await response.text()}`, 'danger');
       }
     } catch (error) {
       console.error(error);
-      showAlert(`Couldn't upload imag<br>${error}`,'danger');
+      showAlert(`Couldn't upload imag<br>${error}`, 'danger');
     }
   }
 
@@ -630,7 +634,7 @@
   const updateSessionImages = () => {
     sessionImages = sessionImages || 0;
     if (sessionImages) {
-      [uploadAllBtn, removeAllBtn].forEach(e => e.classList.remove('d-none','disabled'));
+      [uploadAllBtn, removeAllBtn].forEach(e => e.classList.remove('d-none', 'disabled'));
       sessionImagesEl.innerText = `${sessionImages} images will be uploaded`;
     } else {
       [uploadAllBtn, removeAllBtn].forEach(e => e.classList.add('d-none'));
@@ -682,6 +686,14 @@
     });
     return target.dispatchEvent(evt);
   }
+
+  window.addEventListener('beforeunload', e => {
+    if(myExam && (notesCache !== notesEl.value || sessionImages)){
+      e.preventDefault();
+      e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+    }
+  });
+
   // ensure dom is loaded so all our references are available
   window.addEventListener('DOMContentLoaded', async (e) => {
     showLoading();
@@ -713,7 +725,7 @@
       e.target.value = null;
     });
 
-    uploadAllBtn.addEventListener('click', e=>{ 
+    uploadAllBtn.addEventListener('click', e => {
       uploadAllSession();
       uploadAllBtn.classList.add('disabled');
       removeAllBtn.classList.add('disabled');

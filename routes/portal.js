@@ -8,6 +8,7 @@ const authenticate = new AuthenticateService();
 const ensureProfileComplete = require('../middlewares/ensureProfileComplete');
 const authorize = require('../middlewares/authorize');
 const crudLogger = require('../middlewares/crudLogger');
+const notify = require('../middlewares/notification');
 const router = express.Router();
 
 // GET /portal -> if logged-in redirect to /portal/home
@@ -61,8 +62,8 @@ router.get('/patients/:id', authenticate.authenticate, ensureProfileComplete, au
 // GET patients/:id/examinations/new -> render new examination for patient with id
 router.get('/patients/:id/exams/new', authenticate.authenticate, ensureProfileComplete, authorize('ADD_EXAM'), crudLogger('Create New Exam', req => ({ patientId: req.params.id })), examsPortalCtrl.new);
 
-// GET examinations/:id/edit -> update examination with id
-router.get('/exams/:id', authenticate.authenticate, ensureProfileComplete, authorize('VIEW_EXAM_DETAILS'), crudLogger('View exam details', req => ({ examId: req.params.id })), examsPortalCtrl.details);
+// GET examinations/:id -> view/update examination with id
+router.get('/exams/:id', authenticate.authenticate, ensureProfileComplete, authorize('VIEW_EXAM_DETAILS'), crudLogger('View exam details', req => ({ examId: req.params.id })), notify, examsPortalCtrl.details);
 
 // GET /portal/exams to view owned or all examinations for Field HCP
 router.get('/exams', authenticate.authenticate, ensureProfileComplete, authorize('READ_ALL_EXAMS'), crudLogger('View Exams', req => ({ ...req.query })), examsPortalCtrl.index);
@@ -71,10 +72,10 @@ router.get('/exams', authenticate.authenticate, ensureProfileComplete, authorize
 router.get('/exams/:id/consultation/new',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_NEW_CONS_PAGE'),crudLogger('View create new cons page',req=>({examId: req.params.id})),consPortallCtrl.new);
 
 // GET /portal/exams/:id/consultation -> get consultation for exam with :id
-router.get('/exams/:id/consultation',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_CONSULTATION'),crudLogger('View consultation',req=>({examId: req.params.id})),consPortallCtrl.details)
+router.get('/exams/:id/consultation',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_CONSULTATION'),crudLogger('View consultation',req=>({examId: req.params.id})), notify ,consPortallCtrl.details)
 
 // GET /portal/consultations/:id -> get single consultation with :id
-router.get('/consultations/:id',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_CONSULTATION'),crudLogger('View consultation',req=>({consId: req.params.id})),consPortallCtrl.getOne)
+router.get('/consultations/:id',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_CONSULTATION'),crudLogger('View consultation',req=>({consId: req.params.id})), notify, consPortallCtrl.getOne)
 
 // GET /porta/consultations -> index
 router.get('/consultations',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_CONSULTATION'),crudLogger('View consultation',req=>({})),consPortallCtrl.index)

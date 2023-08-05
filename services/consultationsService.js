@@ -148,6 +148,8 @@ const deleteCons = async (id, userId) => {
         //     action: 'ConsRemoved',
         //     href: '/portal/exams/' + cons.examination._id
         // });
+        await userService.removeNotificationsFor(cons.examination);
+        //await userService.removeNotificationsFromUserFor(cons.examiner, cons.examination);
         await cons.deleteOne();
     } catch (error) {
         console.error(error);
@@ -179,7 +181,7 @@ const onImageCreated = async eventData => {
             action: 'ImageAdded', 
             resource: new ObjectId(cons._id),
             href: `/portal/consultations/${cons._id}`,
-            message: `A new image was added to an examination you consulted on ${getDate(cons.date)} of ${cons.patient.name}`,
+            message: `A new image was added to an examination you consulted on <strong>${getDate(cons.date)}</strong> of <strong>${cons.patient.name}</strong>`,
          })
     } catch (error) {
         console.error(error);
@@ -201,7 +203,7 @@ const onExamDeleted = async eventData => {
                 action: 'ExamRemoved',
                 resource: new ObjectId(cons._id),
                 href: `/portal/consultations/${cons._id}`,
-                message: `Examination for your consultation of ${cons.patient.name} (${getDate(cons.date)}) was removed by Dr. ${cons.examiner.name}`,
+                message: `Examination for your consultation of <strong>${cons.patient.name} (${getDate(cons.date)})</strong> was removed by <strong>Dr. ${cons.examiner.name}</strong>`,
             });
         }
     } catch (error) {
@@ -216,6 +218,7 @@ const onPatientDeleted = async eventData => {
         while (cons.length) {
             const c = cons.pop();
             crudLogger('Consultation deleted', req => ({ consId: c._id, reason: 'automatic removal: patient deleted' }))({ user: {} }, {}, () => ({}));
+            await userService.removeNotificationsFor(c._id);
             await c.deleteOne();
         }
     } catch (e) {
@@ -224,9 +227,29 @@ const onPatientDeleted = async eventData => {
     }
 }
 
+const onExamNotesUpdated = async ({examId}) =>{
+    try {
+        const cons = await Cons.findOne({examination: examId});
+        if(!cons) return;
+        await cons.populate('patient');
+        await cons.populate('examiner');
+        await userService.notifyUser(cons.consultant,{
+            resource: cons._id,
+            action: 'ExamNotesUpdated',
+            href: `/portal/consultations/${cons._id}`,
+            status: 'New',
+            message: `${cons.examiner.name} has updated their exam notes for your consultation of ${cons.patient.name} dated ${getDate(cons.date)}`,
+        });
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
 eventService.on('examDeleted', onExamDeleted);
 eventService.on('imageCreated', onImageCreated);
 eventService.on('patientDeleted', onPatientDeleted);
+eventService.on('examNotesUpdated', onExamNotesUpdated);
 
 module.exports = {
     createConsultationForExam,

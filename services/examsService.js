@@ -133,6 +133,8 @@ const deleteExamById = async (id, mustBeCreatedBy = null) => {
                 if (exam.examiner.toString() !== mustBeCreatedBy) throw new NotAllowed();
             }
             await eventService.emitEvent('examDeleted', { examId: exam._id, patientId: exam.patient._id });
+            await userService.removeNotificationsFor(exam._id);
+            //await userService.removeNotificationsFromUserFor(exam.examiner, exam._id);
             await exam.deleteOne();
         } else {
             throw new ExamNotFound();
@@ -151,6 +153,7 @@ const onPatientDeleted = async ({ patientId }) => {
         if (patientExams && patientExams.length) {
             for (let i = 0; i < patientExams.length; i++) {
                 crudLogger('Exam deleted', req => ({ examId: patientExams[i]._id, reason: 'automatic removal: patient deleted' }))({ user: {} }, {}, () => ({}));
+                await userService.removeNotificationsFor(patientExams[i]._id);
             }
             await Exam.deleteMany({ patient: new ObjectId(patientId) });
         }
@@ -172,7 +175,7 @@ const updateExamNotes = async (id, examData, mustBeUpdatedBy = null) => {
         encryptExamNotes(examData);
         exam.notes = examData.notes;
         await exam.save();
-        await eventService.emitEvent('examNotesUpdated', { examId: exam._id, patientId: exam.patient._id });
+        await eventService.emitEvent('examNotesUpdated', { examId: exam._id, patientId: exam.patient });
         return decryptExamNotes(exam._doc);
     } catch (err) {
         console.error(err);
@@ -209,11 +212,11 @@ const onConsultationActionFactory = (action) => {
                     await exam.save();
                     await exam.populate('patient');
                     await userService.notifyUser(exam.examiner, {
-                        consultation: exam._id,
+                        resource: exam._id,
                         action: 'ConsRemoved',
                         status: 'New',
                         href: `/portal/exams/${examId}`,
-                        message: `A consultation was removed from your exam of ${exam.patient.name} dated ${getDate(exam.date)}`,
+                        message: `A consultation was removed from your exam of <strong>${exam.patient.name}</strong> dated <strong>${getDate(exam.date)}</strong>`,
                     });
                     return;
                 } catch (error) {
@@ -234,7 +237,7 @@ const onConsultationActionFactory = (action) => {
                         action: 'ConsUpdated',
                         status: 'New',
                         href: `/portal/exams/${examId}/consultation`,
-                        message: `Consultation was added for your exam of ${exam.patient.name} dated ${getDate(exam.date)}:<br>${retinopathyDiagnosis}: ${consNotes.substring(0, Math.max(20, consNotes.length))}...`,
+                        message: `Consultation was added for your exam of <strong>${exam.patient.name}</strong> dated <strong>${getDate(exam.date)}:<br>${retinopathyDiagnosis}:</strong> ${consNotes.substring(0, Math.max(20, consNotes.length))}...`,
                     });
                     return;
                 } catch (error) {

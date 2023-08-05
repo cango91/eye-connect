@@ -57,7 +57,8 @@ const create = async (data) => {
         const funduscopy = new Funduscopy({
             image,
             examination: exam._id,
-            patient: exam.patient
+            patient: exam.patient,
+            consultation: exam.consultation,
         });
 
         funduscopy.$set('classificationResult.value', classificationResult.value);

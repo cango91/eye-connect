@@ -5,16 +5,17 @@ UsersService provides the following benefits:
  */
 const cryptoService = require('./cryptoService');
 const User = require('../models/user');
+const ObjectId = require('mongoose').Types.ObjectId;
 
 const initialLocalSignUp = async userData => {
     try {
         // Manually ensure uniqueness because we will circumvent mongoose schema enforcements
-        if (! (await isEmailUnique(userData.email))) throw new Error('Email in use');
+        if (!(await isEmailUnique(userData.email))) throw new Error('Email in use');
         // Enforce e-mail is not empty. Further validation can be added here, but since we are not actually
         // sending out an e-mail to verify it in MVP, we can treat it like a simple username
         if (!!!userData.email) throw new Error('Email is required!');
         // Enforce at least 3 characters in displayName, doesn't have to be unique
-        if (!!!userData.displayName || userData.displayName.length <3) throw new Error('Display Name must be at least 3 characters long');
+        if (!!!userData.displayName || userData.displayName.length < 3) throw new Error('Display Name must be at least 3 characters long');
         // Enforce strong password
         if (!isStrongPassword(userData.password)) throw new Error('Weak password not allowed');
         const hashedPassword = await new Promise((resolve, reject) => {
@@ -34,7 +35,7 @@ const initialLocalSignUp = async userData => {
             validationStatus: 'Incomplete',
         });
 
-        await user.save({validateBeforeSave:false});
+        await user.save({ validateBeforeSave: false });
         return user;
     } catch (err) {
         console.error(err);
@@ -53,7 +54,7 @@ const initialOAuthSignUp = async userData => {
             validationStatus: 'Incomplete',
             googleId: userData.googleId,
         });
-        await user.save({validateBeforeSave:false});
+        await user.save({ validateBeforeSave: false });
         return user;
     } catch (err) {
         console.error(err);
@@ -68,13 +69,13 @@ const completeProfile = async userData => {
         if (!user) throw new Error('User not found');
         if (!userData.name || !userData.institution || !userData.role) throw new Error('Missing personal data');
         if (userData.role === 'MedicalDirector') throw new Error('Medical Director role can not be assigned. Please contact your IT Department to be registered as director');
-        if (!userData.role in ['FieldHCP','SpecialistHCP']) throw new Error('Invalid user role');
+        if (!userData.role in ['FieldHCP', 'SpecialistHCP']) throw new Error('Invalid user role');
         user.name = userData.name;
         user.institution = userData.institution;
         user.role = userData.role
         user.validationStatus = 'PendingValidation';
         user.additionalInfo = userData.additionalInfo;
-        await user.save({validateBeforeSave: true});
+        await user.save({ validateBeforeSave: true });
         return user;
     } catch (err) {
         console.error(err);
@@ -82,10 +83,10 @@ const completeProfile = async userData => {
     }
 }
 
-const validateUser = async userId =>{
+const validateUser = async userId => {
     try {
         const user = await User.findById(userId);
-        if(!user) throw new Error('User not found');
+        if (!user) throw new Error('User not found');
         user.validationStatus = 'Validated';
         await user.save();
         return user;
@@ -94,10 +95,10 @@ const validateUser = async userId =>{
     }
 }
 
-const rejectUser = async user =>{
+const rejectUser = async user => {
     try {
         const user = await User.findById(userId);
-        if(!user) throw new Error('User not found');
+        if (!user) throw new Error('User not found');
         user.validationStatus = 'ValidationFailed';
         await user.save();
         return user;
@@ -106,15 +107,15 @@ const rejectUser = async user =>{
     }
 }
 
-const revokeUser = async user =>{
+const revokeUser = async user => {
     try {
         const user = await User.findById(userId);
-        if(!user) throw new Error('User not found');
+        if (!user) throw new Error('User not found');
         user.validationStatus = 'ValidationRevoked';
         await user.save();
         return user;
     } catch (err) {
-        console.error(err);        
+        console.error(err);
     }
 }
 
@@ -176,12 +177,63 @@ const verifyUser = async (user, password) => {
     }
 }
 
-const notifyUser = async (userId, notification) =>{
+const notifyUser = async (userId, notification) => {
     try {
         const user = await User.findById(userId);
-        if(!user) throw new Error('User not found');
-        await user.updateOne({$push: {'notifications': notification}});
-        
+        if (!user) throw new Error('User not found');
+        await user.updateOne({ $push: { 'notifications': notification } });
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+const removeNotificationsFor = async (resourceId) => {
+    resourceId = resourceId instanceof ObjectId ? resourceId : new ObjectId(resourceId);
+    try {
+        await User.updateMany(
+            {},
+            { $pull: { notifications: { resource: resourceId } } }
+        );
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+const removeNotificationsFromUserFor = async (userId, resourceId) => {
+    try {
+        resourceId = resourceId instanceof ObjectId ? resourceId : new ObjectId(resourceId);
+        userId = userId instanceof ObjectId ? userId : new ObjectId(userId)
+        await User.updateOne(
+            { _id: userId, 'notifications.resource': resourceId },
+            { $pull: { notifications: { resource: resourceId } } }
+        );
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+const acknowledgeNotificationForUser = async (userId, resourceId) => {
+    resourceId = resourceId instanceof ObjectId ? resourceId : new ObjectId(resourceId);
+    userId = userId instanceof ObjectId ? userId : new ObjectId(userId)
+    try {
+        await User.updateOne(
+            { _id: userId, 'notifications.resource': resourceId, 'notifications.status': 'New' },
+            { $set: { 'notifications.$.status': 'Acknowledged' } }
+        );
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+const getNotificationsOfUser = async userId => {
+    try {
+        const user = await User.findById(userId);
+        if (!user) throw new Error('User not found!');
+        return user.notifications;
     } catch (error) {
         console.error(error);
         throw error;
@@ -200,4 +252,8 @@ module.exports = {
     isStrongPassword,
     validateUser,
     notifyUser,
+    removeNotificationsFromUserFor,
+    removeNotificationsFor,
+    acknowledgeNotificationForUser,
+    getNotificationsOfUser,
 };

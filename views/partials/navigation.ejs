@@ -34,19 +34,44 @@
         <% }});} %>
       </ul>
       <% if(user) { %>
-        <span class="text-light"><%= navigation.active.includes('Home') ? 'Welcome, ' : '' %>Dr. <%= user.name %></span>
+      <span class="text-light"><%= navigation.active.includes('Home') ? 'Welcome, ' : '' %>Dr. <%= user.name %></span>
       <ul class="navbar-nav me-0 mb-2 mb-md-0">
         <li class="d-flex dropdown notification">
-          <a class="nav-link dropdown-toggle notification <%= user.notifications.length ? '' : 'disabled' %> " href="#" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="nav-link dropdown-toggle notification <%= user.notifications.filter(e => e.status==='New').length ? '' : 'disabled' %> " href="#" data-bs-toggle="dropdown" aria-expanded="false">
             <div class="align-self-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z" />
               </svg>
-              <span class="badge bg-danger badge-counter"><%= user.notifications.length || '' %></span>
+              <span class="badge bg-danger badge-counter"><%= user.notifications.filter(e => e.status==='New').length || '' %></span>
             </div>
           </a>
           <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
-            <li><a class="dropdown-item">Itemasda sda dsad sad adsad sd asd a 1</a> </li>
+            <% user.notifications.filter(e => e.status === 'New').forEach(notification => {%>
+            <li>
+              <a class="dropdown-item" href="<%- notification.href %>?referrer=<%- currentPath %>">
+                <div class="card card-sm bg-dark text-white">
+                  <div class="card-body">
+                    <div class="card-title">
+                      <% if (notification.action === 'ConsUpdated') { %>
+                      Consultation Added:
+                      <% } else if (notification.action === 'ConsRemoved') { %>
+                      Consultation Removed:
+                      <% } else if (notification.action === 'ImageAdded') { %>
+                      Image Added
+                      <% } else if (notification.action === 'ExamRemoved') { %>
+                      Exam Removed:
+                      <% } else if (notification.action === 'ExamNotesUpdated') { %>
+                      Exam Notes Updated:
+                      <% } %>
+                    </div>
+                    <div class="card-text text-white">
+                      <%- notification.message %>
+                    </div>
+                  </div>
+                </div>
+              </a>
+            </li>
+            <% }) %>
           </ul>
         </li>
         <li class="nav-item">

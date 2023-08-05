@@ -14,9 +14,10 @@
     <div class="spinner-border mt-2 text-warning" role="status">
     </div>
   </div>
+  <div class="alert alert-danger d-none"></div>
   <div id="main-div">
     <div class="container-lg">
-      <div class="alert alert-danger d-none"></div>
+
       <div class="alert" id="alert-div"></div>
       <div class="text-start">
         <h5>Dr. <span id="consulting-doctor-name"></span></h5>
@@ -110,7 +111,8 @@
 
   const reportError = err => {
     alertDiv.classList.remove('d-none');
-    alertDiv.innerHTML = `Could not create exam<br>Reason: ${err}`;
+    loadingEl.classList.add('d-none');
+    alertDiv.innerHTML = err;
   }
 
   const fetchImages = async imageIds => {
@@ -345,7 +347,7 @@
       classificationResult.dataset.resultStr = images[i].classificationResult.result;
       const okbtn = document.createElement('button');
       okbtn.className = 'btn btn-primary';
-      okbtn.setAttribute('data-bs-dismiss','modal');
+      okbtn.setAttribute('data-bs-dismiss', 'modal');
       okbtn.innerText = 'OK';
       classificationResult.addEventListener('click', e => {
         const target = e.target.closest('span.btn');
@@ -359,7 +361,7 @@
           .replace(/(very low)/gi, '<b><span class="text-danger">$1</span></b>')
           .replace(/(high)/gi, '<b><span class="text-success">$1</span></b>')
           .replace(/((?<!very\s)low)/gi, '<b><span class="text-warning">$1</span></b>') + `</p><p><b>Value: </b>${value}</p>`;
-        const modal = makeModal([okbtn],title,body);
+        const modal = makeModal([okbtn], title, body);
         modal.show();
       });
 
@@ -377,6 +379,12 @@
     }
   }
 
+  window.addEventListener('beforeunload', e => {
+    if (`<%- user.id %>` === consultantData._id && (consNotesEl.value !== notesCache || diagEl.value !== diagnosis)) {
+      e.preventDefault();
+      e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+    }
+  });
 
   window.addEventListener('DOMContentLoaded', async e => {
     backBtn.addEventListener('click', showUnsavedChangesConfirmation);

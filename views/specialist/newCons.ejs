@@ -43,8 +43,9 @@
       hideStatus();
       showError(response.error);
     } else {
+      const consId = response.data;
       const referrer = new URLSearchParams(window.location.search).get('referrer');
-      window.location.href = `/portal/exams/<%- examId %>/consultation?referrer=${referrer}`;
+      window.location.href = `/portal/consultations/${consId}?referrer=${referrer}`;
     }
   }
   window.addEventListener('load', redirectOrError);

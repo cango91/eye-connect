@@ -63,6 +63,7 @@ app.use((req, res, next) => {
   if (res.locals.autoValidate) {
     res.locals.autoValidateTimeout = parseInt(process.env.AUTO_VALIDATE_TIMEOUT);
   }
+  res.locals.currentPath = req.path;
   next();
 });
 
