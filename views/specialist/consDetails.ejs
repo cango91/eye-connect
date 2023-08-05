@@ -2,6 +2,7 @@
 <%- include('../partials/navigation') %>
 <%- include('../partials/imageViewer') %>
 <%- include('../partials/confirmDialog') %>
+<%- include('../partials/dynamicModal') %>
 <main class="container-xl mt-5 py-4 bg-light shadow-lg rounded">
   <div class="text-center">
     <h3><span class="float-start"><a id="confirm-back-btn" class="btn btn-secondary" href="/portal/exams">&larr; Back</a></span>Consultation Details<span class="float-end" id="icons-area"><a class="btn btn-success ms-1" id="save-btn"><%- saveIcon %></a><a class="btn btn-danger ms-1" id="delete-btn"><%- deleteIcon %></a></span></h3>
@@ -337,12 +338,39 @@
       magnifyIcon.addEventListener('click', e => {
         enlargeImage(img.src, noteText = consNotesEl.value, showNoteArea = true, noteAreaDisabled = `<%- user.id %>` !== consultantData._id, updateLocalNotes);
       });
+
+      const classificationResult = createAndStyleIcon(ICON_DIMS, `<%- resultIcon %>`, 'btn', 'border', 'border-dark', 'border-2', 'btn-info', 'm-1');
+      classificationResult.role = "view automatic classification result"
+      classificationResult.dataset.resultVal = images[i].classificationResult.value;
+      classificationResult.dataset.resultStr = images[i].classificationResult.result;
+      const okbtn = document.createElement('button');
+      okbtn.className = 'btn btn-primary';
+      okbtn.setAttribute('data-bs-dismiss','modal');
+      okbtn.innerText = 'OK';
+      classificationResult.addEventListener('click', e => {
+        const target = e.target.closest('span.btn');
+        const value = target.dataset.resultVal;
+        const string = target.dataset.resultStr;
+        //const modal = new bootstrap.Modal(resultModal);
+        const title = 'Automatic classification results'
+        const body = '<p>' + string
+          .replace(/(POSITIVE)/gi, '<b><span class="text-danger">$1</span></b>')
+          .replace(/(NEGATIVE)/gi, '<b><span class="text-success">$1</span></b>')
+          .replace(/(very low)/gi, '<b><span class="text-danger">$1</span></b>')
+          .replace(/(high)/gi, '<b><span class="text-success">$1</span></b>')
+          .replace(/((?<!very\s)low)/gi, '<b><span class="text-warning">$1</span></b>') + `</p><p><b>Value: </b>${value}</p>`;
+        const modal = makeModal([okbtn],title,body);
+        modal.show();
+      });
+
       const thumbnailContainer = document.createElement('div');
       thumbnailContainer.className = 'position-relative d-flex';
 
       let container = document.createElement('div');
       container.className = 'position-absolute d-flex flex-column justify-content-start';
       container.appendChild(magnifyIcon);
+      container.appendChild(classificationResult);
+
 
       thumbnailContainer.appendChild(img);
       thumbnailContainer.appendChild(container);

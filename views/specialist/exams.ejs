@@ -1,0 +1,198 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navigation') %>
+<%- include('../partials/makeButton') %>
+<%- include('../partials/makeRowClickable') %>
+<%- include('../partials/dismissableAlert') %>
+<%- include('../partials/dynamicModal') %>
+<main class="container-xxl mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="text-center mb-3">
+    <h2>Examinations Awaiting Consultations</h2>
+  </div>
+  <div class="container-lg">
+    <div class="table-responsive" id="awaitingCons-table"></div>
+  </div>
+</main>
+<div id="toggleContainer" class="float-end">
+  <span><b>showing:</b> all exams </span>
+  <label class="form-switch">
+    <input class="form-check-input" type="checkbox" id="toggleSwitch">
+    <span class="switch-icon"></span>
+  </label>
+  <span> exams with funduscopies</span>
+</div>
+<script>
+  const createThumbnailContainer = () => {
+    thumbnailContainer = document.createElement('div');
+    thumbnailContainer.className = 'position-relative d-flex';
+    return thumbnailContainer;
+  }
+
+  const bufferToB64 = (bufferArray, contentType) => {
+    const uint8Array = new Uint8Array(bufferArray);
+    const blob = new Blob([uint8Array], {
+      type: contentType
+    });
+    const reader = new FileReader();
+
+    return new Promise((resolve, reject) => {
+      reader.onloadend = () => {
+        resolve(reader.result);
+      };
+
+      reader.onerror = () => {
+        reject(new Error('Error while reading the buffer.'));
+      };
+      reader.readAsDataURL(blob);
+    });
+  }
+  // Awaiting Consultations table data
+  const tableClasses = ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'];
+  const fetchAwaitingCons = async (opts, fUrl) => {
+    try {
+      const response = await fetch(fUrl);
+      const data = await response.json();
+      const rows = [];
+      data.data.forEach(item => {
+        rows.push([item.images ? {
+          image: item.images[0]
+        } : {
+          image: null
+        }, getDate(item.date), item.patient.name, calculateAge(item.patient.dateOfBirth), item.images ? item.images.length : 0, {
+          examId: item._id
+        }]);
+      });
+      opts.limit = data.limit ? data.limit : opts.limit;
+      opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+      opts.page = data.page ? data.page : opts.page;
+      return rows;
+    } catch (e) {
+      showAlert(`Couldn't fetch awaiting consultations<br>${e}`, 'danger');
+    }
+  }
+  const parseAwaitingBtn = (data, td, row) => {
+    makeRowClickable(row, `/portal/exams/${data.examId}?referrer=${window.location.pathname}`, 'go to exam details', 'go to exam details');
+    const newCons = makeButton(`<%- paperIcon %>`, 'add a new consultation for this exam', 'add a new consultation for this exam', `/portal/exams/${data.examId}/consultation/new?referrer=${window.location.pathname}`);
+    newCons.className = 'btn btn-primary';
+    td.appendChild(newCons);
+    row.appendChild(td);
+    return new Promise(res => res());
+  }
+
+  const parseAwaitingImages = ({
+    image
+  }, td, _) => {
+    new Promise((resolve, reject) => {
+      if (!image) resolve();
+      if (typeof(image) === 'undefined') {
+        td.textContent = '<no images>';
+        resolve();
+        return;
+      }
+      const spinner = document.createElement('div');
+      spinner.className = 'spinner-border text-warning';
+      spinner.style.zIndex = 2;
+      td.appendChild(spinner);
+
+      fetch('/portal/api/funduscopies/' + image)
+        .then(response => {
+          td.removeChild(spinner);
+          if (response.ok) {
+            const container = createThumbnailContainer();
+            response.json().then((data) => {
+              const imageData = data.data.image;
+              bufferToB64(imageData.data.data, imageData.contentType).then((decoded) => {
+                const img = document.createElement('img');
+                img.className = 'img-thumbnail';
+                img.style.maxWidth = '150px'
+                img.style.maxHeight = '75px'
+                img.src = decoded;
+                td.appendChild(img);
+              });
+
+            })
+          } else {
+            error = document.createElement('div');
+            error.className = 'alert alert-danger';
+            td.appendChild(error);
+            reject();
+          }
+        }).catch(reject);
+    });
+  }
+
+  const awaitingConsTableHeaders = [{
+      text: '',
+      parseFunction: parseAwaitingImages,
+    },
+    {
+      text: 'Exam Date',
+      sort: {
+        sortBy: 'date'
+      }
+    },
+    {
+      text: 'Patient',
+      sort: {
+        sortBy: 'patient.name'
+      },
+    },
+    {
+      text: 'Age',
+      sort: {
+        sortBy: 'patient.dateOfBirth',
+        reversed: true
+      }
+    },
+    {
+      text: '# Images',
+      sort: {
+        sortBy: 'numImages'
+      }
+    },
+    {
+      text: '',
+      parseFunction: parseAwaitingBtn,
+    }
+  ];
+  window.addEventListener('DOMContentLoaded', e => {
+    const toggler = document.getElementById('toggleSwitch');
+    const handler = tableHandler(
+      document.getElementById('awaitingCons-table'),
+      'awaitingCons',
+      'Exams Awaiting Consultations', {
+        url: `/portal/api/examinations?filter=hasConsultation&filterValue=false&hasImages=true`,
+        page: 1,
+        pageCount: 1,
+        limit: 10,
+        sort: {
+          sortBy: 'date',
+          asc: true,
+        },
+      },
+      fetchAwaitingCons,
+      awaitingConsTableHeaders,
+      tableClasses
+    );
+    const cp = handler.table.querySelector('caption');
+    toggler.checked = handler.getOpts().url.match(/(?<=\?hasImages=true)|(?<=&hasImages=true)/) ? true : false;
+    cp.appendChild(toggleContainer);
+    toggler.addEventListener('click', evt => {
+      // do not prevent default, current .checked state is what we want to upload table data with
+      handler.table.dataset.page = '1';
+
+      // Remove existing ?filter= or &filter= and ?filterValue or &filterValue string from the URL
+      let updatedUrl = handler.getOpts().url.replace(/(\?|&)(hasImages=true)/, '');
+      if (toggler.checked) {
+        // Add ?filterValue=myId&filter=examiner to the URL
+        const separator = updatedUrl.includes('?') ? '&' : '?';
+        updatedUrl += separator + 'hasImages=true'
+      }
+      handler.setOpts({
+        url: updatedUrl,
+        page: 1
+      });
+      handler.populateTable();
+    });
+  });
+</script>
+<%- include('../partials/footer') %>

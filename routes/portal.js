@@ -76,4 +76,7 @@ router.get('/exams/:id/consultation',authenticate.authenticate, ensureProfileCom
 // GET /portal/consultations/:id -> get single consultation with :id
 router.get('/consultations/:id',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_CONSULTATION'),crudLogger('View consultation',req=>({consId: req.params.id})),consPortallCtrl.getOne)
 
+// GET /porta/consultations -> index
+router.get('/consultations',authenticate.authenticate, ensureProfileComplete, authorize('VIEW_CONSULTATION'),crudLogger('View consultation',req=>({})),consPortallCtrl.index)
+
 module.exports = router;

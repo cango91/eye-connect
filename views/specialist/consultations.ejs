@@ -1,0 +1,217 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navigation') %>
+<%- include('../partials/makeButton') %>
+<%- include('../partials/makeRowClickable') %>
+<%- include('../partials/dismissableAlert') %>
+<%- include('../partials/dynamicModal') %>
+<main class="container-xxl mt-5 py-4 bg-light shadow-lg rounded">
+  <div class="text-center mb-3">
+    <h2>Completed Consultations</h2>
+  </div>
+  <div class="container-lg">
+    <div class="table-responsive" id="allCons-table"></div>
+  </div>
+</main>
+<div id="toggleContainer" class="float-end">
+  <span><b>showing:</b> all </span>
+  <label class="form-switch">
+    <input class="form-check-input" type="checkbox" id="toggleSwitch">
+    <span class="switch-icon"></span>
+  </label>
+  <span> mine</span>
+</div>
+<script>
+  const maxNotesLength = 20;
+  const tableClasses = ['table', 'table-striped', 'caption-top', 'border', 'border-2', 'border-info'];
+  const fetchAllConsultations = async (opts, fUrl) => {
+    try {
+      const response = await fetch(fUrl);
+      const data = await response.json();
+      const rows = [];
+      data.data.forEach(item => {
+        rows.push([getDate(item.date), item.patient.name, item.retinopathyDiagnosis, item.exam && item.exam.notes && item.exam.notes.length ? item.exam.notes.substring(0, Math.min(maxNotesLength, item.exam.notes.length)) + '...' : '<no exam notes>', item.notes && item.notes.length ? item.notes.substring(0, Math.min(maxNotesLength, item.notes.length)) + '...' : '<no consultation notes>', item.consultant.name, item.examiner.name, {
+          examId: item.examination,
+          consId: item._id,
+          date: getDate(item.date),
+          name: item.patient.name,
+          consultant: item.consultant._id,
+        }]);
+      });
+      opts.limit = data.limit ? data.limit : opts.limit;
+      opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
+      opts.page = data.page ? data.page : opts.page;
+      return rows;
+    } catch (e) {
+      showAlert(`Couldn't fetch recent consultations<br>${e}`, 'danger');
+    }
+  }
+  const parseDiagnosis = (val, td) => new Promise((resolve, reject) => {
+    if (!val) {
+      td.textContent = "<no diagnosis>";
+      resolve("<no diagnosis>");
+    }
+    switch (val) {
+      case 'NoApparentDR':
+        td.textContent = 'No DR';
+        resolve('No DR');
+        break;
+      case 'MildNPDR':
+        td.textContent = "Mild NPDR";
+        resolve('Mild NDPR');
+        break;
+      case 'ModerateNPDR':
+        td.textContent = "Moderate NDPR";
+        resolve('Moderate NPDR');
+        break;
+      case 'SevereNPDR':
+        td.textContent = "Severe NPDR";
+        resolve("Severe NPDR");
+        break;
+      case 'PDR':
+        td.textContent = "Proliferative DR";
+        resolve("Proliferative DR");
+        break;
+      default:
+        reject();
+    }
+  });
+
+  const confirmDeleteBtn = document.createElement('button');
+  confirmDeleteBtn.className = 'btn btn-danger';
+  confirmDeleteBtn.addEventListener('click', async e => {
+    const url = e.target.dataset.deleteLink;
+    try {
+      response = await fetch(url, {
+        method: 'post'
+      });
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        showAlert(`Couldn't delete exam: <br>${(await response.json()).error}`, 'danger');
+      }
+    } catch (error) {
+      showAlert(error, 'danger');
+    }
+  });
+
+  confirmDeleteBtn.innerText = 'Delete';
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-secondary';
+  cancelBtn.setAttribute('data-bs-dismiss', 'modal');
+  cancelBtn.innerText = 'Cancel';
+
+  const parseButtons = (data, td, row) => new Promise(resolve => {
+    makeRowClickable(row, `/portal/consultations/${data.consId}?referrer=${document.location.pathname}`, 'go to consultation details', 'go to consultation details');
+    if (data.consultant === `<%- user.id %>`) {
+      const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete consultation', title = 'delete consultation');
+      deleteBtn.dataset.deleteLink = `/portal/api/consultations/${data.consId}?_method=delete`;
+      deleteBtn.dataset.examDate = data.date;
+      deleteBtn.dataset.patientName = data.name;
+      deleteBtn.className = 'btn btn-danger';
+      deleteBtn.style.zIndex = 2;
+      deleteBtn.addEventListener('click', e => {
+        e.preventDefault();
+        const target = e.target.closest('[data-delete-link]')
+        confirmDeleteBtn.dataset.deleteLink = target.dataset.deleteLink;
+        const title = `You're about to delete the consultation dated ${target.dataset.examDate}`;
+        const msg = `<p>You are about to permanently delete the consultation of <strong>${target.dataset.patientName}</strong> dated <strong>${target.dataset.examDate}</strong>. This action is not reversible.</p><p>Are you sure you want to continue?</p>`;
+        const confirmModal = makeModal([cancelBtn, confirmDeleteBtn], title, msg);
+        confirmModal.show();
+      });
+      td.appendChild(deleteBtn);
+    }
+    row.appendChild(td);
+    resolve();
+  });
+
+  const allConsTableHeaders = [{
+      text: 'Cons. Date',
+      sort: {
+        sortBy: 'date'
+      }
+    },
+    {
+      text: 'Patient',
+      sort: {
+        sortBy: 'patient.name'
+      }
+    },
+    {
+      text: 'DR diagnosis',
+      sort: {
+        sortBy: 'retinopathyDiagnosis'
+      },
+      parseFunction: parseDiagnosis,
+    },
+    {
+      text: 'Exam notes',
+    },
+    {
+      text: 'Cons. notes',
+    },
+    {
+      text: 'Consultant',
+      sort: {
+        sortBy: 'consultant.name'
+      }
+    },
+    {
+      text: 'Examiner',
+      sort: {
+        sortBy: 'examiner.name'
+      }
+    },
+    {
+      text: '',
+      parseFunction: parseButtons,
+    }
+  ];
+
+  window.addEventListener('DOMContentLoaded', e => {
+    const toggleContainer = document.getElementById('toggleContainer');
+    const toggler = document.getElementById('toggleSwitch');
+    const allConsHandler = tableHandler(
+      document.getElementById('allCons-table'),
+      'allCons',
+      'All Consultations', {
+        url: `/portal/api/consultations?filter=consultant&filterValue=_id<%- user.id %>`,
+        page: 1,
+        pageCount: 1,
+        limit: 10,
+        sort: {
+          sortBy: 'date',
+          asc: false,
+        }
+      },
+      fetchAllConsultations,
+      allConsTableHeaders,
+      tableClasses
+    );
+    const cp = allConsHandler.table.querySelector('caption');
+    toggler.checked = allConsHandler.getOpts().url.match(/(?<=\?filter=)[^&]+|(?<=&filter=)[^&]+/) && allConsHandler.getOpts().url.match(/(?<=\?filterValue=)[^&]+|(?<=&filterValue=)[^&]+/) ? true : false;
+    cp.appendChild(toggleContainer);
+    toggler.addEventListener('click', evt => {
+      // do not prevent default, current .checked state is what we want to update table data with
+      allConsHandler.table.dataset.page = '1';
+      let updatedUrl;
+      // Remove existing ?filter= or &filter= and ?filterValue or &filterValue string from the URL
+      updatedUrl = allConsHandler.getOpts().url.replace(/(\?|&)(filter=)[^&]+/, '');
+      updatedUrl = updatedUrl.replace(/(\?|&)(filterValue=)[^&]+/, '');
+      if (toggler.checked) {
+        // Add ?filterValue=myId&filter=examiner to the URL
+        const separator = updatedUrl.includes('?') ? '&' : '?';
+        updatedUrl += separator + 'filterValue=_id' + '<%- user.id %>';
+        updatedUrl += '&filter=consultant';
+        allConsHandler.setCaption('My Consultations');
+      } else {
+        allConsHandler.setCaption('All Consultations');
+      }
+      allConsHandler.setOpts({
+        url: updatedUrl,
+        page: 1
+      });
+      allConsHandler.populateTable();
+    });
+  });
+</script>
+<%- include('../partials/footer') %>

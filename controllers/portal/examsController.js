@@ -10,7 +10,14 @@ const index = async (req, res, next) => {
             trashIcon: Utils.Icons.TrashIcon,
         });
     } else if (req.user.role === 'SpecialistHCP') {
-
+        res.render('specialist/exams', {
+            header: {
+                title: 'eyeConnect Portal - Exams Awaiting Consultations',
+                scripts: [{ file: '/js/utils.js' }, { file: '/js/tableComponent.js' }]
+            },
+            navigation: Utils.Specialist.AuthorizedNavigation('Portal', 'Awaiting Consultations'),
+            paperIcon: Utils.Icons.PaperIcon,
+        });
     } else {
 
     }

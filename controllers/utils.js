@@ -53,7 +53,7 @@ module.exports = class Utils {
             TableHeaders: [
                 {
                     text: 'Cons. Date',
-                    sort: { sortBy: 'data' }
+                    sort: { sortBy: 'date' }
                 },
                 {
                     text: 'Patient',

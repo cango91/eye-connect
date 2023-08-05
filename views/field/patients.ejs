@@ -74,7 +74,7 @@
     editPatient.className = 'btn btn-warning collapse-btn-icon';
     btns.push(editPatient);
 
-    <% if(user.role === 'FieldHCP'){ %>
+    <% if(user.role === 'MedicalDirector'){ %>
     const deleteBtn = makeButton(`<%- trashIcon %>`, ariaRole = 'delete exam', title = 'delete exam');
     deleteBtn.dataset.deleteLink = `/portal/api/patients/${data.id}?_method=delete`;
     deleteBtn.dataset.patientName = data.name;

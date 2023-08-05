@@ -220,6 +220,7 @@ const tableHandler = (
         return new Promise(async (resolve, reject) => {
             let fUrl = fetchOptions.url;
             if (fetchOptions.sort?.sortBy) {
+                if(!fUrl.match(/\?/)) fUrl += '?';
                 fUrl += '&sortBy=' + fetchOptions.sort.sortBy + '&order=';
                 let sortAsc = fetchOptions.sort.asc;
                 if (fetchOptions.sort.reversed) sortAsc = !sortAsc;
