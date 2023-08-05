@@ -1,0 +1,13 @@
+<%- include('./partials/header') %>
+<div class="container text-center mt-5">
+    <div class="spinner-border text-danger"></div>
+    <div>Please wait while you are being redirected. <a href="<%- user ? '/portal' : '/about' %>">Click here</a> if you are not automatically redirected</div>
+</div>
+<script>
+  <% if(user){ %>
+    window.location.href = '/portal';
+  <% } else { %>
+  window.location.href = '/about';
+  <% } %>
+</script>
+<%- include('./partials/footer') %>
