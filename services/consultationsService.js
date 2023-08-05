@@ -5,6 +5,7 @@ const crudLogger = require('../middlewares/crudLogger');
 const cryptoService = require('./cryptoService');
 const userService = require('./usersService');
 const ObjectId = require('mongoose').Types.ObjectId;
+const getDate = require('../controllers/utils').getDate;
 
 const getConsultationsFiltered = async (filterBefore, sort, collation, skip, limit, filterAfter = {}) => {
     const pipeline = [
@@ -120,11 +121,13 @@ const updateConsultation = async consultationData => {
         await cons.save();
         decryptConsNotes(cons);
         eventService.emitEvent('consultationUpdated', { consId: cons._id, examId: cons.examination, consNotes: cons.notes, retinopathyDiagnosis: cons.retinopathyDiagnosis });
-        await userService.notifyUser((await cons.populate('examination')).examination.examiner, {
-            consultation: cons._id,
-            action: 'ConsUpdated',
-            href: '/portal/exams/' + cons.examination._id + '/consultation'
-        });
+        // if (cons.examination) {
+        //     await userService.notifyUser(cons.examiner, {
+        //         consultation: cons._id,
+        //         action: 'ConsUpdated',
+        //         href: '/portal/exams/' + cons.examination._id + '/consultation'
+        //     });
+        // }
         return cons;
     } catch (error) {
         console.error(error);
@@ -140,11 +143,11 @@ const deleteCons = async (id, userId) => {
             if (cons.consultant.toString() !== userId) throw new Error('Not Authorized');
         }
         eventService.emitEvent('consultationDeleted', { consId: cons._id, examId: cons.examination });
-        if (cons.examination) userService.notifyUser((await cons.populate('examination')).examination.examiner, {
-            consultation: cons._id,
-            action: 'ConsRemoved',
-            href: '/portal/exams/' + cons.examination._id
-        });
+        // if (cons.examination) userService.notifyUser((await cons.populate('examination')).examination.examiner, {
+        //     consultation: cons._id,
+        //     action: 'ConsRemoved',
+        //     href: '/portal/exams/' + cons.examination._id
+        // });
         await cons.deleteOne();
     } catch (error) {
         console.error(error);
@@ -171,7 +174,13 @@ const onImageCreated = async eventData => {
         const cons = await Cons.findOne({ 'examination': eventData.examId });
         if (!cons) return;
         await cons.updateOne({ $push: { 'images': new ObjectId(eventData.imageId) } });
-        await userService.notifyUser(cons.consultant, { action: 'ImageAdded', consultation: new ObjectId(cons._id) })
+        await cons.populate('patient');
+        await userService.notifyUser(cons.consultant, { 
+            action: 'ImageAdded', 
+            resource: new ObjectId(cons._id),
+            href: `/portal/consultations/${cons._id}`,
+            message: `A new image was added to an examination you consulted on ${getDate(cons.date)} of ${cons.patient.name}`,
+         })
     } catch (error) {
         console.error(error);
         throw error;
@@ -184,9 +193,16 @@ const onExamDeleted = async eventData => {
         const cons = await Cons.findOne({ 'examination': new ObjectId(eventData.examId) });
         if (cons) {
             const consultant = await userService.getUserById(cons.consultant);
-            await userService.notifyUser(consultant, { action: 'ExamRemoved', consultation: new ObjectId(cons._id) });
             cons.examination = null;
             cons.save();
+            await cons.populate('patient');
+            await cons.populate('examiner');
+            await userService.notifyUser(consultant, {
+                action: 'ExamRemoved',
+                resource: new ObjectId(cons._id),
+                href: `/portal/consultations/${cons._id}`,
+                message: `Examination for your consultation of ${cons.patient.name} (${getDate(cons.date)}) was removed by Dr. ${cons.examiner.name}`,
+            });
         }
     } catch (error) {
         console.error(error);
@@ -197,7 +213,7 @@ const onExamDeleted = async eventData => {
 const onPatientDeleted = async eventData => {
     try {
         const cons = await Cons.find({ patient: new ObjectId(eventData.patientId) });
-        while(cons.length){
+        while (cons.length) {
             const c = cons.pop();
             crudLogger('Consultation deleted', req => ({ consId: c._id, reason: 'automatic removal: patient deleted' }))({ user: {} }, {}, () => ({}));
             await c.deleteOne();

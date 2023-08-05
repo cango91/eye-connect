@@ -3,7 +3,7 @@ const examsService = require('../../services/examsService');
 const eventService = require('../../services/eventService');
 const Types = require('mongoose').Types;
 
-let examsCountCache = null;
+
 const MAX_LIMIT = parseInt(process.env.MAX_LIMIT);
 
 const getAllFiltered = async (req, res, next) => {
@@ -78,7 +78,6 @@ const deleteOne = async (req, res, next) => {
         const ensureOwnership = req.user.role !== 'MedicalDirector';
         await examsService.deleteExamById(req.params.id, ensureOwnership ? req.user.id : false);
         res.status(200).json({ status: 204 });
-        examsCountCache = null;
     } catch (err) {
         console.error(err);
         if (err.name === 'ExamNotFound')
@@ -100,8 +99,7 @@ const updateOne = async (req, res, next) => {
         next(err);
     }
 }
-eventService.on('examCreated', async () => examsCountCache = null);
-eventService.on('examDeleted', async () => examsCountCache = null);
+
 module.exports = {
     getAll,
     getOne,

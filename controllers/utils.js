@@ -1,11 +1,14 @@
 /* 
-REFACTOR THIS!
+
 Provides static objects for controllers' convenience
-Mostly dynamic table's fetch and sort functions.
-Should figure out a better way to do this!
+
 */
 
 module.exports = class Utils {
+    static getDate = date => {
+        date = new Date(date);
+        return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`;
+    }
     static Icons = {
         EyeIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="i i-view-patient" viewBox="0 0 16 16"> <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/> <path d="M0 8s3-5.5 8-5.5S16 8 16 8s-3 5.5-8 5.5S0 8 0 8zm8 3.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/> </svg>`,
         PaperIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="i i-add-exam" viewBox="0 0 16 16"> <path fill-rule="evenodd" d="M8 5.5a.5.5 0 0 1 .5.5v1.5H10a.5.5 0 0 1 0 1H8.5V10a.5.5 0 0 1-1 0V8.5H6a.5.5 0 0 1 0-1h1.5V6a.5.5 0 0 1 .5-.5z"/> <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2z"/> <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1H1z"/> </svg>`,
@@ -48,95 +51,6 @@ module.exports = class Utils {
             }],
             active: current,
         }),
-        RecentConsultations: {
-            URL: id => `/portal/api/consultations?filter=consultant&filterValue=_id${id}`,
-            TableHeaders: [
-                {
-                    text: 'Cons. Date',
-                    sort: { sortBy: 'date' }
-                },
-                {
-                    text: 'Patient',
-                    sort: { sortBy: 'exam.patient.name' }
-                },
-                {
-                    text: 'DR diagnosis',
-                    sort: { sortBy: 'retinopathyDiagnosis' },
-                    parseFunction: `(val,td)=> new Promise((resolve, reject) => {
-                        if(!val){
-                            td.textContent = "<no diagnosis>";
-                            resolve("<no diagnosis>");
-                        }
-                        switch(val){
-                            case 'NoApparentDR':
-                                td.textContent = 'No DR';
-                                resolve('No DR');
-                                break;
-                            case 'MildNPDR':
-                                td.textContent = "Mild NPDR";
-                                resolve('Mild NDPR');
-                                break;
-                            case 'ModerateNPDR':
-                                td.textContent = "Moderate NDPR";
-                                resolve('Moderate NPDR');
-                                break;
-                            case 'SevereNPDR':
-                                td.textContent = "Severe NPDR";
-                                resolve("Severe NPDR");
-                                break;
-                            case 'PDR':
-                                td.textContent = "Proliferative DR";
-                                resolve("Proliferative DR");
-                                break;
-                            default:
-                                reject()
-
-                        }
-                    });`,
-                },
-                {
-                    text: '',
-                    parseFunction: `(val,td) => new Promise(resolve => {
-                        const svg = '${Utils.Icons.PencilIcon}';
-                        const a = document.createElement('a');
-                        a.href = '/portal/exams/' + val + '/consultation';
-                        a.className = 'btn btn-warning';
-                        a.innerHTML = svg;
-                        a.title = 'edit your consultation';
-                        td.appendChild(a);
-                        resolve();
-                    });`,
-                }
-            ],
-            FetchFunction: `(opts)=>{
-                return new Promise((res,err)=>{
-                    let fUrl = opts.url;
-                    if(opts.sort?.sortBy){
-                        fUrl += '&sortBy=' + opts.sort.sortBy + '&order=';
-                        let sortAsc = opts.sort.asc;
-                        if(opts.sort.reversed) sortAsc = !sortAsc;
-                        fUrl += sortAsc ? 'ascending' : 'descending';
-                        if(parseInt(opts.limit)>0){
-                            fUrl += '&limit=' + parseInt(opts.limit) + '&page=' + parseInt(opts.page);
-                        }
-                    }
-                    
-                    fetch(fUrl)
-                    .then(response => response.json())
-                    .then(data => {
-                        const rows = [];
-                        data.data.forEach(item => {
-                            rows.push([ getDate(item.date), item.patient.name, item.retinopathyDiagnosis, item.examination ],
-                            );
-                        });
-                        opts.limit = data.limit ? data.limit : opts.limit;
-                        opts.pageCount = data.pageCount ? data.pageCount : opts.pageCount;
-                        opts.page = data.page ? data.page : opts.page;
-                        res(rows);
-                    });
-                });
-        }`,
-        },
     }
 
     static Field = {

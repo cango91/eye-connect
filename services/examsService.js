@@ -6,6 +6,7 @@ const userService = require('./usersService');
 const crudLogger = require('../middlewares/crudLogger');
 const ObjectId = require('mongoose').Types.ObjectId;
 const resourceLockService = require('./resourceLockService');
+const getDate = require('../controllers/utils').getDate;
 
 const getExamsOfPatient = async patientId => {
     try {
@@ -181,13 +182,13 @@ const updateExamNotes = async (id, examData, mustBeUpdatedBy = null) => {
 
 const onConsultationActionFactory = (action) => {
     let fn;
-    // TODO add consultation change functions
     switch (action) {
         case 'added':
             fn = async ({ examId, consId }) => {
                 try {
                     const exam = await Exam.findById(examId);
-                    if(!exam) throw new ExamNotFound();
+                    // if an exam was deleted before a cons was added, the cons shouldn't be able to be added
+                    if (!exam) throw new ExamNotFound();
                     exam.hasConsultation = true;
                     exam.consultation = new ObjectId(consId);
                     await exam.save();
@@ -202,9 +203,18 @@ const onConsultationActionFactory = (action) => {
             fn = async ({ consId, examId }) => {
                 try {
                     const exam = await Exam.findById(examId);
-                    if(!exam) return;
+                    // exam may be deleted after a cons was added, do not throw
+                    if (!exam) return;
                     exam.hasConsultation = false;
                     await exam.save();
+                    await exam.populate('patient');
+                    await userService.notifyUser(exam.examiner, {
+                        consultation: exam._id,
+                        action: 'ConsRemoved',
+                        status: 'New',
+                        href: `/portal/exams/${examId}`,
+                        message: `A consultation was removed from your exam of ${exam.patient.name} dated ${getDate(exam.date)}`,
+                    });
                     return;
                 } catch (error) {
                     console.error(error);
@@ -213,8 +223,24 @@ const onConsultationActionFactory = (action) => {
             }
             break;
         case 'updated':
-            fn = async ({ }) => {
-
+            fn = async ({ examId, consNotes, retinopathyDiagnosis }) => {
+                try {
+                    if (!examId) return;
+                    const exam = await Exam.findById(examId);
+                    if (!exam) throw ExamNotFound();
+                    await exam.populate('patient')
+                    await userService.notifyUser(exam.examiner, {
+                        resource: exam._id,
+                        action: 'ConsUpdated',
+                        status: 'New',
+                        href: `/portal/exams/${examId}/consultation`,
+                        message: `Consultation was added for your exam of ${exam.patient.name} dated ${getDate(exam.date)}:<br>${retinopathyDiagnosis}: ${consNotes.substring(0, Math.max(20, consNotes.length))}...`,
+                    });
+                    return;
+                } catch (error) {
+                    console.error(error);
+                    throw error;
+                }
             }
             break;
     }
