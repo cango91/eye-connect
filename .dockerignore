@@ -1,0 +1,6 @@
+docs/
+readme.md
+.slugignore
+seed.js
+.sync_env.sh
+node_modules
