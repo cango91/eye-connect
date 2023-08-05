@@ -630,7 +630,7 @@
   const updateSessionImages = () => {
     sessionImages = sessionImages || 0;
     if (sessionImages) {
-      [uploadAllBtn, removeAllBtn].forEach(e => e.classList.remove('d-none'));
+      [uploadAllBtn, removeAllBtn].forEach(e => e.classList.remove('d-none','disabled'));
       sessionImagesEl.innerText = `${sessionImages} images will be uploaded`;
     } else {
       [uploadAllBtn, removeAllBtn].forEach(e => e.classList.add('d-none'));
@@ -713,7 +713,11 @@
       e.target.value = null;
     });
 
-    uploadAllBtn.addEventListener('click', uploadAllSession);
+    uploadAllBtn.addEventListener('click', e=>{ 
+      uploadAllSession();
+      uploadAllBtn.classList.add('disabled');
+      removeAllBtn.classList.add('disabled');
+    });
     removeAllBtn.addEventListener('click', removeAllSession);
 
 

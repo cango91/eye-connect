@@ -1,6 +1,8 @@
 const fundusService = require('../../services/funduscopiesService.js');
 const eventService = require('../../services/eventService.js');
-const processing = new Map();
+
+// this will be used to avoid race conditions and duplicate record creation during an image upload/analysis/creation. This is not to say a funduscopy with the exact same image and examId can not exist. As long as one record finishes creating, this can be the case (i.e. examiner uploads the same image during an exam, but they will have to explicitly do this once an upload is completed; conversely if they spam the upload function for an image already being uploaded, they will receive a 400 response)
+const processing = new Map();   
 
 const getSingleFunduscopy = async (req, res, next) => {
     try {
@@ -17,7 +19,7 @@ const create = async (req,res,next) =>{
         const key = `${req.body.examId}_${req.file.mimetype}_${req.file.buffer.toString('base64')}`;
         
         if(processing.has(key)){
-            return res.status(400).json({error: "Already processing this image for the exam"});
+            return res.status(400).send("Already processing this image for the exam");
         }
 
         processing.set(key, true);
