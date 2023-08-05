@@ -1,18 +1,41 @@
 <%- include('./partials/header') %>
 <%- include('./partials/navigation') %>
-<main class="container mt-5 py-4 bg-light shadow-lg rounded">
-    <div class="text-center">
-      <h1>About eyeConnect</h1>
+<div class="container mt-2">
+  <div class="card bg-secondary text-white shadow">
+    <div class="accordion" id="disclaimerAccordion">
+      <div class="accordion-item">
+        <h2 class="accordion-header text-white" id="disclaimerHeading">
+          <button class="accordion-button bg-secondary text-white" type="button" data-bs-toggle="collapse" data-bs-target="#disclaimerCollapse" aria-expanded="true" aria-controls="disclaimerCollapse">
+            DISCLAIMER
+          </button>
+        </h2>
+        <div id="disclaimerCollapse" class="accordion-collapse collapse show" aria-labelledby="disclaimerHeading" data-bs-parent="#disclaimerAccordion">
+          <div class="card-body bg-light">
+            <p class="card-text text-center">This portfolio app demonstrates basic CRUD operations in a full-stack MEN application. It is not a production-ready medical application, and all contents are publicly accessible. Please add content responsibly, as all content is user-generated and should not be considered medical advice.</p>
+            <p class="card-text text-center">You are welcome to explore the functionalities. Proceed to the Login page, declare your status as a healthcare provider, and sign in using Google or basic authentication (email/password). Note: email validation is not implemented as there is no mail server in place.</p>
+            <p class="card-text text-center">Upon signing up, a message will indicate that a medical director will validate your account. This is merely a feature showcase; your account will be automatically validated in approximately 10 seconds, and the page will redirect.</p>
+          </div>
+          <div class="card-footer text-center">For more information about the application, user guide and list of  features please visit the <a target="_blank" href="https://github.com/cango91/eye-connect">GitHub</a> page.</div>
+        </div>
+      </div>
     </div>
-    <div class="container-fluid mt-4">
-      <p>eyeConnect is a telemedicine application specifically developed with a focus on ophthalmology, designed to facilitate asynchronous communication and collaboration between volunteer healthcare providers and ophthalmology specialists. The main aim of eyeConnect is to combat preventable blindness due to retinopathy, which is a common issue in underdeveloped regions. This is achieved through the early detection and diagnosis of diabetic retinopathy using funduscopy.</p>
-      <p>In its operation, the platform enables healthcare volunteers in remote areas to upload fundus images, or retinal scans, onto the platform. Ophthalmology specialists from around the world can then log in at their convenience, view these images, and provide their expertise by adding consultation notes to each image. These consultative notes assist field doctors in confirming or revising their initial assessments and deciding the best course of action for the patient.</p>
-      <img width="350px" class="img-fluid my-3 float-sm-start me-sm-3 mb-md-0" src="/images/00202-2728922680.webp" alt="close-up photo of an eye examination">
-      <p>To assist field doctors with initial diagnoses, eyeConnect incorporates an automated image classification tool. This feature provides a first line categorization of the fundus images based on its recognition algorithms. However, it is crucial to understand that this is a supportive feature, and it is recommended that all diagnoses are confirmed by ophthalmology specialists who use the platform.</p>
-      <p>Notifications are a vital part of this asynchronous process. When an ophthalmology specialist provides a consultation note for an uploaded fundus image, the field doctor who uploaded the image is notified. This way, even though the process isn't happening in real-time, the system ensures timely updates and continuous information flow.</p>
-      <p>By facilitating this seamless connection and knowledge exchange between healthcare providers and ophthalmology specialists, eyeConnect aims to help mitigate the lack of specialized eye care resources in underdeveloped regions. The ultimate goal is to significantly reduce the instances of preventable blindness across the globe.</p>
-      <img width="350px" class="img-fluid my-3 mx-sm-auto d-sm-block d-md-inline" src="/images/00216-3324428627.webp" alt="Photo of 2 volunteering doctors">
-      <img width="350px" class="img-fluid my-3 mx-sm-auto d-sm-block d-md-inline" src="/images/00211-2949685012.webp" alt="Close-up of old patient's eye">
-    </div>
-  </main>
+
+
+  </div>
+</div>
+<main class="container mt-4 py-4 bg-light shadow-lg rounded">
+  <div class="text-center">
+    <h1>About eyeConnect</h1>
+  </div>
+  <div class="container-fluid mt-4">
+    <p>eyeConnect is a telemedicine application specifically developed with a focus on ophthalmology, designed to facilitate asynchronous communication and collaboration between volunteer healthcare providers and ophthalmology specialists. The main aim of eyeConnect is to combat preventable blindness due to retinopathy, which is a common issue in underdeveloped regions. This is achieved through the early detection and diagnosis of diabetic retinopathy using funduscopy.</p>
+    <p>In its operation, the platform enables healthcare volunteers in remote areas to upload fundus images, or retinal scans, onto the platform. Ophthalmology specialists from around the world can then log in at their convenience, view these images, and provide their expertise by adding consultation notes to each image. These consultative notes assist field doctors in confirming or revising their initial assessments and deciding the best course of action for the patient.</p>
+    <img width="350px" class="img-fluid my-3 float-sm-start me-sm-3 mb-md-0" src="/images/00202-2728922680.webp" alt="close-up photo of an eye examination">
+    <p>To assist field doctors with initial diagnoses, eyeConnect incorporates an automated image classification tool. This feature provides a first line categorization of the fundus images based on its recognition algorithms. However, it is crucial to understand that this is a supportive feature, and it is recommended that all diagnoses are confirmed by ophthalmology specialists who use the platform.</p>
+    <p>Notifications are a vital part of this asynchronous process. When an ophthalmology specialist provides a consultation note for an uploaded fundus image, the field doctor who uploaded the image is notified. This way, even though the process isn't happening in real-time, the system ensures timely updates and continuous information flow.</p>
+    <p>By facilitating this seamless connection and knowledge exchange between healthcare providers and ophthalmology specialists, eyeConnect aims to help mitigate the lack of specialized eye care resources in underdeveloped regions. The ultimate goal is to significantly reduce the instances of preventable blindness across the globe.</p>
+    <img width="350px" class="img-fluid my-3 mx-sm-auto d-sm-block d-md-inline" src="/images/00216-3324428627.webp" alt="Photo of 2 volunteering doctors">
+    <img width="350px" class="img-fluid my-3 mx-sm-auto d-sm-block d-md-inline" src="/images/00211-2949685012.webp" alt="Close-up of old patient's eye">
+  </div>
+</main>
 <%- include('./partials/footer') %>
