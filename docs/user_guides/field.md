@@ -68,6 +68,8 @@ When you begin a new exam, (you may briefly see a loading page) an empty exam fo
 ![navbar update-exam](./images/field_15.png)
 
 <blockquote>
-Notice that even though you have just started a new examination, navbar will say `Update Exam`. That is because once you click new exam in anywhere in the app, an empty exam will be created. If you had not intended to create an exam at this point, please make sure to use the trash icon (![trash icon](./images/trash_btn.png)) to delete the exam record.
+Notice that even though you have just started a new examination, navbar will say `Update Exam`. That is because once you click new exam in anywhere in the app, an empty exam will be created. If you had not intended to create an exam at this point, please make sure to use the trash icon (<img src="./images/trash_btn.png" alt="trash icon">) to delete the exam record.
+
+Also note that your notes will <b>NOT</b> automatically save. Once you make changes, be sure to save them using the save button (<img src="./images/save_btn.png" alt="save icon">) next to the delete icon, on the top right of the exam card.
 </blockquote>
 
