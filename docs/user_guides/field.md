@@ -1,12 +1,12 @@
 # User Guide - Field HCP
 
-# Table of Contents
+## Table of Contents
 - [Basic Navigation & Home Screen](#basic-navigation-&-home-screen)
 - [Patients Page](#patients-page)
   - [Patient Details](#patient-details)
   - [New Patient](#new-patient)
 - [Exams](#exams)
-  - [New Exam / Edit Exam](#new-exam-/-edit-exam)
+  - [New Exam / Edit Exam](#new-exam--edit-exam)
   - [View Exam](#view-exam)
   - [View consultation](#view-consultation)
   - [View All Exams](#view-all-exams)
