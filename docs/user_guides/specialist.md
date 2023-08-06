@@ -7,6 +7,8 @@
   - [Viewing Exams](#viewing-exams)
   - [New Consultation / Edit Consultation](#new-consultation--edit-consultation)
   - [Viewing Consultations](#viewing-consultation)
+- [Exams Awaiting Consultations](#exams-awaiting-consultations)
+- [Notifications](#notifications)
 
 ## Basic Navigation & Home Screen
 
@@ -60,6 +62,15 @@ Once you are done taking down your notes, be sure to select a diagnosis for reti
 In order to be able to save <img src="./images/save_btn.png" alt="save icon"> your consultation notes, you must provide <b>both notes and a diagnosis.</b>
 </blockquote>
 
+Although discouraged, a primary examiner might delete their examination for any reason, even if it has a consultation. In such a case, as the specialist you will still have access to your consultation notes, along with any fundus imagery associated with it, but you will no longer be able to view the primary examiner's notes.
+<blockquote>
+If an examination is deleted and it has no consultation, the images uploaded for that exam will automatically be deleted. However if it has an associated consultation, the images will only be deleted if the consultation is deleted too by the consultant.
+
+The only exception is if a `Medical Director`, for any reason, deletes a patient record altogether. In that case all medical data (exams, consultations, funduscopies) for that particular patient will be deleted from the system, and you won't be able to access them any longer.
+</blockquote>
+
+![deleted exam](./images/spec_08.png)
+
 ### Viewing Consultation
 
 When viewing a consultation you have previously created, you will be able to update your notes and diagnosis. This will notify the examiner about the changes.
@@ -67,3 +78,19 @@ When viewing a consultation you have previously created, you will be able to upd
 ![other's consultation](./images/spec_07.png)
 
 When viewing consultation notes created by another consultant, you won't be able to edit notes, update diagnosis or delete the consultation.
+
+To view all completed consultations, either completed by you or other consultants, you can use the navigation bar `Portal>Completed Consultations` or click `view all consultations` link on your home page. Either option will take you to the Completed Consultations page (even-though the title says **completed** any consultations created but that were not updated with notes and diagnosis will also be listed.) Use the toggler to the top right of the table to list only your own consultations or all consultations. Clicking on any row of the table will take you to that consultation's details view. You can use the trash icon (![trash icon](./images/trash_btn.png)) as a shortcut to delete consultations belonging to you.
+
+![all consultations](./images/spec_09.png)
+
+## Exams Awaiting Consultations
+
+You can click on the `view all exams awaiting consultations` link on your home page or use the navigation `Portal>Awaiting Consultations` to view a full list of all examinations without consultations. Just like in your home page view, you can use the toggler on the top right of the table to include or exclude exams that don't have fundus images. Clicking on any row in this table will take you to the exam details page for that record. You can use the begin consultation icon (![begin cons icon](./images/notes_btn.png)) to begin a new consultation for that particular exam.
+
+![all awaiting consultations](./images/spec_10.png)
+
+## Notifications
+
+To the right side of the navbar, you will see a bell-icon. It will have a red badge with a number if you have any new notifications (you will receive notifications if an exam you have completed a consultation for is updated, images were added, or if it was deleted). Clicking the bell icon will expand your notifications. Clicking on an exapanded notification will take you to the relevant resource page.
+
+![notifications](./images/spec_11.png)
