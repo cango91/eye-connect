@@ -52,7 +52,7 @@
   }
   const parsePatients = (data, td, row) => new Promise(resolve => {
     makeRowClickable(row, `/portal/patients/${data.patientId}?referrer=${window.location.pathname}`, "go to patient details");
-    const newExam = makeButton(`<%- paperIcon %>` , 'begin a new exam for patient', 'begin a new exam patient',`/portal/patients/${data.patientId}/exams/new?referrer=/portal`);
+    const newExam = makeButton(`<%- paperIcon %>` , 'begin a new exam for this patient', 'begin a new exam for this patient',`/portal/patients/${data.patientId}/exams/new?referrer=/portal`);
     newExam.className = 'btn btn-primary';
     td.appendChild(newExam);  
     row.appendChild(td);
