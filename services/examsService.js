@@ -237,7 +237,7 @@ const onConsultationActionFactory = (action) => {
                         action: 'ConsUpdated',
                         status: 'New',
                         href: `/portal/exams/${examId}/consultation`,
-                        message: `Consultation was added for your exam of <strong>${exam.patient.name}</strong> dated <strong>${getDate(exam.date)}:<br>${retinopathyDiagnosis}:</strong> ${consNotes.substring(0, Math.max(20, consNotes.length))}...`,
+                        message: `Consultation was added for your exam of <strong>${exam.patient.name}</strong> dated <strong>${getDate(exam.date)}:<br>${retinopathyDiagnosis}:</strong> ${consNotes.substring(0, Math.min(20, consNotes.length))}...`,
                     });
                     return;
                 } catch (error) {

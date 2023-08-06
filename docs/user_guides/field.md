@@ -93,5 +93,15 @@ For anyone wanting to implement such a system for actual medical use-case, I wou
 </blockquote>
 
 ### View Exam
-When you are viewing the details of an exam you have not created, you will not be able to edit notes, or upload new images.
+When you are viewing the details of an exam you have not created, you will not be able to edit notes, or upload new images, however you will be able to view their notes, uploaded images and consultation (if any). Use the eye icon (![eye icon](./images/eye_btn.png)) to navigate to consultation notes.
 
+![view other md's exam details](./images/field_19.png)
+
+### View consultation
+![view consultation details](./images/field_20.png)
+When viewing consultation details, you will be able to view any notes added by the consultant, the consultant's name, the patient demographics info as usual, and additionally a diagnosis towards diabetic retinopathy under the patient info. This diagnosis is assigned by the consultant as opposed to automatic image classification.
+
+Note that when viewing the consultation details, you will not be able to edit your notes, even if the examination belongs to you. You can go back to exam details page to edit your notes, or upload new images. Doing so will also send the current consultant a notification, so they can check what you have uploaded/added/redacted and modify their notes and/or diagnosis.
+<blockquote>
+Even though it is possible to delete your examination at this point (when a consultant has added their consultation), it is discouraged for sake of professional integrity and deontology. If you choose to delete your examination however, the consultant will no longer be able to see your exam notes, but they will still have access to the retina images you had provided with the examination.
+</blockquote>
