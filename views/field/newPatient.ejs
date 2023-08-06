@@ -88,9 +88,10 @@
         alertDiv.classList.remove('d-none');
       } else {
         const id = response.data._id;
+        const referral = new URLSearchParams(window.location.search).get('referrer') || '/portal'
         const redirectUrl = event.target === saveBtn ?
-          `/portal/patients/${id}` :
-          `/portal/patients/${id}/exams/new`;
+          `/portal/patients/${id}?referrer=${referral}` :
+          `/portal/patients/${id}/exams/new?referrer=/portal/patients/${id}`;
         window.location.href = redirectUrl;
       }
     }

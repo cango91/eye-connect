@@ -1,4 +1,17 @@
 # User Guide - Field HCP
+
+# Table of Contents
+- [Basic Navigation & Home Screen](#basic-navigation-&-home-screen)
+- [Patients Page](#patients-page)
+  - [Patient Details](#patient-details)
+  - [New Patient](#new-patient)
+- [Exams](#exams)
+  - [New Exam / Edit Exam](#new-exam-/-edit-exam)
+  - [View Exam](#view-exam)
+  - [View consultation](#view-consultation)
+  - [View All Exams](#view-all-exams)
+
+
 ## Basic Navigation & Home Screen
 
 ![navbar screenshot](./images/field_1.png)
@@ -59,6 +72,10 @@ In this page you will see basic information of patient, as well as a complete li
 
 The edit icon (![edit icon](./images/edit_btn.png)) will make the patient demographics (name, sex and date of birth) editable and turn into a checkmark (![check icon](./images/check_btn.png)). Click the checkmark after making any changes to persist them. Clicking the notes icon (![notes icon](./images/notes_btn.png)) will begin a new exam for the patient.
 
+### New Patient
+![new patient page](./images/field_22.png)
+Use this screen to create a new patient. After filling the required information (name, sex and date of birth), you can either `save` the patient, which will take you to the details page of the newly created patient, or `save and start new exam` to directly begin an examination for the newly created patient. 
+
 ## Exams
 ### New Exam / Edit Exam
 ![new exam page](./images/field_14.png)
@@ -105,3 +122,8 @@ Note that when viewing the consultation details, you will not be able to edit yo
 <blockquote>
 Even though it is possible to delete your examination at this point (when a consultant has added their consultation), it is discouraged for sake of professional integrity and deontology. If you choose to delete your examination however, the consultant will no longer be able to see your exam notes, but they will still have access to the retina images you had provided with the examination.
 </blockquote>
+
+### View All Exams
+![all exams screen](./images/field_21.png)
+
+This is where you can see all exams (both created by you and other field HCPs) in one place. Use the toggler on the upper right corner to filter only your exams or all exams. Click on a row to go to exam details. Use the trash icon shortcut to delete an exam belonging to you.

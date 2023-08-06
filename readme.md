@@ -61,6 +61,8 @@ For further instructions and guidance for each user type please see the relevant
 - JS/EJS
 - HTML/CSS/Bootstrap
 - Stable Diffusion <small>(for Banner image, site logo and images on the about page)</small>
+- Tensorflow/Keras/OpenCV <small>(for image classifier)</small>
+- Python/Flask/Nginx/cert-bot <small>(for image classifier deployment on DigitalOcean)</small>
 
 ## Icebox Features
 - ~~Implement notifications~~
@@ -68,3 +70,5 @@ For further instructions and guidance for each user type please see the relevant
 - Implement admin panel
 - Add commenting feature to share thoughts on other specialists consultation notes
 - Implement back-end resource-locking or similar pattern to prevent race-conditions (currently only image upload uses a simple pattern for race condition avoidance and duplicate upload prevention)
+- Implement sorting by multiple fields for data tables
+- Implement more robust and generalized filtering and query

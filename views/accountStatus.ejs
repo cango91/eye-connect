@@ -18,6 +18,7 @@
       <h3>Your account is <span id="validation-status">pending validation</span></h3>
       <div class="alert alert-info" id="validation-alertbox">
         <p id="validation-message">Your account is pending review from a Medical Director. Please check back later.</p>
+        <p id="userguide-recommend">In the meantime you may consider checking out the <a target="_blank" href="https://github.com/cango91/eye-connect/blob/main/docs/user_guides/<%- user.role==='FieldHCP' ? 'field' : 'specialist' %>.md">User Guide</a> to familiarize yourself with the user interface and features.</p>
       </div>
     </div>
     <% } %>
@@ -37,6 +38,7 @@
           document.getElementById('validation-status').classList.add('text-success');
           document.getElementById('validation-alertbox').classList.remove('alert-info');
           document.getElementById('validation-alertbox').classList.add('alert-success');
+          document.getElementById('userguide-recommend').classList.add('d-none');
           document.getElementById('validation-message').innerText = 'Your account has just been validated. This page will automatically refresh to take you to your homepage. Or you can manually reload the page';
           setTimeout(() => {
             location.reload();
