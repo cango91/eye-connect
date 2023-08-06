@@ -15,6 +15,9 @@
     <% footerNav.forEach(navItem =>{ %>
     <li class="nav-item"><a href="<%= navItem.href %>" class="nav-link px-2 <%= navigation.active.includes(navItem.text) ? 'active' : '' %> "><%= navItem.text %></a></li>
     <% }); %>
+    <% if(user) {%>
+      <li class="nav-item"><a target="_blank" href="https://github.com/cango91/eye-connect/tree/main/docs/user_guides/<%- user.role==='FieldHCP' ? 'field' : 'specialist' %>.md" class="nav-link px-2">User Guide</a></li>
+      <% } %>
   </ul>
   <% }} %>
 </footer>

@@ -46,7 +46,7 @@
             </div>
           </a>
           <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
-            <% user.notifications.filter(e => e.status === 'New').forEach(notification => {%>
+            <% user.notifications.filter(e => e.status === 'New').sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt)).forEach(notification => {%>
             <li>
               <a class="dropdown-item" href="<%- notification.href %>?referrer=<%- currentPath %>">
                 <div class="card card-sm bg-dark text-white">
