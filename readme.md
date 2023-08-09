@@ -64,6 +64,9 @@ For further instructions and guidance for each user type please see the relevant
 - Tensorflow/Keras/OpenCV <small>(for image classifier)</small>
 - Python/Flask/Nginx/cert-bot <small>(for image classifier deployment on DigitalOcean)</small>
 
+## Roadmap
+[See the roadmap on Trello](https://trello.com/b/eDQ1cBfY/eyeconnect)
+
 ## Icebox Features
 - ~~Implement notifications~~
 - ~~Implement an image-classifier for immediate pre-feedback to the field HCPs~~
