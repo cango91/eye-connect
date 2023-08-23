@@ -30,6 +30,22 @@ a {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
+  background-attachment: fixed;
+  position: relative;
+  background-position-y: -150px;
+}
+
+@media (max-width: 1399.98px) {
+  .banner {
+    width: 100%;
+    height: 350px;
+    background-image: url('/images/banner.webp');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: scroll;
+    position: relative;
+  }
 }
 
 .container {
